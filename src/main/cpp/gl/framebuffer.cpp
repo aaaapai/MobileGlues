@@ -122,7 +122,7 @@ void glDrawBuffer(GLenum buf) {
         GLint maxAttachments;
         GLES.glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
 
-        if (buffer == GL_NONE) {
+        if (buf == GL_NONE) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
                 buffers[i] = GL_NONE;
