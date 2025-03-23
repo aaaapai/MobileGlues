@@ -14,7 +14,7 @@ extern int initialized;
     
 int config_refresh();
 int config_get_int(const char* name);
-char* config_get_string(char* name);
+const char* config_get_string(char* name);
 void config_cleanup();
 
 #ifdef __cplusplus
