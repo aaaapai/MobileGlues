@@ -28,9 +28,8 @@ extern "C" {
 #ifndef APIENTRYP
 #define APIENTRYP APIENTRY *
 #endif
-#ifndef
-GLAPI
-#define GLAPI __attribute__((visibility("default")))
+#ifndef GLAPI
+#define GLAPI extern
 #endif
 
 /* glcorearb.h is for use with OpenGL core profile implementations.
@@ -5984,6 +5983,40 @@ typedef void (APIENTRYP PFNGLNAMEDFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC) (GLuint fr
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glFramebufferTextureMultiviewOVR (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
 GLAPI void APIENTRY glNamedFramebufferTextureMultiviewOVR (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
+
+#define GL_2_BYTES				0x1407
+#define GL_3_BYTES				0x1408
+#define GL_4_BYTES				0x1409
+
+#define GL_TEXTURE_COORD_ARRAY_SIZE		0x8088
+#define GL_TEXTURE_COORD_ARRAY_TYPE		0x8089
+#define GL_TEXTURE_COORD_ARRAY_STRIDE		0x808A
+#define GL_EDGE_FLAG_ARRAY_STRIDE		0x808C
+#define GL_VERTEX_ARRAY_POINTER			0x808E
+#define GL_NORMAL_ARRAY_POINTER			0x808F
+#define GL_COLOR_ARRAY_POINTER			0x8090
+#define GL_INDEX_ARRAY_POINTER			0x8091
+#define GL_TEXTURE_COORD_ARRAY_POINTER		0x8092
+#define GL_EDGE_FLAG_ARRAY_POINTER		0x8093
+#define GL_VERTEX_ARRAY_SIZE			0x807A
+#define GL_VERTEX_ARRAY_TYPE			0x807B
+#define GL_VERTEX_ARRAY_STRIDE			0x807C
+#define GL_NORMAL_ARRAY_TYPE			0x807E
+#define GL_NORMAL_ARRAY_STRIDE			0x807F
+#define GL_COLOR_ARRAY_SIZE			0x8081
+#define GL_COLOR_ARRAY_TYPE			0x8082
+#define GL_COLOR_ARRAY_STRIDE			0x8083
+#define GL_INDEX_ARRAY_TYPE			0x8085
+#define GL_INDEX_ARRAY_STRIDE			0x8086
+#define GL_VERTEX_ARRAY				0x8074
+#define GL_NORMAL_ARRAY				0x8075
+#define GL_COLOR_ARRAY				0x8076
+#define GL_INDEX_ARRAY				0x8077
+#define GL_TEXTURE_COORD_ARRAY			0x8078
+#define GL_EDGE_FLAG_ARRAY			0x8079
+
+#define GL_POLYGON				0x0009
+#define GL_QUAD_STRIP				0x0008
 #endif
 #endif /* GL_OVR_multiview */
 
