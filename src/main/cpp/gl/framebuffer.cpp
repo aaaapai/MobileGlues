@@ -100,7 +100,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     CHECK_GL_ERROR
 }
 
-void glDrawBuffer(GLenum buffer) {
+void glDrawBuffer(GLenum buf) {
     LOG()
 
     GLint currentFBO;
