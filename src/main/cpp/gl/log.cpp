@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <mutex>
 
+#include "gl.h"
 #include "glcorearb.h"
 
 #define CASE(e) \
