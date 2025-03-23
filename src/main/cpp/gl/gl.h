@@ -779,7 +779,7 @@ GLAPI void GLAPIENTRY glClipPlane( GLenum plane, const GLdouble *equation );
 
 GLAPI void GLAPIENTRY glGetClipPlane( GLenum plane, GLdouble *equation );
 
-GLAPI void GLAPIENTRY glDrawBuffer( GLenum mode );
+// GLAPI void GLAPIENTRY glDrawBuffer( GLenum mode );
 
 GLAPI void GLAPIENTRY glReadBuffer( GLenum mode );
 
@@ -2042,7 +2042,7 @@ typedef void (APIENTRYP PFNGLMULTITEXCOORD4SVARBPROC) (GLenum target, const GLsh
 
 #else  /* GL_GLEXT_LEGACY */
 
-#include <GL/glext.h>
+#include "glext.h"
 
 #endif  /* GL_GLEXT_LEGACY */
 
