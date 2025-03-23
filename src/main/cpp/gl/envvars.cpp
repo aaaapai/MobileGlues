@@ -1,5 +1,5 @@
 #include "envvars.h"
-#include "gl.h"
+#include "glcorearb.h"
 #include "glext.h"
 #include "../includes.h"
 #include <cstdio>
