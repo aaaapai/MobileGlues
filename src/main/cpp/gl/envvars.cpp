@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstdarg>
 
+#undef GLAPI
+#define GLAPI __attribute__((visibility("default")))
+
 const char* GetEnvVar(const char *name)
 {
 	return getenv(name);
