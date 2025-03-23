@@ -29,7 +29,7 @@ extern "C" {
 #define APIENTRYP APIENTRY *
 #endif
 #ifndef GLAPI
-#define GLAPI extern
+#define GLAPI __attribute__((visibility("default")))
 #endif
 
 /* glcorearb.h is for use with OpenGL core profile implementations.
