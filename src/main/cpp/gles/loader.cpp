@@ -8,7 +8,7 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "../gl/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
@@ -369,7 +369,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjectuiv)
     INIT_GLES_FUNC(glUnmapBuffer)
     INIT_GLES_FUNC(glGetBufferPointerv)
-    INIT_GLES_FUNC(glDrawBuffers)
+//    INIT_GLES_FUNC(glDrawBuffers)
     INIT_GLES_FUNC(glUniformMatrix2x3fv)
     INIT_GLES_FUNC(glUniformMatrix3x2fv)
     INIT_GLES_FUNC(glUniformMatrix2x4fv)

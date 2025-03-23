@@ -6,7 +6,6 @@
 #define MOBILEGLUES_VERTEXATTRIB_H
 
 #include "../includes.h"
-#include "gl.h"
 #include "glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -16,12 +15,12 @@
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-GLAPI GLAPIENTRY void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
+GLAPI APIENTRY void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+GLAPI APIENTRY void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
 
-GLAPI GLAPIENTRY void glVertexAttribI1ui(GLuint index, GLuint x);
-GLAPI GLAPIENTRY void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
-GLAPI GLAPIENTRY void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
+GLAPI APIENTRY void glVertexAttribI1ui(GLuint index, GLuint x);
+GLAPI APIENTRY void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
+GLAPI APIENTRY void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
 
 #ifdef __cplusplus
 }

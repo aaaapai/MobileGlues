@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_FRAMEBUFFER_H
 #define MOBILEGLUES_FRAMEBUFFER_H
 
-#include "gl.h"
+#include "glcorearb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,17 +25,17 @@ struct framebuffer_t {
 
 GLint getMaxDrawBuffers();
 
-GLAPI GLAPIENTRY void glBindFramebuffer(GLenum target, GLuint framebuffer);
+GLAPI APIENTRY void glBindFramebuffer(GLenum target, GLuint framebuffer);
 
-GLAPI GLAPIENTRY void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+GLAPI APIENTRY void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 
-GLAPI GLAPIENTRY void glDrawBuffer(GLenum buf);
+GLAPI APIENTRY void glDrawBuffer(GLenum buf);
 
-GLAPI GLAPIENTRY void glDrawBuffers(GLsizei n, const GLenum *bufs);
+GLAPI APIENTRY void glDrawBuffers(GLsizei n, const GLenum *bufs);
 
-GLAPI GLAPIENTRY void glReadBuffer(GLenum src);
+GLAPI APIENTRY void glReadBuffer(GLenum src);
 
-GLAPI GLAPIENTRY GLenum glCheckFramebufferStatus(GLenum target);
+GLAPI APIENTRY GLenum glCheckFramebufferStatus(GLenum target);
 
 #ifdef __cplusplus
 }
