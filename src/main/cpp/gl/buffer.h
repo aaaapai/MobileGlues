@@ -30,15 +30,15 @@ extern "C" {
 
 static GLenum get_binding_query(GLenum target);
 
-GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
+GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
 
-GLAPI GLAPIENTRY void *glMapBuffer(GLenum target, GLenum access);
+GLAPI APIENTRY void *glMapBuffer(GLenum target, GLenum access);
 
-GLAPI GLAPIENTRY void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+GLAPI APIENTRY void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 
-GLAPI GLAPIENTRY void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
+GLAPI APIENTRY void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
 
-GLAPI GLAPIENTRY void glBindBuffer(GLenum target, GLuint buffer);
+GLAPI APIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
 #ifdef __cplusplus
 }
