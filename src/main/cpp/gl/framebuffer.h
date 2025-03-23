@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_FRAMEBUFFER_H
 #define MOBILEGLUES_FRAMEBUFFER_H
 
-#include "gl.h"
+#include "glcorearb.h"
 
 #ifdef __cplusplus
 extern "C" {
