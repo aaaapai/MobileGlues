@@ -15,9 +15,9 @@
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void glVertexAttribI1ui(GLuint index, GLuint x);
-GLAPI GLAPIENTRY void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
-GLAPI GLAPIENTRY void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
+GLAPI APIENTRY void glVertexAttribI1ui(GLuint index, GLuint x);
+GLAPI APIENTRY void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
+GLAPI APIENTRY void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
 
 #ifdef __cplusplus
 }
