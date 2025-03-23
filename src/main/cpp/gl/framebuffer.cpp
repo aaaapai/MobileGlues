@@ -108,11 +108,11 @@ void glDrawBuffer(GLenum buf) {
 
     if (currentFBO == 0) {
         GLenum buffers[1] = {GL_NONE};
-        switch (buffer) {
+        switch (buf) {
             case GL_FRONT:
             case GL_BACK:
             case GL_NONE:
-                buffers[0] = buffer;
+                buffers[0] = buf;
                 GLES.glDrawBuffers(1, buffers);
                 break;
             default:
@@ -128,11 +128,11 @@ void glDrawBuffer(GLenum buf) {
                 buffers[i] = GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
-        } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
-                   buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
+        } else if (buf >= GL_COLOR_ATTACHMENT0 &&
+                   buf < GL_COLOR_ATTACHMENT0 + maxAttachments) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
-                buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
+                buffers[i] = (i == (buf - GL_COLOR_ATTACHMENT0)) ? buf : GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         }
