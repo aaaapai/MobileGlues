@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "gl.h"
+#include "glcorearb.h"
 
 struct texture_t {
     GLenum target;
