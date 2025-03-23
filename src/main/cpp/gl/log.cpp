@@ -9,6 +9,7 @@
 #include <mutex>
 
 #include "gl.h"
+#include "glext.h"
 #include "glcorearb.h"
 
 #define CASE(e) \
