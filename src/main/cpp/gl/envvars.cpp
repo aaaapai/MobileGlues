@@ -1,4 +1,5 @@
 #include "envvars.h"
+#include "gl.h"
 #include "glext.h"
 #include "../includes.h"
 #include <cstdio>
