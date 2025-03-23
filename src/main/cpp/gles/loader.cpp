@@ -369,7 +369,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjectuiv)
     INIT_GLES_FUNC(glUnmapBuffer)
     INIT_GLES_FUNC(glGetBufferPointerv)
-    INIT_GLES_FUNC(glDrawBuffers)
+//    INIT_GLES_FUNC(glDrawBuffers)
     INIT_GLES_FUNC(glUniformMatrix2x3fv)
     INIT_GLES_FUNC(glUniformMatrix3x2fv)
     INIT_GLES_FUNC(glUniformMatrix2x4fv)
