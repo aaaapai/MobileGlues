@@ -88,8 +88,8 @@ static name##_PTR egl_##name = NULL;                                        \
     GLenum ERR = GL_NO_ERROR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
-extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
+extern "C" GLAPI APIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__)  { \
     LOG()
 
 #if GLOBAL_DEBUG
@@ -124,7 +124,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
 #endif
 
 #define STUB_FUNCTION_HEAD(type,name,...)                                   \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__) { \
     LOG()
 
 #define STUB_FUNCTION_END(type,name,...)                                    \
