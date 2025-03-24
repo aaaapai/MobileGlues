@@ -9,7 +9,7 @@
 #include "../gles/loader.h"
 #include "../gl/log.h"
 #include "defines.h"
-#include <glm/glm.hpp>
+#include "glm.hpp"
 #include <unordered_map>
 #include "fpe_shadergen.h"
 
