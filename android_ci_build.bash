@@ -2,6 +2,7 @@
 # set -e
 
 cmake_build () {
+  git submodule update --init
   ANDROID_ABI=$1
   mkdir -p build
   cd build
