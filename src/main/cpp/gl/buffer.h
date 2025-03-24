@@ -38,12 +38,6 @@ void remove_buffer(GLuint key);
 
 GLuint find_real_buffer(GLuint key);
 
-void bind_buffer(GLenum target, GLuint buffer);
-
-GLuint find_buffer(GLenum target);
-
-void real_bind_buffer(GLenum target, GLuint buffer);
-
 GLuint gen_array();
 
 GLboolean has_array(GLuint key);
@@ -64,13 +58,15 @@ GLAPI APIENTRY GLboolean glIsBuffer(GLuint buffer);
 
 GLAPI APIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
+GLAPI APIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
+GLAPI APIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
+
 GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
 
 GLAPI APIENTRY void *glMapBuffer(GLenum target, GLenum access);
 
 GLAPI APIENTRY void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-
-GLAPI APIENTRY void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
 
 GLAPI APIENTRY void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
 

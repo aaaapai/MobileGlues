@@ -11,8 +11,6 @@ GLint maxBufferId = 0;
 GLint maxArrayId = 0;
 
 std::unordered_map<GLuint, GLuint> g_gen_buffers;
-std::unordered_map<GLenum, GLuint> g_bound_buffers;
-
 std::unordered_map<GLuint, GLuint> g_gen_arrays;
 
 std::unordered_map<GLuint, BufferMapping> g_active_mappings;
@@ -43,25 +41,6 @@ GLuint find_real_buffer(GLuint key) {
         return it->second;
     else
         return 0;
-}
-
-void bind_buffer(GLenum target, GLuint buffer) {
-    g_bound_buffers[target] = buffer;
-}
-
-GLuint find_buffer(GLenum target) {
-    auto it = g_bound_buffers.find(target);
-    if (it != g_bound_buffers.end())
-        return it->second;
-    else
-        return 0;
-}
-
-void real_bind_buffer(GLenum target, GLuint buffer) {
-    LOG()
-    LOG_D("real_bind_buffer, target = %s, buffer = %d", glEnumToString(target), buffer)
-    GLES.glBindBuffer(target, buffer);
-    CHECK_GL_ERROR
 }
 
 GLuint gen_array() {
@@ -132,42 +111,63 @@ GLboolean glIsBuffer(GLuint buffer) {
 void glBindBuffer(GLenum target, GLuint buffer) {
     LOG()
     LOG_D("glBindBuffer, target = %s, buffer = %d", glEnumToString(target), buffer)
-    bind_buffer(target, buffer);
-    if (find_real_buffer(buffer))
-        real_bind_buffer(target, find_real_buffer(buffer));
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glBindBuffer(target, buffer);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glBindBuffer(target, real_buffer);
+    CHECK_GL_ERROR
+}
+
+void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
+    LOG()
+    LOG_D("glBindBufferRange, target = %s, index = %d, buffer = %d, offset = %p, size = %zi", glEnumToString(target), index, buffer, (void*) offset, size)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glBindBufferRange(target, index, buffer, offset, size);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glBindBufferRange(target, index, real_buffer, offset, size);
+    CHECK_GL_ERROR
+}
+
+void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
+    LOG()
+    LOG_D("glBindBufferBase, target = %s, index = %d, buffer = %d", glEnumToString(target), index, buffer)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glBindBufferBase(target, index, buffer);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glBindBufferBase(target, index, real_buffer);
+    CHECK_GL_ERROR
 }
 
 void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) {
     LOG()
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
           glEnumToString(target), size, data, glEnumToString(usage))
-    GLuint real_buff = find_real_buffer(find_buffer(target));
-    if (!real_buff) {
-        GLES.glGenBuffers(1, &real_buff);
-        modify_buffer(find_buffer(target), real_buff);
-        CHECK_GL_ERROR
-    }
-    if (real_buff) {
-        real_bind_buffer(target, real_buff);
-        GLES.glBufferData(target, size, data, usage);
-        CHECK_GL_ERROR
-    } else {
-        LOG_E("real buffer is null!")
-    }
-}
-
-void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data) {
-    LOG()
-    LOG_D("glBufferSubData, target = %s, offset = %p, size = %d, data = 0x%x",
-          glEnumToString(target), (void*) offset, size, data)
-    GLuint real_buff = find_real_buffer(find_buffer(target));
-    if (real_buff) {
-        real_bind_buffer(target, real_buff);
-        GLES.glBufferSubData(target, offset, size, data);
-        CHECK_GL_ERROR
-    } else {
-        LOG_E("real buffer is null!")
-    }
+    GLES.glBufferData(target, size, data, usage);
+    CHECK_GL_ERROR
 }
 
 void* glMapBuffer(GLenum target, GLenum access) {
@@ -232,18 +232,13 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #define BIN_FILE_PREFIX "/sdcard/MG/buf/"
 #endif
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-GLAPI APIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
-GLAPI APIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
-GLAPI APIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
-GLAPI APIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
-GLAPI APIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
-
-#ifdef __cplusplus
+    GLAPI APIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
+    GLAPI APIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
+    GLAPI APIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
+    GLAPI APIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
+    GLAPI APIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
 }
-#endif
 
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
@@ -281,20 +276,9 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
-    GLuint real_buff = find_real_buffer(find_buffer(target));
-    if (!real_buff) {
-        GLES.glGenBuffers(1, &real_buff);
-        modify_buffer(find_buffer(target), real_buff);
-        CHECK_GL_ERROR
-    }
-    if (real_buff) {
-        real_bind_buffer(target, real_buff);
-        if(GLES.glBufferStorageEXT)
-            GLES.glBufferStorageEXT(target,size,data,flags);
-        CHECK_GL_ERROR
-    } else {
-        LOG_E("real buffer is null!")
-    }
+    if(GLES.glBufferStorageEXT)
+        GLES.glBufferStorageEXT(target,size,data,flags);
+    CHECK_GL_ERROR
 }
 
 void glGenVertexArrays(GLsizei n, GLuint *arrays) {
@@ -327,6 +311,11 @@ GLboolean glIsVertexArray(GLuint array) {
 void glBindVertexArray(GLuint array) {
     LOG()
     LOG_D("glBindVertexArray(%d)", array)
+    if (!has_array(array) || array == 0) {
+        GLES.glBindVertexArray(array);
+        CHECK_GL_ERROR
+        return;
+    }
     GLuint real_array = find_real_array(array);
     if (!real_array) {
         GLES.glGenVertexArrays(1, &real_array);

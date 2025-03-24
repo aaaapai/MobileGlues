@@ -15,9 +15,6 @@
 extern "C" {
 #endif
 
-GLAPI APIENTRY void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-GLAPI APIENTRY void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-
 GLAPI APIENTRY void glVertexAttribI1ui(GLuint index, GLuint x);
 GLAPI APIENTRY void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
 GLAPI APIENTRY void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
