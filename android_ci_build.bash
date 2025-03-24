@@ -2,6 +2,9 @@
 # set -e
 
 cmake_build () {
+  cd ./src/main/cpp/include
+  git clone --depth 1 https://github.com/g-truc/glm.git glm
+  cd $GITHUB_WORKSPACE
   ANDROID_ABI=$1
   mkdir -p build
   cd build
