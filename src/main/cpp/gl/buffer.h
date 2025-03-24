@@ -5,7 +5,6 @@
 #ifndef MOBILEGLUES_BUFFER_H
 
 #include "../includes.h"
-#include "gl.h"
 #include "glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -51,33 +50,33 @@ GLuint find_real_array(GLuint key);
 
 static GLenum get_binding_query(GLenum target);
 
-GLAPI GLAPIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
+GLAPI APIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
 
-GLAPI GLAPIENTRY void glDeleteBuffers(GLsizei n, const GLuint *buffers);
+GLAPI APIENTRY void glDeleteBuffers(GLsizei n, const GLuint *buffers);
 
-GLAPI GLAPIENTRY GLboolean glIsBuffer(GLuint buffer);
+GLAPI APIENTRY GLboolean glIsBuffer(GLuint buffer);
 
-GLAPI GLAPIENTRY void glBindBuffer(GLenum target, GLuint buffer);
+GLAPI APIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
-GLAPI GLAPIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+GLAPI APIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 
-GLAPI GLAPIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
+GLAPI APIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 
-GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
+GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
 
-GLAPI GLAPIENTRY void *glMapBuffer(GLenum target, GLenum access);
+GLAPI APIENTRY void *glMapBuffer(GLenum target, GLenum access);
 
-GLAPI GLAPIENTRY void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+GLAPI APIENTRY void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 
-GLAPI GLAPIENTRY void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
+GLAPI APIENTRY void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
 
-GLAPI GLAPIENTRY void glGenVertexArrays(GLsizei n, GLuint *arrays);
+GLAPI APIENTRY void glGenVertexArrays(GLsizei n, GLuint *arrays);
 
-GLAPI GLAPIENTRY void glDeleteVertexArrays(GLsizei n, const GLuint *arrays);
+GLAPI APIENTRY void glDeleteVertexArrays(GLsizei n, const GLuint *arrays);
 
-GLAPI GLAPIENTRY GLboolean glIsVertexArray(GLuint array);
+GLAPI APIENTRY GLboolean glIsVertexArray(GLuint array);
 
-GLAPI GLAPIENTRY void glBindVertexArray(GLuint array);
+GLAPI APIENTRY void glBindVertexArray(GLuint array);
 
 #ifdef __cplusplus
 }

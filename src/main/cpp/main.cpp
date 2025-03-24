@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "includes.h"
-#include "gl/gl.h"
+#include "gl/glcorearb.h"
 #include "egl/egl.h"
 #include "egl/loader.h"
 #include "gles/loader.h"
