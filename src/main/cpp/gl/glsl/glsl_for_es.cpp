@@ -295,19 +295,43 @@ int getGLSLVersion(const char* glsl_code) {
 //    return glslCode;
 //}
 
+
 std::string forceSupporterOutput(const std::string& glslCode) {
     bool hasPrecisionFloat = glslCode.find("precision ") != std::string::npos &&
                              glslCode.find("float;") != std::string::npos;
     bool hasPrecisionInt = glslCode.find("precision ") != std::string::npos &&
                            glslCode.find("int;") != std::string::npos;
-    if (hasPrecisionFloat && hasPrecisionInt) {
-        return glslCode;
-    }
+
     std::string result = glslCode;
-    std::string precisionFloat = hasPrecisionFloat ? "" : "precision highp float;\n";
-    std::string precisionInt = hasPrecisionInt ? "" : "precision highp int;\n";
+    std::string precisionFloat;
+    std::string precisionInt;
+
+    if (hasPrecisionFloat && hasPrecisionInt) {
+        std::istringstream iss(result);
+        std::vector<std::string> lines;
+        std::string line;
+        while (std::getline(iss, line)) {
+            bool isPrecisionLine = (line.find("precision ") != std::string::npos) &&
+                                   (line.find("float;") != std::string::npos || line.find("int;") != std::string::npos);
+            if (!isPrecisionLine) {
+                lines.push_back(line);
+            }
+        }
+        result.clear();
+        for (size_t i = 0; i < lines.size(); ++i) {
+            if (i != 0) result += '\n';
+            result += lines[i];
+        }
+        precisionFloat = "precision highp float;\n";
+        precisionInt = "precision highp int;\n";
+    } else {
+        precisionFloat = hasPrecisionFloat ? "" : "precision highp float;\n";
+        precisionInt = hasPrecisionInt ? "" : "precision highp int;\n";
+    }
+
     size_t lastExtensionPos = result.rfind("#extension");
     size_t insertionPos = 0;
+
     if (lastExtensionPos != std::string::npos) {
         size_t nextNewline = result.find('\n', lastExtensionPos);
         if (nextNewline != std::string::npos) {
@@ -324,6 +348,7 @@ std::string forceSupporterOutput(const std::string& glslCode) {
             return result;
         }
     }
+
     result.insert(insertionPos, precisionFloat + precisionInt);
     return result;
 }

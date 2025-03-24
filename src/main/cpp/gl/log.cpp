@@ -1,9 +1,16 @@
 //
 // Created by BZLZHH on 2025/1/26.
 //
+
 #include "log.h"
+#include <unistd.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <mutex>
 
 #include "gl.h"
+#include "glext.h"
+#include "glcorearb.h"
 
 #define CASE(e) \
     case e: return #e;
@@ -1086,3 +1093,29 @@ const char* glEnumToString(GLenum e) {
             return str;
     }
 }
+
+#if LOG_CALLED_FUNCS
+
+void log_unique_function(const char* func_name) {
+    if (!func_name || strlen(func_name) < 2 || strncmp(func_name, "gl", 2) != 0) {
+        return;
+    }
+    static std::unordered_set<std::string> logged_functions;
+    static std::mutex log_mutex;
+    std::string func_str(func_name);
+
+    std::lock_guard<std::mutex> guard(log_mutex);
+
+    if (logged_functions.find(func_str) != logged_functions.end()) {
+        return;
+    }
+
+    static FILE* fp = fopen("/sdcard/MG/glcalls.txt", "a");
+    if (fp) {
+        fprintf(fp, "%s\n", func_name);
+        fflush(fp);
+    }
+
+    logged_functions.insert(func_str);
+}
+#endif

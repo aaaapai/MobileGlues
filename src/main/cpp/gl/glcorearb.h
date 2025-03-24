@@ -29,7 +29,7 @@ extern "C" {
 #define APIENTRYP APIENTRY *
 #endif
 #ifndef GLAPI
-#define GLAPI extern
+#define GLAPI __attribute__((visibility("default")))
 #endif
 
 /* glcorearb.h is for use with OpenGL core profile implementations.
@@ -82,6 +82,8 @@ typedef khronos_uint8_t GLubyte;
 #define GL_TRIANGLE_STRIP                 0x0005
 #define GL_TRIANGLE_FAN                   0x0006
 #define GL_QUADS                          0x0007
+#define GL_QUAD_STRIP				0x0008
+#define GL_POLYGON				0x0009
 #define GL_NEVER                          0x0200
 #define GL_LESS                           0x0201
 #define GL_EQUAL                          0x0202
@@ -242,6 +244,48 @@ typedef khronos_uint8_t GLubyte;
 #define GL_TEXTURE_WRAP_S                 0x2802
 #define GL_TEXTURE_WRAP_T                 0x2803
 #define GL_REPEAT                         0x2901
+#define GL_2_BYTES				0x1407
+#define GL_3_BYTES				0x1408
+#define GL_4_BYTES				0x1409
+#define GL_VERTEX_ARRAY				0x8074
+#define GL_NORMAL_ARRAY				0x8075
+#define GL_COLOR_ARRAY				0x8076
+#define GL_INDEX_ARRAY				0x8077
+#define GL_TEXTURE_COORD_ARRAY			0x8078
+#define GL_EDGE_FLAG_ARRAY			0x8079
+#define GL_VERTEX_ARRAY_SIZE			0x807A
+#define GL_VERTEX_ARRAY_TYPE			0x807B
+#define GL_VERTEX_ARRAY_STRIDE			0x807C
+#define GL_NORMAL_ARRAY_TYPE			0x807E
+#define GL_NORMAL_ARRAY_STRIDE			0x807F
+#define GL_COLOR_ARRAY_SIZE			0x8081
+#define GL_COLOR_ARRAY_TYPE			0x8082
+#define GL_COLOR_ARRAY_STRIDE			0x8083
+#define GL_INDEX_ARRAY_TYPE			0x8085
+#define GL_INDEX_ARRAY_STRIDE			0x8086
+#define GL_TEXTURE_COORD_ARRAY_SIZE		0x8088
+#define GL_TEXTURE_COORD_ARRAY_TYPE		0x8089
+#define GL_TEXTURE_COORD_ARRAY_STRIDE		0x808A
+#define GL_EDGE_FLAG_ARRAY_STRIDE		0x808C
+#define GL_VERTEX_ARRAY_POINTER			0x808E
+#define GL_NORMAL_ARRAY_POINTER			0x808F
+#define GL_COLOR_ARRAY_POINTER			0x8090
+#define GL_INDEX_ARRAY_POINTER			0x8091
+#define GL_TEXTURE_COORD_ARRAY_POINTER		0x8092
+#define GL_EDGE_FLAG_ARRAY_POINTER		0x8093
+#define GL_VERTEX_ARRAY_BUFFER_BINDING    0x8896
+#define GL_NORMAL_ARRAY_BUFFER_BINDING    0x8897
+#define GL_COLOR_ARRAY_BUFFER_BINDING     0x8898
+#define GL_INDEX_ARRAY_BUFFER_BINDING     0x8899
+#define GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING 0x889A
+#define GL_EDGE_FLAG_ARRAY_BUFFER_BINDING 0x889B
+#define GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING 0x889C
+#define GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING 0x889D
+#define GL_WEIGHT_ARRAY_BUFFER_BINDING    0x889E
+#define GL_TEXTURE_RECTANGLE_ARB          0x84F5
+#define GL_PROXY_TEXTURE_RECTANGLE_ARB    0x84F7
+#define GL_R					0x2002
+#define GL_COLOR_INDEX				0x1900
 typedef void (APIENTRYP PFNGLCULLFACEPROC) (GLenum mode);
 typedef void (APIENTRYP PFNGLFRONTFACEPROC) (GLenum mode);
 typedef void (APIENTRYP PFNGLHINTPROC) (GLenum target, GLenum mode);
@@ -304,7 +348,7 @@ GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param);
 GLAPI void APIENTRY glTexParameteriv (GLenum target, GLenum pname, const GLint *params);
 GLAPI void APIENTRY glTexImage1D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
 GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-GLAPI void APIENTRY glDrawBuffer (GLenum buf);
+// GLAPI void APIENTRY glDrawBuffer (GLenum buf);
 GLAPI void APIENTRY glClear (GLbitfield mask);
 GLAPI void APIENTRY glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 GLAPI void APIENTRY glClearStencil (GLint s);
@@ -848,7 +892,7 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIB4USVPROC) (GLuint index, const GLushort
 typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glBlendEquationSeparate (GLenum modeRGB, GLenum modeAlpha);
-GLAPI void APIENTRY glDrawBuffers (GLsizei n, const GLenum *bufs);
+// GLAPI void APIENTRY glDrawBuffers (GLsizei n, const GLenum *bufs);
 GLAPI void APIENTRY glStencilOpSeparate (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
 GLAPI void APIENTRY glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask);
 GLAPI void APIENTRY glStencilMaskSeparate (GLenum face, GLuint mask);
@@ -5838,6 +5882,10 @@ GLAPI void APIENTRY glTextureBarrierNV (void);
 #define GL_NV_texture_rectangle_compressed 1
 #endif /* GL_NV_texture_rectangle_compressed */
 
+#ifndef GL_NV_uniform_buffer_std430_layout
+#define GL_NV_uniform_buffer_std430_layout 1
+#endif /* GL_NV_uniform_buffer_std430_layout */
+
 #ifndef GL_NV_uniform_buffer_unified_memory
 #define GL_NV_uniform_buffer_unified_memory 1
 #define GL_UNIFORM_BUFFER_UNIFIED_NV      0x936E
@@ -5975,8 +6023,11 @@ GLAPI void APIENTRY glViewportSwizzleNV (GLuint index, GLenum swizzlex, GLenum s
 #define GL_MAX_VIEWS_OVR                  0x9631
 #define GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR 0x9633
 typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
+typedef void (APIENTRYP PFNGLNAMEDFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glFramebufferTextureMultiviewOVR (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
+GLAPI void APIENTRY glNamedFramebufferTextureMultiviewOVR (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
+
 #endif
 #endif /* GL_OVR_multiview */
 

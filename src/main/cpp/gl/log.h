@@ -10,6 +10,8 @@
 
 #define GLOBAL_DEBUG 0
 
+#define LOG_CALLED_FUNCS 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +34,15 @@ const char *glEnumToString(GLenum e);
 #define LOG() \
         perfetto::StaticString _FUNC_NAME_ = __func__;      \
         TRACE_EVENT("glcalls", _FUNC_NAME_);
+#elif LOG_CALLED_FUNCS
+#define LOG() \
+    if(DEBUG||GLOBAL_DEBUG) { \
+        __android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, "Use function: %s", __FUNCTION__); \
+        printf("Use function: %s\n", __FUNCTION__); \
+        write_log("Use function: %s\n", __FUNCTION__); \
+    } \
+    log_unique_function(__FUNCTION__);
+void log_unique_function(const char* func_name);
 #else
 #define LOG() \
     if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, "Use function: %s", __FUNCTION__);printf("Use function: %s\n", __FUNCTION__);write_log("Use function: %s\n", __FUNCTION__);}

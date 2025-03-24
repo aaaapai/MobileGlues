@@ -8,7 +8,7 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "../gl/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
@@ -141,16 +141,14 @@ void InitGLESCapabilities() {
 //    int has_GL_EXT_buffer_storage = 0;
 //    int has_GL_ARB_timer_query = 0;
 //    int has_GL_QCOM_texture_lod_bias = 0;
-    LOAD_GLES_FUNC(glGetStringi)
-    LOAD_GLES_FUNC(glGetIntegerv)
 
     GLint num_es_extensions = 0;
-    gles_glGetIntegerv(GL_NUM_EXTENSIONS, &num_es_extensions);
-    LOG_I("Detected %d OpenGL ES extensions.", num_es_extensions)
+    GLES.glGetIntegerv(GL_NUM_EXTENSIONS, &num_es_extensions);
+    LOG_D("Detected %d OpenGL ES extensions.", num_es_extensions)
     for (GLint i = 0; i < num_es_extensions; ++i) {
-        const char *extension = (const char *) gles_glGetStringi(GL_EXTENSIONS, i);
+        const char *extension = (const char *) GLES.glGetStringi(GL_EXTENSIONS, i);
         if (extension) {
-            LOG_I("%s", (const char *) extension)
+            LOG_D("%s", (const char *) extension)
             if (strcmp(extension, "GL_EXT_buffer_storage") == 0) {
                 g_gles_caps.GL_EXT_buffer_storage = 1;
             } else if (strcmp(extension, "GL_EXT_disjoint_timer_query") == 0) {
@@ -165,6 +163,10 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_read_format_bgra = 1;
             } else if (strcmp(extension, "GL_OES_mapbuffer") == 0) {
                 g_gles_caps.GL_OES_mapbuffer = 1;
+            } else if (strcmp(extension, "GL_EXT_multi_draw_indirect") == 0) {
+                g_gles_caps.GL_EXT_multi_draw_indirect = 1;
+            } else if (strcmp(extension, "GL_OES_draw_elements_base_vertex") == 0) {
+                g_gles_caps.GL_OES_draw_elements_base_vertex = 1;
             } else if (strcmp(extension, "GL_OES_depth_texture") == 0) {
                 g_gles_caps.GL_OES_depth_texture = 1;
             } else if (strcmp(extension, "GL_OES_depth24") == 0) {
@@ -177,9 +179,11 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_texture_rg = 1;
             }
         } else {
-            LOG_I("(nullptr)")
+            LOG_D("(nullptr)")
         }
     }
+
+    LOG_I("%sDetected GL_EXT_multi_draw_indirect!", g_gles_caps.GL_EXT_multi_draw_indirect ? "" : "Not ")
 
     if (g_gles_caps.GL_EXT_buffer_storage) {
         AppendExtension("GL_ARB_buffer_storage");
@@ -569,6 +573,17 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjecti64vEXT)
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
+
+    INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
+    INIT_GLES_FUNC(glBruh)
+
+    LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
+    LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)
+    LOG_D("glMultiDrawElementsBaseVertexEXT() @ 0x%x", GLES.glMultiDrawElementsBaseVertexEXT)
+
+    LOG_D("glBruh() @ 0x%x", GLES.glBruh)
 
     LOG_D("Initializing %s @ hardware", RENDERERNAME)
     set_hardware();

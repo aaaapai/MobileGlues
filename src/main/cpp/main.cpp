@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "includes.h"
-#include "gl/gl.h"
+#include "gl/glcorearb.h"
 #include "egl/egl.h"
 #include "egl/loader.h"
 #include "gles/loader.h"
@@ -17,7 +17,7 @@
 
 #define DEBUG 0
 
-__attribute__((used)) const char* copyright = "Copyright (C) 2025 Swung0x48, BZLZHH, Tungsten. All rights reserved. Logo artwork kindly provided by Aou156.";
+__attribute__((used)) const char* license = "GNU LGPL-2.1 License";
 
 extern char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
 void init_libshaderconv() {
@@ -46,9 +46,9 @@ void init_config() {
     config_refresh();
 }
 
-void show_copyright() {
-    LOG_V("MobileGlues Copyright: ");
-    LOG_V("  %s", copyright);
+void show_license() {
+    LOG_V("The Open Source License of MobileGlues: ");
+    LOG_V("  %s", license);
 }
 
 GLuint watermark_vao = 0;
@@ -242,7 +242,7 @@ void proc_init() {
     init_settings();
 
     LOG_V("Initializing %s ...", RENDERERNAME);
-    show_copyright();
+    show_license();
 
     load_libs();
     init_target_egl();

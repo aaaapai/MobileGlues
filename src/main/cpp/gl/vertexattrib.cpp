@@ -8,18 +8,15 @@
 
 void glVertexAttribI1ui(GLuint index, GLuint x) {
     LOG()
-    LOAD_GLES_FUNC(glVertexAttribI4ui)
-    gles_glVertexAttribI4ui(index, x, 0, 0, 0);
+    GLES.glVertexAttribI4ui(index, x, 0, 0, 0);
 }
 
 void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y) {
     LOG()
-    LOAD_GLES_FUNC(glVertexAttribI4ui)
-    gles_glVertexAttribI4ui(index, x, y, 0, 0);
+    GLES.glVertexAttribI4ui(index, x, y, 0, 0);
 }
 
 void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z) {
     LOG()
-    LOAD_GLES_FUNC(glVertexAttribI4ui)
-    gles_glVertexAttribI4ui(index, x, y, z, 0);
+    GLES.glVertexAttribI4ui(index, x, y, z, 0);
 }

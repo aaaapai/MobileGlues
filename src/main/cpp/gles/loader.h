@@ -2,7 +2,7 @@
 #define MOBILEGLUES_GLES_LOADER_H_
 
 #include "../gl/log.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "gles.h"
 #include <dlfcn.h>
 #include <cstdio>
@@ -24,19 +24,16 @@ void load_libs();
 #define INIT_GLES_FUNC(name)                                                \
     {                                                                       \
         LOG_D("INIT_GLES_FUNC(%s)", #name);                                 \
-        g_gles_func.name = (name##_PTR)proc_address(gles, #name);           \
-        if (g_gles_func.name == NULL)\
+        GLES.name = (name##_PTR)proc_address(gles, #name);           \
+        if (GLES.name == NULL)\
             LOG_W("Error: GLES function " #name " is NULL\n"); \
     }
 #else
 #define INIT_GLES_FUNC(name)                                                \
     {                                                                       \
-        g_gles_func.name = (name##_PTR)proc_address(gles, #name);           \
+        GLES.name = (name##_PTR)proc_address(gles, #name);           \
     }
 #endif
-
-#define LOAD_GLES_FUNC(name) \
-    name##_PTR gles_##name = g_gles_func.name;
 
 void *open_lib(const char **names, const char *override);
 
@@ -55,34 +52,31 @@ static name##_PTR egl_##name = NULL;                                        \
 }
 
 #define CLEAR_GL_ERROR \
-    LOAD_GLES_FUNC(glGetError)                                              \
-    GLenum ERR = gles_glGetError();                                         \
+    GLenum ERR = GLES.glGetError();                                         \
     while (ERR != GL_NO_ERROR)                                              \
-        ERR = gles_glGetError();
+        ERR = GLES.glGetError();
 
 #define CLEAR_GL_ERROR_NO_INIT \
-    ERR = gles_glGetError();                                                \
+    ERR = GLES.glGetError();                                                \
     while (ERR != GL_NO_ERROR)                                              \
-        ERR = gles_glGetError();
+        ERR = GLES.glGetError();
 
 #if GLOBAL_DEBUG
 #define CHECK_GL_ERROR                                                      \
-    LOAD_GLES_FUNC(glGetError)                                              \
-    GLenum ERR = gles_glGetError();                                         \
+    GLenum ERR = GLES.glGetError();                                         \
     while (ERR != GL_NO_ERROR) {                                            \
         LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
-        ERR = gles_glGetError();                                            \
+        ERR = GLES.glGetError();                                            \
     }
 
 #define INIT_CHECK_GL_ERROR                                                 \
-    LOAD_GLES_FUNC(glGetError)                                              \
     GLenum ERR = GL_NO_ERROR;
 
 #define CHECK_GL_ERROR_NO_INIT \
-    ERR = gles_glGetError();                                                \
+    ERR = GLES.glGetError();                                                \
     while (ERR != GL_NO_ERROR) {                                            \
         LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
-        ERR = gles_glGetError();                                            \
+        ERR = GLES.glGetError();                                            \
     }
 #else
 #define CHECK_GL_ERROR {}
@@ -91,21 +85,18 @@ static name##_PTR egl_##name = NULL;                                        \
 #endif
 
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
-    LOAD_GLES_FUNC(glGetError)                                              \
     GLenum ERR = GL_NO_ERROR;
 
-
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
-extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
+extern "C" GLAPI APIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__)  { \
+    LOG()
 
 #if GLOBAL_DEBUG
 #define NATIVE_FUNCTION_END(type,name,...)                                  \
     LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
-    LOAD_GLES_FUNC(name);                                                   \
-    type ret = gles_##name(__VA_ARGS__);                                    \
-    LOAD_GLES_FUNC(glGetError)                                              \
-    GLenum ERR = gles_glGetError();                                         \
+    type ret = GLES.name(__VA_ARGS__);                                    \
+    GLenum ERR = GLES.glGetError();                                         \
     if (ERR != GL_NO_ERROR)                                                 \
         LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
     return ret;                                                             \
@@ -113,8 +104,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
 #else
 #define NATIVE_FUNCTION_END(type,name,...)                                  \
     LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
-    LOAD_GLES_FUNC(name);                                                   \
-    type ret = gles_##name(__VA_ARGS__);                                    \
+    type ret = GLES.name(__VA_ARGS__);                                    \
     CHECK_GL_ERROR                                                          \
     return ret;                                                             \
 }
@@ -123,20 +113,19 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
 #if GLOBAL_DEBUG
 #define NATIVE_FUNCTION_END_NO_RETURN(type,name,...)                        \
     LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
-    LOAD_GLES_FUNC(name);                                                   \
-    gles_##name(__VA_ARGS__);                                               \
+    GLES.name(__VA_ARGS__);                                               \
     CHECK_GL_ERROR                                                          \
 }
 #else
 #define NATIVE_FUNCTION_END_NO_RETURN(type,name,...)                        \
     LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
-    LOAD_GLES_FUNC(name);                                                   \
-    gles_##name(__VA_ARGS__);                                               \
+    GLES.name(__VA_ARGS__);                                               \
 }
 #endif
 
 #define STUB_FUNCTION_HEAD(type,name,...)                                   \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) {
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__) { \
+    LOG()
 
 #define STUB_FUNCTION_END(type,name,...)                                    \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
@@ -156,6 +145,8 @@ struct gles_caps_t {
     [[maybe_unused]] int GL_EXT_texture_format_BGRA8888;
     [[maybe_unused]] int GL_EXT_read_format_bgra;
     int GL_OES_mapbuffer;
+    int GL_EXT_multi_draw_indirect;
+    int GL_OES_draw_elements_base_vertex;
     int GL_OES_depth_texture;
     int GL_OES_depth24;
     int GL_OES_depth_texture_float;
