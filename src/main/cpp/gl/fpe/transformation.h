@@ -9,7 +9,7 @@
 #include "../gles/loader.h"
 #include "../gl/log.h"
 #include "fpe.hpp"
-#include "glm.hpp"
+#include "../../glm/glm.hpp"
 
 int matrix_idx(GLenum matrix_mode);
 
