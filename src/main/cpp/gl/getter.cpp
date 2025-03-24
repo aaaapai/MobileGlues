@@ -4,6 +4,7 @@
 
 #include "getter.h"
 #include "../config/settings.h"
+#include "buffer.h"
 #include <string>
 #include <vector>
 
@@ -48,6 +49,23 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = es_params * 2;
             break;
         }
+        case GL_ARRAY_BUFFER_BINDING:
+        case GL_ATOMIC_COUNTER_BUFFER_BINDING:
+        case GL_COPY_READ_BUFFER_BINDING:
+        case GL_COPY_WRITE_BUFFER_BINDING:
+        case GL_DRAW_INDIRECT_BUFFER_BINDING:
+        case GL_DISPATCH_INDIRECT_BUFFER_BINDING:
+        case GL_ELEMENT_ARRAY_BUFFER_BINDING:
+        case GL_PIXEL_PACK_BUFFER_BINDING:
+        case GL_PIXEL_UNPACK_BUFFER_BINDING:
+        case GL_SHADER_STORAGE_BUFFER_BINDING:
+        case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
+        case GL_UNIFORM_BUFFER_BINDING:
+            (*params) = (int) find_bound_buffer(pname);
+            break;
+        case GL_VERTEX_ARRAY_BINDING:
+            (*params) = (int) find_bound_array();
+            break;
         default:
             GLES.glGetIntegerv(pname, params);
             LOG_D("  -> %d",*params)
