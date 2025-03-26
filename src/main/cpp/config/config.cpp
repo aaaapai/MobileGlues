@@ -11,10 +11,10 @@
 
 const char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
 
-char* mg_directory_path;
-char* config_file_path;
-char* log_file_path;
-char* glsl_cache_file_path;
+const char* mg_directory_path;
+const char* config_file_path;
+const char* log_file_path;
+const char* glsl_cache_file_path;
 
 static cJSON *config_json = NULL;
 
