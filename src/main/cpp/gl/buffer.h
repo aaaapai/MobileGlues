@@ -67,6 +67,8 @@ GLAPI GLAPIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buff
 
 GLAPI GLAPIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 
+GLAPI GLAPIENTRY void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+
 GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
 
 GLAPI GLAPIENTRY void *glMapBuffer(GLenum target, GLenum access);

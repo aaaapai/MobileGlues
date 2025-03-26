@@ -318,7 +318,7 @@ NATIVE_FUNCTION_HEAD(void, glGetMultisamplefv, GLenum pname, GLuint index, GLflo
 NATIVE_FUNCTION_HEAD(void, glSampleMaski, GLuint maskNumber, GLbitfield mask) NATIVE_FUNCTION_END_NO_RETURN(void, glSampleMaski, maskNumber,mask)
 //NATIVE_FUNCTION_HEAD(void, glGetTexLevelParameteriv, GLenum target, GLint level, GLenum pname, GLint *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetTexLevelParameteriv, target,level,pname,params)
 //NATIVE_FUNCTION_HEAD(void, glGetTexLevelParameterfv, GLenum target, GLint level, GLenum pname, GLfloat *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetTexLevelParameterfv, target,level,pname,params)
-NATIVE_FUNCTION_HEAD(void, glBindVertexBuffer, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) NATIVE_FUNCTION_END_NO_RETURN(void, glBindVertexBuffer, bindingindex,buffer,offset,stride)
+//NATIVE_FUNCTION_HEAD(void, glBindVertexBuffer, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) NATIVE_FUNCTION_END_NO_RETURN(void, glBindVertexBuffer, bindingindex,buffer,offset,stride)
 NATIVE_FUNCTION_HEAD(void, glVertexAttribFormat, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttribFormat, attribindex,size,type,normalized,relativeoffset)
 NATIVE_FUNCTION_HEAD(void, glVertexAttribIFormat, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttribIFormat, attribindex,size,type,relativeoffset)
 NATIVE_FUNCTION_HEAD(void, glVertexAttribBinding, GLuint attribindex, GLuint bindingindex) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttribBinding, attribindex,bindingindex)
