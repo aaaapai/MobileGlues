@@ -68,6 +68,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools.a
         ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
         ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
+        ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libSPIRV-Tools-shared.so
         ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libspirv-cross-c-shared.so
         ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libshaderconv.so
         android
