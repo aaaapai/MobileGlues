@@ -55,6 +55,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ./includes)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
+        ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libglslang.a
         ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libspirv-cross-c-shared.so
         ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libshaderconv.so
         ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/libSPIRV-Tools-shared.so
