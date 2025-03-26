@@ -12,7 +12,7 @@ extern const char* glsl_cache_file_path;
 
 extern int initialized;
 
-const char* concatenate(char* str1, char* str2);
+char* concatenate(char* str1, char* str2);
 
 int check_path();
 
