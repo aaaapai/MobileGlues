@@ -4,7 +4,7 @@
 #ifndef MOBILEGLUES_SHADER_H
 #define MOBILEGLUES_SHADER_H
 
-#include "gl.h"
+#include "glcorearb.h"
 #include <string>
 
 struct shader_t {
@@ -20,10 +20,10 @@ extern struct shader_t shaderInfo;
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void
+GLAPI APIENTRY void
 glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
 
-GLAPI GLAPIENTRY void glGetShaderiv(GLuint shader, GLenum pname, GLint *params);
+GLAPI APIENTRY void glGetShaderiv(GLuint shader, GLenum pname, GLint *params);
 
 #ifdef __cplusplus
 }

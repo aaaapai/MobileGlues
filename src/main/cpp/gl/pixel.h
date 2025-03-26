@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_PIXEL_H
 #define MOBILEGLUES_PIXEL_H
 
-#include "gl.h"
+#include "glcorearb.h"
 #include "../gles/gles.h"
 #include "log.h"
 

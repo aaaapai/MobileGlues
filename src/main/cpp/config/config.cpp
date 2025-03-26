@@ -80,7 +80,7 @@ int config_refresh() {
     return 1;
 }
 
-int config_get_int(char* name) {
+int config_get_int(const char* name) {
     if (config_json == NULL) {
         return -1;
     }
@@ -94,7 +94,7 @@ int config_get_int(char* name) {
     return item->valueint;
 }
 
-char* config_get_string(char* name) {
+const char* config_get_string(char* name) {
     if (config_json == NULL) {
         return NULL;
     }

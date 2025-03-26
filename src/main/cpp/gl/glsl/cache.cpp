@@ -172,7 +172,7 @@ bool Cache::load() {
             size_t entryMemory = sizeof(CacheEntry::sha256) + sizeof(size_t) + esslSize;
             cacheSize += entryMemory;
     
-            cacheList.emplace_back(CacheEntry{hash, move(essl), esslSize});
+            cacheList.emplace_back(CacheEntry{hash, std::move(essl), esslSize});
             cacheMap[hash] = prev(cacheList.end());
         }
     

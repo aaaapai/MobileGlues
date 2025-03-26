@@ -2,7 +2,6 @@
 #define GLSL_FOR_ES
 #include <stdio.h>
 #include "../includes.h"
-#include "../gl.h"
 #include "../glcorearb.h"
 #include "../log.h"
 #include "../gles/loader.h"

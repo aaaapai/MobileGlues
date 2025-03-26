@@ -17,8 +17,8 @@ char* concatenate(char* str1, char* str2);
 int check_path();
 
 int config_refresh();
-int config_get_int(char* name);
-char* config_get_string(char* name);
+int config_get_int(const char* name);
+const char* config_get_string(char* name);
 void config_cleanup();
 
 #ifdef __cplusplus
