@@ -13,13 +13,22 @@
 
 #define DEBUG 0
 
-char* removeLayoutLocations(const char* input) {
-    std::string code(input);
-    std::regex pattern(R"(layout\s*\(\s*location\s*=\s*\d+\s*\))");
-    std::string result = std::regex_replace(code, pattern, "");
-    char* output = new char[result.length() + 1];
-    strcpy(output, result.c_str());
-    return output;
+char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
+    std::string shaderCode(esslSource);
+
+    std::string pattern = std::string(R"((layout\s*$[^)]*location\s*=\s*\d+[^)]*$\s*)?)")
+                          + R"(out\s+((?:highp|mediump|lowp|\w+\s+)*\w+)\s+)"
+                          + name + R"(\s*;)";
+
+    std::string replacement = "layout (location = " + std::to_string(color)
+                              + ") out $2 " + name + ";";
+
+    std::regex reg(pattern);
+    std::string modifiedCode = std::regex_replace(shaderCode, reg, replacement);
+
+    char* result = new char[modifiedCode.size() + 1];
+    strcpy(result, modifiedCode.c_str());
+    return result;
 }
 
 void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
@@ -30,26 +39,6 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
 //    } else {
 //        LOG_W("Warning: No GL_EXT_blend_func_extended, skipping glBindFragDataLocation...");
 //    }
-    
-    if (strlen(name) > 8 && strncmp(name, "outColor", 8) == 0) {
-        const char* numberStr = name + 8;
-        bool isNumber = true;
-        for (int i = 0; numberStr[i] != '\0'; ++i) {
-            if (!isdigit(numberStr[i])) {
-                isNumber = false;
-                break;
-            }
-        }
-
-        if (isNumber) {
-            unsigned int extractedColor = static_cast<unsigned int>(std::stoul(numberStr));
-            if (extractedColor == color) {
-                // outColor was bound in glsl process. exit now
-                LOG_D("Find outColor* with color *, skipping")
-                return;
-            }
-        }
-    }
 
     char* origin_glsl = nullptr;
     if (shaderInfo.frag_data_changed) {
@@ -70,84 +59,10 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
         strcpy(origin_glsl, shaderInfo.converted.c_str());
     }
 
-    int len = strlen(name);
-    int tlen = len + 32;
-    char *targetPattern = (char*)malloc(sizeof(char) * tlen);
-    if (!targetPattern) {
-        LOG_E("Memory allocation failed for targetPattern")
-        return;
-    }
-    sprintf(targetPattern, "out[ ]+[A-Za-z0-9 ]+[ ]+%s", name);
-    regex_t regex;
-    regmatch_t pmatch[1];
-    char *origin = nullptr;
-    char *result = nullptr;
-    if (regcomp(&regex, targetPattern, REG_EXTENDED) != 0) {
-        LOG_E("Failed to compile regex\n")
-        return;
-    }
-    char *searchStart = origin_glsl;
-    while (regexec(&regex, searchStart, 1, pmatch, 0) == 0) {
-        size_t matchLen = pmatch[0].rm_eo - pmatch[0].rm_so;
-        origin = (char *) malloc(matchLen + 1);
-        if (!origin) {
-            LOG_E("Memory allocation failed\n")
-            break;
-        }
-        strncpy(origin, searchStart + pmatch[0].rm_so, matchLen);
-        origin[matchLen] = '\0';
-
-        size_t resultLen =
-                strlen(origin) + 30; // "layout (location = )" + colorNumber + null terminator
-        result = (char *) malloc(resultLen);
-        if (!result) {
-            LOG_E("Memory allocation failed\n")
-            free(origin);
-            break;
-        }
-
-        origin = removeLayoutLocations(origin);
-        
-        snprintf(result, resultLen, "layout (location = %d) %s", color, origin);
-
-        char *temp = strstr(searchStart, origin);
-        if (temp) {
-            size_t prefixLen = temp - origin_glsl;
-            size_t suffixLen = strlen(temp + matchLen);
-            size_t newLen = prefixLen + strlen(result) + suffixLen + 1;
-
-            char *newConverted = (char *) malloc(newLen);
-            if (!newConverted) {
-                LOG_E("Memory allocation failed\n")
-                free(origin);
-                free(result);
-                break;
-            }
-
-            strncpy(newConverted, origin_glsl, prefixLen);
-            newConverted[prefixLen] = '\0';
-            strcat(newConverted, result);
-            strcat(newConverted, temp + matchLen);
-
-            size_t newLen_2 = strlen(newConverted) + 1;
-            shaderInfo.frag_data_changed_converted = (char *) realloc(
-                    shaderInfo.frag_data_changed_converted, newLen_2);
-            if (shaderInfo.frag_data_changed_converted == nullptr) {
-                LOG_E("Memory reallocation failed for frag_data_changed_converted\n")
-                return;
-            }
-            strcpy(shaderInfo.frag_data_changed_converted, newConverted);
-            free(newConverted);
-        }
-
-        free(origin);
-        free(result);
-
-        searchStart += pmatch[0].rm_eo;
-    }
-    free(targetPattern);
-    regfree(&regex);//LOG_D("Patched shader:\n%s", origin_glsl)
+    char* result_glsl = updateLayoutLocation(origin_glsl, color, name);
     free(origin_glsl);
+
+    shaderInfo.frag_data_changed_converted = result_glsl;
     shaderInfo.frag_data_changed = 1;
 }
 

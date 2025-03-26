@@ -38,11 +38,8 @@ void init_libshaderconv() {
 }
 
 void init_config() {
-    if(mkdir(MG_DIRECTORY_PATH, 0755) != 0 && errno != EEXIST) {
-        LOG_E("Error creating MG directory.\n")
-        return;
-    }
-    config_refresh();
+    if (check_path())
+        config_refresh();
 }
 
 void show_license() {

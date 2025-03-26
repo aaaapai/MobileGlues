@@ -3,19 +3,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "cJSON.h"
 #include "../gl/log.h"
 
 #define DEBUG 0
 
+char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
+
+char* mg_directory_path;
+char* config_file_path;
+char* log_file_path;
+char* glsl_cache_file_path;
+
 static cJSON *config_json = NULL;
 
 int initialized = 0;
 
+char* concatenate(char* str1, char* str2) {
+    std::string str = std::string(str1) + str2;
+    char* result = new char[str.size() + 1];
+    strcpy(result, str.c_str());
+    return result;
+}
+
+int check_path() {
+    char* var = getenv("MG_DIR_PATH");
+    mg_directory_path = var ? var : DEFAULT_MG_DIRECTORY_PATH;
+    config_file_path = concatenate(mg_directory_path, "/config.json");
+    log_file_path = concatenate(mg_directory_path, "/latest.log");
+    glsl_cache_file_path = concatenate(mg_directory_path, "/glsl_cache.tmp");
+
+    if(mkdir(mg_directory_path, 0755) != 0 && errno != EEXIST) {
+        LOG_E("Error creating MG directory.\n")
+        return 0;
+    }
+    return 1;
+}
+
 int config_refresh() {
-    FILE *file = fopen(CONFIG_FILE_PATH, "r");
+    LOG_D("MG_DIRECTORY_PATH=%s", mg_directory_path)
+    LOG_D("CONFIG_FILE_PATH=%s", config_file_path)
+    LOG_D("LOG_FILE_PATH=%s", log_file_path)
+    LOG_D("GLSL_CACHE_FILE_PATH=%s", glsl_cache_file_path)
+
+    FILE *file = fopen(config_file_path, "r");
     if (file == NULL) {
-        LOG_E("Unable to open config file %s", CONFIG_FILE_PATH);
+        LOG_E("Unable to open config file %s", config_file_path);
         return 0;
     }
 

@@ -19,7 +19,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 set(PROFILING OFF)
 
-find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/)
+find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/)
 
 add_library(${CMAKE_PROJECT_NAME} SHARED
         init.cpp
@@ -61,7 +61,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         android
         log
         EGL
-        vulkan
 )
 
 target_include_directories(mobileglues PUBLIC

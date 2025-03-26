@@ -755,7 +755,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
 
 #if GLOBAL_DEBUG || DEBUG
 #include <fstream>
-#define PX_FILE_PREFIX "/sdcard/MG/readpixels/"
+#include "../config/config.h"
 #endif
 
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels) {
@@ -780,7 +780,7 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
         GLES.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         GLES.glReadPixels(x, y, width, height, format, type, px.data());
 
-        std::fstream fs(std::string(PX_FILE_PREFIX) + std::to_string(count++) + ".bin", std::ios::out | std::ios::binary | std::ios::trunc);
+        std::fstream fs(std::string(concatenate(mg_directory_path, "/readpixels/")) + std::to_string(count++) + ".bin", std::ios::out | std::ios::binary | std::ios::trunc);
         fs.write((const char*)px.data(), px.size());
         fs.close();
     }

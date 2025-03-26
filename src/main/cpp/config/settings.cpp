@@ -51,7 +51,9 @@ void init_settings() {
     int pgwVersion = 0;
     GetEnvVarInt("PGW_VERSION_CODE", &pgwVersion, 0);
 
-    if (fclVersion == 0 && zlVersion == 0 && pgwVersion == 0) {
+    char* var = getenv("MG_DIR_PATH");
+
+    if (fclVersion == 0 && zlVersion == 0 && pgwVersion == 0 && !var) {
         LOG_V("Unsupported launcher detected, force using default config.")
         enableANGLE = 0;
         enableNoError = 0;

@@ -10,7 +10,7 @@
 
 #define MAJOR 1
 #define MINOR 2
-#define REVISION 1
+#define REVISION 2
 #define PATCH 0
 
 #define VERSION_TYPE VERSION_RELEASE

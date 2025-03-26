@@ -151,7 +151,7 @@ void Cache::maintainCacheSize() {
 
 bool Cache::load() {
     try {
-        ifstream file(GLSL_CACHE_FILE_PATH, ios::binary);
+        ifstream file(glsl_cache_file_path, ios::binary);
         if (!file) return false;
     
         size_t count;
@@ -192,7 +192,7 @@ bool Cache::load() {
 void Cache::save() {
     if (global_settings.maxGlslCacheSize <= 0)
         return;
-    ofstream file(GLSL_CACHE_FILE_PATH, ios::binary);
+    ofstream file(glsl_cache_file_path, ios::binary);
     if (!file) return;
 
     size_t count = cacheList.size();

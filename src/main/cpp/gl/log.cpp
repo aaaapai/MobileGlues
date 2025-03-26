@@ -1096,6 +1096,8 @@ const char* glEnumToString(GLenum e) {
 
 #if LOG_CALLED_FUNCS
 
+#include "../config/config.h"
+
 void log_unique_function(const char* func_name) {
     if (!func_name || strlen(func_name) < 2 || strncmp(func_name, "gl", 2) != 0) {
         return;
@@ -1110,7 +1112,7 @@ void log_unique_function(const char* func_name) {
         return;
     }
 
-    static FILE* fp = fopen("/sdcard/MG/glcalls.txt", "a");
+    static FILE* fp = fopen(concatenate(mg_directory_path, "/glcalls.txt"), "a");
     if (fp) {
         fprintf(fp, "%s\n", func_name);
         fflush(fp);

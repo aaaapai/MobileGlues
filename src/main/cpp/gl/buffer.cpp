@@ -13,7 +13,7 @@ GLint maxArrayId = 0;
 std::unordered_map<GLuint, GLuint> g_gen_buffers;
 std::unordered_map<GLuint, GLuint> g_gen_arrays;
 
-std::unordered_map<GLenum , GLuint> g_bound_buffers;
+std::unordered_map<GLenum, GLuint> g_bound_buffers;
 GLuint bound_array = 0;
 
 std::unordered_map<GLuint, BufferMapping> g_active_mappings;
@@ -219,6 +219,25 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
         CHECK_GL_ERROR
     }
     GLES.glBindBufferBase(target, index, real_buffer);
+    CHECK_GL_ERROR
+}
+
+void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) {
+    LOG()
+    LOG_D("glBindVertexBuffer, bindingindex = %d, buffer = %d, offset = %p, stride = %i", bindingindex, buffer, offset, stride)
+    // Todo: should record fake buffer binding here, when glGetVertexArrayIntegeri_v is called, should return fake buffer id
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glBindVertexBuffer(bindingindex, buffer, offset, stride);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glBindVertexBuffer(bindingindex, real_buffer, offset, stride);
     CHECK_GL_ERROR
 }
 

@@ -4,9 +4,9 @@
 
 #include "gpu_utils.h"
 #include "../gles/loader.h"
+#include "vulkan/vulkan.h"
 
 #include <EGL/egl.h>
-#include <vulkan/vulkan.h>
 #include <cstring>
 
 static const char *gles3_lib[] = {
@@ -14,6 +14,11 @@ static const char *gles3_lib[] = {
         "libGLESv3",
         nullptr
 };
+static const char *vk_lib[] = {
+        "libvulkan",
+        nullptr
+};
+
 
 const char* getGPUInfo() {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -62,6 +67,8 @@ const char* getGPUInfo() {
     eglDestroyContext(eglDisplay, context);
     eglTerminate(eglDisplay);
 
+    dlclose(lib);
+
     return renderer;
 }
 
@@ -87,6 +94,33 @@ int isAdreno830(const char* gpu) {
 }
 
 int hasVulkan13() {
+    void* vulkan_lib = open_lib(vk_lib, nullptr);
+    if (!vulkan_lib)
+        return 0;
+
+    typedef VkResult (*PFN_vkEnumerateInstanceExtensionProperties)(const char*, uint32_t*, VkExtensionProperties*);
+    typedef VkResult (*PFN_vkCreateInstance)(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*);
+    typedef void (*PFN_vkDestroyInstance)(VkInstance, const VkAllocationCallbacks*);
+    typedef VkResult (*PFN_vkEnumeratePhysicalDevices)(VkInstance, uint32_t*, VkPhysicalDevice*);
+    typedef void (*PFN_vkGetPhysicalDeviceProperties)(VkPhysicalDevice, VkPhysicalDeviceProperties*);
+
+    auto vkEnumerateInstanceExtensionProperties =
+            (PFN_vkEnumerateInstanceExtensionProperties)dlsym(vulkan_lib, "vkEnumerateInstanceExtensionProperties");
+    auto vkCreateInstance =
+            (PFN_vkCreateInstance)dlsym(vulkan_lib, "vkCreateInstance");
+    auto vkDestroyInstance =
+            (PFN_vkDestroyInstance)dlsym(vulkan_lib, "vkDestroyInstance");
+    auto vkEnumeratePhysicalDevices =
+            (PFN_vkEnumeratePhysicalDevices)dlsym(vulkan_lib, "vkEnumeratePhysicalDevices");
+    auto vkGetPhysicalDeviceProperties =
+            (PFN_vkGetPhysicalDeviceProperties)dlsym(vulkan_lib, "vkGetPhysicalDeviceProperties");
+
+    if (!vkEnumerateInstanceExtensionProperties || !vkCreateInstance ||
+        !vkDestroyInstance || !vkEnumeratePhysicalDevices || !vkGetPhysicalDeviceProperties) {
+        dlclose(vulkan_lib);
+        return 0;
+    }
+
     VkResult result = VK_SUCCESS;
     uint32_t instanceExtensionCount = 0;
 
@@ -112,7 +146,7 @@ int hasVulkan13() {
     createInfo.enabledLayerCount = 0;
     createInfo.ppEnabledLayerNames = nullptr;
     createInfo.enabledExtensionCount = 0;
-    createInfo.ppEnabledExtensionNames = 0;
+    createInfo.ppEnabledExtensionNames = nullptr;
 
     VkInstance instance = {};
     result = vkCreateInstance(&createInfo, nullptr, &instance);
@@ -127,8 +161,7 @@ int hasVulkan13() {
         return 0;
     }
 
-    VkPhysicalDevice* physicalDevices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * gpuCount);
-    //VkPhysicalDevice physicalDevices[gpuCount];
+    auto* physicalDevices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * gpuCount);
     vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices);
 
     for (uint32_t i = 0; i < gpuCount; i++) {
@@ -144,5 +177,7 @@ int hasVulkan13() {
     free(physicalDevices);
 
     vkDestroyInstance(instance, nullptr);
+
+    dlclose(vulkan_lib);
     return 0;
 }
