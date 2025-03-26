@@ -28,7 +28,7 @@ char* concatenate(char* str1, char* str2) {
 }
 
 int check_path() {
-    const char* var = getenv("MG_DIR_PATH");
+    char* var = getenv("MG_DIR_PATH");
     mg_directory_path = var ? var : DEFAULT_MG_DIRECTORY_PATH;
     config_file_path = concatenate(mg_directory_path, "/config.json");
     log_file_path = concatenate(mg_directory_path, "/latest.log");
