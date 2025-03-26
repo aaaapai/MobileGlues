@@ -20,7 +20,7 @@ static cJSON *config_json = NULL;
 
 int initialized = 0;
 
-char* concatenate(char* str1, char* str2) {
+char* concatenate(const char* str1, const char* str2) {
     std::string str = std::string(str1) + str2;
     char* result = new char[str.size() + 1];
     strcpy(result, str.c_str());
