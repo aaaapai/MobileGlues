@@ -11,16 +11,16 @@
 
 const char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
 
-const char* mg_directory_path;
-const char* config_file_path;
-const char* log_file_path;
-const char* glsl_cache_file_path;
+char* mg_directory_path;
+char* config_file_path;
+char* log_file_path;
+char* glsl_cache_file_path;
 
 static cJSON *config_json = NULL;
 
 int initialized = 0;
 
-char* concatenate(char* str1, char* str2) {
+const char* concatenate(char* str1, char* str2) {
     std::string str = std::string(str1) + str2;
     char* result = new char[str.size() + 1];
     strcpy(result, str.c_str());
@@ -28,7 +28,7 @@ char* concatenate(char* str1, char* str2) {
 }
 
 int check_path() {
-    char* var = getenv("MG_DIR_PATH");
+    const char* var = getenv("MG_DIR_PATH");
     mg_directory_path = var ? var : DEFAULT_MG_DIRECTORY_PATH;
     config_file_path = concatenate(mg_directory_path, "/config.json");
     log_file_path = concatenate(mg_directory_path, "/latest.log");
