@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-GLAPI APIENTRY void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+GLAPI void APIENTRY glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
 
 #ifdef __cplusplus
 }
