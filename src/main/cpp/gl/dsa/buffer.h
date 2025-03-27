@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "../gl.h"
+#include "../glcorearb.h"
 #include "../buffer.h"
 #include "../log.h"
 
@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+GLAPI APIENTRY void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 
 #ifdef __cplusplus
 }
