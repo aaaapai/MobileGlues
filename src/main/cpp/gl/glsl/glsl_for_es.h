@@ -21,6 +21,4 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code);
 int getGLSLVersion(const char* glsl_code);
 
-char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
-
 #endif
