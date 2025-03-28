@@ -485,7 +485,7 @@ imageStore(colorimg2, drawTexel, vec4(blur, 0.0f));
 }
 )";
 
-const char* preConvertedGlsl2Converted = R"(#version 320 es
+const static char* preConvertedGlsl2Converted = R"(#version 320 es
 precision highp float;
 precision highp int;
 precision highp sampler2D;
@@ -2270,7 +2270,7 @@ float warpPixelSize = importance / max(sum, 1.0f);
 imageStore(img_rtwWarp1D, drawTexel, vec4(warp, warpPixelSize, 0.0f, 0.0f));
 })";
 
-const char* preConvertedGlsl6Converted = R"(#version 320 es
+const static char* preConvertedGlsl6Converted = R"(#version 320 es
 precision highp float;
 
 uniform float iris_FogDensity;
