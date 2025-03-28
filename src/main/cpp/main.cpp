@@ -14,12 +14,11 @@
 #include "gl/log.h"
 #include "config/settings.h"
 #include "gl/fpe/fpe.hpp"
-
+#include "gl/glsl/glsl_for_es.h"
 #define DEBUG 0
 
 __attribute__((used)) const static char* license = "GNU LGPL-2.1 License";
 
-extern char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
 void init_libshaderconv() {
     const char *shaderconv_lib = "libshaderconv";
     const char *func_name = "MesaConvertShader";
