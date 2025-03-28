@@ -8,7 +8,7 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "../gl/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
@@ -57,8 +57,8 @@ static const char *egl_lib[] = {
         nullptr
 };
 
-const char *GLES_ANGLE = "libGLESv2_angle.so";
-const char *EGL_ANGLE = "libEGL_angle.so";
+const static char *GLES_ANGLE = "libGLESv2_angle.so";
+const static char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
@@ -196,6 +196,9 @@ void InitGLESCapabilities() {
 
     if (global_settings.ext_gl43) {
         AppendExtension("OpenGL43");
+        AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
     }
 
     if (global_settings.ext_compute_shader) {
