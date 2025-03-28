@@ -51,12 +51,14 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         config/config.cpp
         config/gpu_utils.cpp
         config/settings.cpp
-
-        gl/dsa/buffer.cpp
-        gl/dsa/framebuffer.cpp
+        gl/fpe/fpe.cpp
+        gl/fpe/state.cpp
+        gl/fpe/transformation.cpp
+        gl/fpe/vertexpointer.cpp
+        gl/fpe/fpe_shadergen.cpp
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ./includes)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ./includes ./glm)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
         ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang.a
@@ -91,3 +93,50 @@ if (PROFILING)
         target_link_libraries(mobileglues perfetto ${CMAKE_THREAD_LIBS_INIT})
         target_compile_definitions(mobileglues PUBLIC PROFILING=1)
 endif()
+
+#find_package(Vulkan COMPONENTS glslc Vulkan::SPIRV-Tools)
+#find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
+#find_program(spirv-cross_executable NAMES glslc HINTS Vulkan::SPIRV-Tools)
+#
+#add_custom_target(mobileglues_shader)
+#
+#set(VERT_SHADER_FILES
+#        ${CMAKE_SOURCE_DIR}/shader/shader.vert)
+#set(FRAG_SHADER_FILES
+#        ${CMAKE_SOURCE_DIR}/shader/shader.frag)
+#set(GLSL_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/shader/include)
+#
+#
+##glslc -o out/simple.spv src/simple.vert --target-env=opengl -Iinclude
+#
+#function(compile_shader target)
+#        cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;INCLUDE" "SOURCES")
+#        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/spv)
+#                foreach(source ${arg_SOURCES})
+#                get_filename_component(SRC_NAME ${source} NAME)
+#                add_custom_command(
+#                        TARGET ${target}
+#                        PRE_BUILD
+##                        OUTPUT ${CMAKE_BINARY_DIR}/spv/${source}.spv
+#                        DEPENDS ${source}
+#                        COMMAND
+#                        ${glslc_executable}
+#                        $<$<BOOL:${arg_ENV}>:--target-env=${arg_ENV}>
+#                        $<$<BOOL:${arg_INCLUDE}>:-I${arg_INCLUDE}>
+#                        -o ${CMAKE_BINARY_DIR}/spv/${SRC_NAME}.spv
+#                        ${source}
+#                )
+##                target_sources(${target} PRIVATE ${source})
+#        endforeach()
+#endfunction()
+#
+#
+#compile_shader(mobileglues_shader
+#        ENV opengl
+#        INCLUDE ${GLSL_INCLUDE_DIR}
+#        SOURCES ${VERT_SHADER_FILES} ${FRAG_SHADER_FILES}
+#)
+#
+##message(FATAL_ERROR ${CMAKE_BINARY_DIR}/spv)
+#
+#add_dependencies(mobileglues mobileglues_shader)

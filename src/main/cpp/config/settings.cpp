@@ -64,7 +64,7 @@ void init_settings() {
     }
 
     const char* gpuString = getGPUInfo();
-    LOG_D("GPU: %s", gpuString);
+    LOG_D("GPU: %s", gpuString)
 
     if (enableANGLE == 2 || enableANGLE == 3) {
         // Force enable / disable
@@ -72,16 +72,16 @@ void init_settings() {
     } else {
         int isQcom = isAdreno(gpuString);
         int is740 = isAdreno740(gpuString);
-        int is830 = isAdreno830(gpuString);
+        //int is830 = isAdreno830(gpuString);
         int hasVk13 = hasVulkan13();
 
         LOG_D("Is Adreno? = %s", isQcom ? "true" : "false")
-        LOG_D("Is Adreno 830? = %s", is830 ? "true" : "false")
+        //LOG_D("Is Adreno 830? = %s", is830 ? "true" : "false")
         LOG_D("Is Adreno 740? = %s", is740 ? "true" : "false")
         LOG_D("Has Vulkan 1.3? = %s", hasVk13 ? "true" : "false")
 
-        if (is830)
-            global_settings.angle = 1;
+        //if (is830)
+        //    global_settings.angle = 1;
         if (is740)
             global_settings.angle = 0;
         else
@@ -116,7 +116,14 @@ void init_settings() {
 
     global_settings.ext_compute_shader = enableExtComputeShader;
     
-    global_settings.maxGlslCacheSize = maxGlslCacheSize;
+    global_settings.max_glsl_cache_size = maxGlslCacheSize;
 
-    global_settings.enableCompatibleMode = enableCompatibleMode;
+    global_settings.enable_compatible_mode = enableCompatibleMode;
+
+    LOG_V("[MobileGlues] Setting: enableAngle            = %s", global_settings.angle ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: ignoreError            = %i", global_settings.ignore_error)
+    LOG_V("[MobileGlues] Setting: enableExtComputeShader = %s", global_settings.ext_compute_shader ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableExtGL43          = %s", global_settings.ext_gl43 ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", global_settings.max_glsl_cache_size / 1024 / 1024)
+    LOG_V("[MobileGlues] Setting: enableCompatibleMode   = %s", global_settings.enable_compatible_mode ? "true" : "false")
 }
