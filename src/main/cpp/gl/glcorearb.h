@@ -286,6 +286,7 @@ typedef khronos_uint8_t GLubyte;
 #define GL_PROXY_TEXTURE_RECTANGLE_ARB    0x84F7
 #define GL_R					0x2002
 #define GL_COLOR_INDEX				0x1900
+#define GL_CLAMP				0x2900
 typedef void (APIENTRYP PFNGLCULLFACEPROC) (GLenum mode);
 typedef void (APIENTRYP PFNGLFRONTFACEPROC) (GLenum mode);
 typedef void (APIENTRYP PFNGLHINTPROC) (GLenum target, GLenum mode);
