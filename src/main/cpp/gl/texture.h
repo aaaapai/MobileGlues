@@ -20,6 +20,7 @@ struct texture_t {
 };
 
 GLAPI APIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
+GLAPI APIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
 GLAPI APIENTRY void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI APIENTRY void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI APIENTRY void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);

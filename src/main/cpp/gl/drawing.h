@@ -32,6 +32,8 @@ GLAPI APIENTRY void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, 
 
 GLAPI APIENTRY void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 
+GLAPI APIENTRY void glDrawArrays(GLenum mode, GLint first, GLsizei count);
+
 GLAPI APIENTRY void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices);
 
 GLAPI APIENTRY void glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);

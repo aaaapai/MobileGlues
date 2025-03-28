@@ -1,5 +1,5 @@
 //
-// Created by hanji on 2025/2/3.
+// Created by hanji on 2025/2/3.A
 //
 
 #ifndef MOBILEGLUES_PROGRAM_H
@@ -16,6 +16,8 @@ GLAPI APIENTRY void glBindFragDataLocation(GLuint program, GLuint color, const G
 GLAPI APIENTRY void glLinkProgram(GLuint program);
 
 GLAPI APIENTRY void glGetProgramiv(GLuint program, GLenum pname, GLint *params);
+
+//GLAPI GLAPIENTRY GLint glGetUniformLocation(GLuint program, const GLchar *name);
 
 #ifdef __cplusplus
 }
