@@ -9,7 +9,7 @@
 
 #define DEBUG 0
 
-const char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
+const static char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
 
 const char* mg_directory_path;
 const char* config_file_path;
