@@ -9,18 +9,18 @@
 
 #define DEBUG 0
 
-char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
+const char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
 
-char* mg_directory_path;
-char* config_file_path;
-char* log_file_path;
-char* glsl_cache_file_path;
+const char* mg_directory_path;
+const char* config_file_path;
+const char* log_file_path;
+const char* glsl_cache_file_path;
 
 static cJSON *config_json = NULL;
 
 int initialized = 0;
 
-char* concatenate(char* str1, char* str2) {
+char* concatenate(const char* str1, const char* str2) {
     std::string str = std::string(str1) + str2;
     char* result = new char[str.size() + 1];
     strcpy(result, str.c_str());
@@ -80,7 +80,7 @@ int config_refresh() {
     return 1;
 }
 
-int config_get_int(char* name) {
+int config_get_int(const char* name) {
     if (config_json == NULL) {
         return -1;
     }
@@ -94,7 +94,7 @@ int config_get_int(char* name) {
     return item->valueint;
 }
 
-char* config_get_string(char* name) {
+const char* config_get_string(char* name) {
     if (config_json == NULL) {
         return NULL;
     }

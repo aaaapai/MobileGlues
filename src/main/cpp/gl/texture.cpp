@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <android/log.h>
 
-#include "gl.h"
+#include "glcorearb.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
