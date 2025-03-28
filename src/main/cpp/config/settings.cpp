@@ -124,6 +124,6 @@ void init_settings() {
     LOG_V("[MobileGlues] Setting: ignoreError            = %i", global_settings.ignore_error)
     LOG_V("[MobileGlues] Setting: enableExtComputeShader = %s", global_settings.ext_compute_shader ? "true" : "false")
     LOG_V("[MobileGlues] Setting: enableExtGL43          = %s", global_settings.ext_gl43 ? "true" : "false")
-    LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", global_settings.max_glsl_cache_size)
+    LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", global_settings.max_glsl_cache_size / 1024 / 1024)
     LOG_V("[MobileGlues] Setting: enableCompatibleMode   = %s", global_settings.enable_compatible_mode ? "true" : "false")
 }

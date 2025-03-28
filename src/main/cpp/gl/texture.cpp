@@ -227,12 +227,45 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
     pname = pname_convert(pname);
     LOG_D("glTexParameterf, target: %d, pname: %d, param: %f",target, pname, param)
 
+    switch (pname) {
+        case GL_TEXTURE_LOD_BIAS:
+        case GL_TEXTURE_LOD_BIAS_QCOM:
+            if (!g_gles_caps.GL_QCOM_texture_lod_bias)
+                LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
+            return;
+        case GL_TEXTURE_MIN_FILTER:
+        case GL_TEXTURE_MAG_FILTER:
+        case GL_TEXTURE_WRAP_S:
+        case GL_TEXTURE_WRAP_T:
+        case GL_TEXTURE_WRAP_R: {
+            LOG_D("GL_TEXTURE_WRAP_*/GL_TEXTURE_*_FILTER, glTexParameterf -> glTexParameteri");
+            glTexParameteri(target, pname, (GLint)param);
+            CHECK_GL_ERROR
+            return;
+        }
+    }
+
+    GLES.glTexParameterf(target,pname, param);
+    CHECK_GL_ERROR
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param) {
+    LOG()
+    pname = pname_convert(pname);
+    LOG_D("glTexParameteri, pname: 0x%x", pname)
+
     if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
         LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
         return;
     }
 
-    GLES.glTexParameterf(target,pname, param);
+    switch (param) {
+        case GL_CLAMP:
+            GLES.glTexParameteri(target, pname, GL_CLAMP_TO_EDGE);
+            break;
+        default:
+            GLES.glTexParameteri(target, pname, param);
+    }
     CHECK_GL_ERROR
 }
 
@@ -252,6 +285,9 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
         set_gl_state_proxy_intformat(internalFormat);
         return;
     }
+
+//    LOAD_GLES_FUNC(glTexImage1D);
+//    gles_glTexImage1D(target, level, internalFormat, width, border, format, type, pixels);
 
     CHECK_GL_ERROR
 }
@@ -342,6 +378,8 @@ void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat, GLsize
     return;
     internal_convert(&internalFormat,nullptr,nullptr);
 
+//    GLES.glTexStorage1D(target, levels, internalFormat, width);
+
     CHECK_GL_ERROR
 }
 
@@ -377,6 +415,8 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x
     LOG_D("glCopyTexImage1D, target: %d, level: %d, internalFormat: %d, x: %d, y: %d, width: %d, border: %d",
           target, level, internalFormat, x, y, width, border)
     return;
+
+//    GLES.glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
 
     CHECK_GL_ERROR
 }
@@ -696,7 +736,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
     LOG()
     LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = 0x%x",
           glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
-          
+
     GLint prevFBO;
     GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     GLenum bindingTarget = get_binding_for_target(target);
@@ -762,10 +802,10 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
     LOG()
     LOG_D("glReadPixels, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=0x%x",
           x, y, width, height, format, type, pixels)
-          
+
     static int count = 0;
     GLenum prevFormat = format;
-    
+
     if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
         format = GL_RGBA;
         type = GL_UNSIGNED_BYTE;
@@ -788,18 +828,50 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
     CHECK_GL_ERROR
 }
 
-void glTexParameteri(GLenum target, GLenum pname, GLint param) {
-    LOG()
-    pname = pname_convert(pname);
-    LOG_D("glTexParameteri, pname: 0x%x", pname)
 
-    if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
-        LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
-        return;
+template<typename T>
+void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents) {
+    const uint8_t* src = static_cast<const uint8_t*>(data);
+
+    switch(type) {
+        case GL_UNSIGNED_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(src[i]);
+            }
+            break;
+        case GL_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int8_t*>(src + i));
+            }
+            break;
+        case GL_UNSIGNED_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint16_t*>(src + i*2));
+            }
+            break;
+        case GL_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int16_t*>(src + i*2));
+            }
+            break;
+        case GL_UNSIGNED_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint32_t*>(src + i*4));
+            }
+            break;
+        case GL_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int32_t*>(src + i*4));
+            }
+            break;
+        case GL_FLOAT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const float*>(src + i*4));
+            }
+            break;
+        default:
+            break;
     }
-
-    GLES.glTexParameteri(target,pname,param);
-    CHECK_GL_ERROR
 }
 
 void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
@@ -822,7 +894,6 @@ void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, co
         CHECK_GL_ERROR_NO_INIT
         return;
     }
-    
     GLES.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     CHECK_GL_ERROR_NO_INIT
 
