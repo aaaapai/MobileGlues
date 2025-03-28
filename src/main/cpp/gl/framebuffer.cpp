@@ -8,9 +8,9 @@
 
 #define DEBUG 0
 
-struct framebuffer_t* bound_framebuffer;
+static struct framebuffer_t* bound_framebuffer;
 
-GLint MAX_DRAW_BUFFERS = 0;
+static GLint MAX_DRAW_BUFFERS = 0;
 
 GLint getMaxDrawBuffers() {
     if (!MAX_DRAW_BUFFERS) {
