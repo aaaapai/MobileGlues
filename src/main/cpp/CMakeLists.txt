@@ -55,6 +55,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         gl/fpe/transformation.cpp
         gl/fpe/vertexpointer.cpp
         gl/fpe/fpe_shadergen.cpp
+        gl/fpe/list.cpp
         gl/dsa/buffer.cpp
         gl/dsa/framebuffer.cpp
 )

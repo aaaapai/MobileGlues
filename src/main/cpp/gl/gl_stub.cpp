@@ -73,14 +73,14 @@ STUB_FUNCTION_HEAD(void, glMultMatrixd, const GLdouble *m ) STUB_FUNCTION_END_NO
 /*
 * Display Lists
 */
-STUB_FUNCTION_HEAD(GLboolean, glIsList, GLuint list ); STUB_FUNCTION_END(GLboolean, glIsList,list)
-STUB_FUNCTION_HEAD(void, glDeleteLists, GLuint list, GLsizei range ) STUB_FUNCTION_END_NO_RETURN(void, glDeleteLists,list,range)
-STUB_FUNCTION_HEAD(GLuint, glGenLists, GLsizei range ) STUB_FUNCTION_END(GLuint, glGenLists,range)
-STUB_FUNCTION_HEAD(void, glNewList, GLuint list, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glNewList,list,mode)
-STUB_FUNCTION_HEAD(void, glEndList) STUB_FUNCTION_END_NO_RETURN(void, glEndList)
-STUB_FUNCTION_HEAD(void, glCallList, GLuint list ) STUB_FUNCTION_END_NO_RETURN(void, glCallList,list)
-STUB_FUNCTION_HEAD(void, glCallLists, GLsizei n, GLenum type,const GLvoid* lists ) STUB_FUNCTION_END_NO_RETURN(void, glCallLists,n,type,lists)
-STUB_FUNCTION_HEAD(void, glListBase, GLuint base ) STUB_FUNCTION_END_NO_RETURN(void, glListBase,base)
+//STUB_FUNCTION_HEAD(GLboolean, glIsList, GLuint list ); STUB_FUNCTION_END(GLboolean, glIsList,list)
+//STUB_FUNCTION_HEAD(void, glDeleteLists, GLuint list, GLsizei range ) STUB_FUNCTION_END_NO_RETURN(void, glDeleteLists,list,range)
+//STUB_FUNCTION_HEAD(GLuint, glGenLists, GLsizei range ) STUB_FUNCTION_END(GLuint, glGenLists,range)
+//STUB_FUNCTION_HEAD(void, glNewList, GLuint list, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glNewList,list,mode)
+//STUB_FUNCTION_HEAD(void, glEndList) STUB_FUNCTION_END_NO_RETURN(void, glEndList)
+//STUB_FUNCTION_HEAD(void, glCallList, GLuint list ) STUB_FUNCTION_END_NO_RETURN(void, glCallList,list)
+//STUB_FUNCTION_HEAD(void, glCallLists, GLsizei n, GLenum type,const GLvoid* lists ) STUB_FUNCTION_END_NO_RETURN(void, glCallLists,n,type,lists)
+//STUB_FUNCTION_HEAD(void, glListBase, GLuint base ) STUB_FUNCTION_END_NO_RETURN(void, glListBase,base)
 /*
 * Drawing Functions
 */
