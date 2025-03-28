@@ -7,16 +7,16 @@
 
 #define DEBUG 0
 
-GLint maxBufferId = 0;
-GLint maxArrayId = 0;
+static GLint maxBufferId = 0;
+static GLint maxArrayId = 0;
 
-std::unordered_map<GLuint, GLuint> g_gen_buffers;
-std::unordered_map<GLuint, GLuint> g_gen_arrays;
+static std::unordered_map<GLuint, GLuint> g_gen_buffers;
+static std::unordered_map<GLuint, GLuint> g_gen_arrays;
 
-std::unordered_map<GLenum, GLuint> g_bound_buffers;
-GLuint bound_array = 0;
+static std::unordered_map<GLenum, GLuint> g_bound_buffers;
+static GLuint bound_array = 0;
 
-std::unordered_map<GLuint, BufferMapping> g_active_mappings;
+static std::unordered_map<GLuint, BufferMapping> g_active_mappings;
 
 GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
