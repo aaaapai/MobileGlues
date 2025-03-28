@@ -57,8 +57,8 @@ static const char *egl_lib[] = {
         nullptr
 };
 
-const const char *GLES_ANGLE = "libGLESv2_angle.so";
-const const char *EGL_ANGLE = "libEGL_angle.so";
+const static char *GLES_ANGLE = "libGLESv2_angle.so";
+const static char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
