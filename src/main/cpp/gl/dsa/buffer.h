@@ -17,6 +17,20 @@ extern "C" {
 
 GLAPI void APIENTRY glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
 
+GLAPI GLAPIENTRY void glCreateBuffers(GLsizei n, GLuint* buffers);
+
+GLAPI GLAPIENTRY void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length);
+
+GLAPI GLAPIENTRY void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params);
+
+GLAPI GLAPIENTRY void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params);
+
+GLAPI GLAPIENTRY void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void* *params);
+
+GLAPI GLAPIENTRY void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void* data);
+
+GLAPI GLAPIENTRY void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+
 #ifdef __cplusplus
 }
 #endif

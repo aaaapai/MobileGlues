@@ -28,7 +28,7 @@ typedef struct {
 extern "C" {
 #endif
 
-GLuint gen_buffer();
+GLuint gen_buffer(GLuint realid = 0);
 
 GLboolean has_buffer(GLuint key);
 
