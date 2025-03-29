@@ -48,17 +48,17 @@ void show_license() {
     LOG_V("  %s", license);
 }
 
-static GLuint watermark_vao = 0;
-static GLuint watermark_vbo = 0;
-static GLuint watermark_ibo = 0;
+GLuint watermark_vao = 0;
+GLuint watermark_vbo = 0;
+GLuint watermark_ibo = 0;
 
-static float watermark_vertices[] = {
+float watermark_vertices[] = {
         -0.5f, -0.5f, 1.0f,
         0.5f, -0.5f, 1.0f,
         0.0f,  0.5f, 1.0f
 };
 
-const static char* watermark_vtx_shader_src =
+const char* watermark_vtx_shader_src =
         "#version 320 es\n"
         "precision highp float;\n"
         "precision highp int;\n"
@@ -67,7 +67,7 @@ const static char* watermark_vtx_shader_src =
         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
         "}\n";
 
-const static char* watermark_frag_shader_src =
+const char* watermark_frag_shader_src =
         "#version 320 es\n"
         "precision highp float;\n"
         "precision highp int;\n"
@@ -78,13 +78,13 @@ const static char* watermark_frag_shader_src =
         "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
         "}";
 
-static GLuint watermark_vtx_shader = 0;
-static GLuint watermark_frag_shader = 0;
-static GLuint watermark_program = 0;
+GLuint watermark_vtx_shader = 0;
+GLuint watermark_frag_shader = 0;
+GLuint watermark_program = 0;
 
-static int watermark_inited = 0;
+int watermark_inited = 0;
 
-static char compile_info[1024];
+char compile_info[1024];
 
 int init_watermark_res() {
 
