@@ -3,13 +3,8 @@
 //
 
 #include "list.h"
+#include "pointer_utils.h"
 #include "../log.h"
-
-#include <unordered_map>
-#include <vector>
-#include <memory>
-#include <cstdint>
-#include <type_traits>
 
 #define DEBUG 0
 
@@ -50,9 +45,11 @@ void glCallList(GLuint list) {
     LOG()
     LOG_D("glCallList(%d)", list)
 
-    displayListManager.record<::glCallList>(std::forward<GLuint>(list));
-    if (DisplayListManager::isRecording())
-        return;
+    if (DisplayListManager::shouldRecord()) {
+        displayListManager.record<glCallList>({}, list);
+        if (DisplayListManager::isRecording())
+            return;
+    }
 
     DisplayListManager::callList(list);
 }
@@ -61,10 +58,11 @@ void glCallLists(GLsizei n, GLenum type, const GLvoid* lists) {
     LOG()
     LOG_D("glCallLists(%i, %s, %p)", n, glEnumToString(type), lists)
 
-    // Todo: pointer should specifically handled
-    displayListManager.record<::glCallLists>(std::forward<GLsizei>(n), std::forward<GLenum>(type), std::forward<const GLvoid*>(lists));
-    if (DisplayListManager::isRecording())
-        return;
+    if (DisplayListManager::shouldRecord()) {
+        displayListManager.record<glCallLists>({{2, n * PointerUtils::type_to_bytes(type)}}, n, type, lists);
+        if (DisplayListManager::isRecording())
+            return;
+    }
 
     const auto* ptr = static_cast<const uint8_t*>(lists);
     for (int i = 0; i < n; ++i) {
@@ -133,9 +131,11 @@ void glListBase(GLuint base) {
     LOG()
     LOG_D("glGenLists(%d)", base)
 
-    displayListManager.record<::glListBase>(std::forward<GLuint>(base));
-    if (DisplayListManager::shouldFinish())
-        return;
+    if (DisplayListManager::shouldRecord()) {
+        displayListManager.record<glListBase>({}, base);
+        if (DisplayListManager::shouldFinish())
+            return;
+    }
 
     currentListBase = base;
 }

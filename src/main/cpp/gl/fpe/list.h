@@ -12,7 +12,9 @@
 #include <memory>
 #include <tuple>
 #include <unordered_map>
-#include <GLES2/gl2.h>
+#include <cstring>
+#include <utility>
+#include <type_traits>
 
 #define DEBUG 0
 
@@ -35,26 +37,19 @@ template<auto FuncPtr, typename... Args>
 class GLFuncCmd : public GLCmd {
     using StoredArgs = std::tuple<std::decay_t<Args>...>;
     StoredArgs args;
-
-    static_assert(std::is_invocable_v<decltype(FuncPtr), Args...>,
-                  "Function arguments mismatch");
+    std::vector<std::vector<uint8_t>> argBuffers;
 
 public:
-    explicit GLFuncCmd(Args&&... args) noexcept
-            : args(std::forward<Args>(args)...) {}
-
-    GLFuncCmd(GLFuncCmd&&) = default;
-    GLFuncCmd& operator=(GLFuncCmd&&) = default;
+    explicit GLFuncCmd(Args&&... processedArgs,
+                       std::vector<std::vector<uint8_t>>&& buffers)
+            : args(std::forward<Args>(processedArgs)...),
+              argBuffers(std::move(buffers)) {}
 
     void execute() const override {
         std::apply([](auto&&... args) {
             FuncPtr(std::forward<decltype(args)>(args)...);
         }, args);
     }
-
-private:
-    GLFuncCmd(const GLFuncCmd&) = delete;
-    GLFuncCmd& operator=(const GLFuncCmd&) = delete;
 };
 
 class DisplayListManager {
@@ -65,15 +60,15 @@ class DisplayListManager {
     inline static std::unordered_map<GLuint, DisplayList> lists;
     inline static GLuint currentListID = 0;
 
-    template<auto Func, typename... Args>
-    void recordImpl(Args&&... args) {
-        if (currentListID != 0) {
-            lists[currentListID].emplace_back(
-                    std::make_unique<GLFuncCmd<Func, Args...>>(
-                            std::forward<Args>(args)...
-                    )
-            );
-        }
+    template<auto Func, typename... ProcessedArgs>
+    void recordImpl(std::vector<std::vector<uint8_t>>&& buffers,
+                    ProcessedArgs&&... args) {
+        lists[currentListID].emplace_back(
+                std::make_unique<GLFuncCmd<Func, ProcessedArgs...>>(
+                        std::forward<ProcessedArgs>(args)...,
+                        std::move(buffers)
+                )
+        );
     }
 
 public:
@@ -113,14 +108,46 @@ public:
         return currentListID != 0 ? 1 : 0;
     }
 
+    static int shouldRecord() {
+        return !calling && currentListID != 0;
+    }
+
     static int shouldFinish() {
         return (currentListID != 0 && listMode == GL_COMPILE) ? 1 : 0;
     }
 
     template<auto Func, typename... Args>
-    void record(Args&&... args) {
-        if (!calling)
-            recordImpl<Func>(std::forward<Args>(args)...);
+    void record(const std::vector<std::pair<size_t, size_t>>& pointerArgs, Args&&... args) {
+        std::vector<std::vector<uint8_t>> argBuffers;
+        auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+            (([&] {
+                for (const auto& [index, size] : pointerArgs) {
+                    if (index == Is) {
+                        auto& arg = std::get<Is>(argsTuple);
+                        using ArgType = std::decay_t<decltype(arg)>;
+
+                        if constexpr (std::is_pointer_v<ArgType>) {
+                            if (arg != nullptr) {
+                                std::vector<uint8_t> buffer(size);
+                                std::memcpy(buffer.data(), arg, size);
+                                argBuffers.emplace_back(std::move(buffer));
+                                arg = reinterpret_cast<ArgType>(argBuffers.back().data());
+                            }
+                        }
+                        break;
+                    }
+                }
+            })(), ...);
+        }(std::index_sequence_for<Args...>{});
+
+        std::apply([&](auto&&... processedArgs) {
+            this->template recordImpl<Func>(
+                    std::move(argBuffers),
+                    std::forward<decltype(processedArgs)>(processedArgs)...
+            );
+        }, argsTuple);
     }
 
     static void callList(GLuint listID) {
@@ -145,8 +172,7 @@ inline GLboolean disableRecording = GL_FALSE;
     GLboolean alreadyDisabled = disableRecording; \
     disableRecording = GL_TRUE;                   \
     func(__VA_ARGS__);                            \
-    if (!alreadyDisabled)                         \
-        disableRecording = GL_FALSE;              \
+    disableRecording = alreadyDisabled;           \
 }
 
 GLAPI GLAPIENTRY GLuint glGenLists(GLsizei range);
