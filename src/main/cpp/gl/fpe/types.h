@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include "fpe_shadergen.h"
 
+#define GL_FRAGMENT_DEPTH 0x8452
+
 struct transformation_t {
     glm::mat4 matrices[4];
     std::vector<glm::mat4> matrices_stack[4];

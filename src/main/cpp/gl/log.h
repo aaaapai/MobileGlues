@@ -10,6 +10,8 @@
 
 #define GLOBAL_DEBUG 0
 
+#define GLOBAL_DEBUG_MAIN 1
+
 #define LOG_CALLED_FUNCS 0
 
 #ifdef __cplusplus
@@ -50,9 +52,9 @@ void log_unique_function(const char* func_name);
 
 #define LOG_D(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
 #define LOG_D_N(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);write_log_n(__VA_ARGS__);}
-#define LOG_W(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_WARN, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
-#define LOG_E(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_ERROR, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
-#define LOG_F(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_FATAL, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_W(...) if(DEBUG||GLOBAL_DEBUG||GLOBAL_DEBUG_MAIN) {__android_log_print(ANDROID_LOG_WARN, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_E(...) if(DEBUG||GLOBAL_DEBUG||GLOBAL_DEBUG_MAIN) {__android_log_print(ANDROID_LOG_ERROR, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_F(...) if(DEBUG||GLOBAL_DEBUG||GLOBAL_DEBUG_MAIN) {__android_log_print(ANDROID_LOG_FATAL, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
 #endif
 
 #define LOG_V(...) {__android_log_print(ANDROID_LOG_VERBOSE, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
