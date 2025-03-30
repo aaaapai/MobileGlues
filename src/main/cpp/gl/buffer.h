@@ -56,9 +56,15 @@ static GLenum get_binding_query(GLenum target);
 
 GLAPI APIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
 
+GLAPI APIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers); 
+
 GLAPI APIENTRY void glDeleteBuffers(GLsizei n, const GLuint *buffers);
 
+GLAPI APIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers);
+
 GLAPI APIENTRY GLboolean glIsBuffer(GLuint buffer);
+
+GLAPI APIENTRY GLboolean glIsBufferARB(GLuint buffer);
 
 GLAPI APIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
