@@ -287,7 +287,7 @@ void glVertexAttrib4Niv( 	GLuint index,
     );
 }
 
-GLAPI void APIENTRY glVertexAttrib4iv (GLuint index, const GLint *v) {
+GLAPI void APIENTRY glVertexAttrib4iv(GLuint index, const GLint *v) {
     LOG()
     GLES.glVertexAttrib4f(
             index,
@@ -296,4 +296,47 @@ GLAPI void APIENTRY glVertexAttrib4iv (GLuint index, const GLint *v) {
             inormalize(v[2]),
             inormalize(v[3])
     );
-;
+}
+
+GLAPI void APIENTRY glVertexAttrib4bv(GLuint index, const GLbyte *v) {
+    LOG()
+    GLES.glVertexAttrib4f(
+            index,
+            bnormalize(v[0]),
+            bnormalize(v[1]),
+            bnormalize(v[2]),
+            bnormalize(v[3])
+    );
+}
+
+GLAPI void APIENTRY glVertexAttrib4ubv(GLuint index, const GLubyte *v) {
+      LOG()
+      glVertexAttrib4Nub(index, v[0], v[1], v[2], v[3]);
+}
+
+GLAPI void APIENTRY glVertexAttrib4usv (GLuint index, const GLushort *v) {
+    LOG()
+    GLfloat fv0 = ((GLfloat)v[0] / 32767.0f);
+    GLfloat fv1 = ((GLfloat)v[1] / 32767.0f);
+    GLfloat fv2 = ((GLfloat)v[2] / 32767.0f);
+    GLfloat fv3 = ((GLfloat)v[3] / 32767.0f);
+    GLES.glVertexAttrib4f(index, fv0, fv1, fv2, fv3);
+}
+
+GLAPI void APIENTRY glVertexAttrib4usv (GLuint index, const GLushort *v) {
+    LOG()
+    GLfloat fv0 = ((GLfloat)v[0] / 32767.0f);
+    GLfloat fv1 = ((GLfloat)v[1] / 32767.0f);
+    GLfloat fv2 = ((GLfloat)v[2] / 32767.0f);
+    GLfloat fv3 = ((GLfloat)v[3] / 32767.0f);
+    GLES.glVertexAttrib4f(index, fv0, fv1, fv2, fv3);
+}
+
+GLAPI void APIENTRY glVertexAttrib4uiv (GLuint index, const GLuint *v) {
+    LOG()
+    // GLfloat has a precision limit of 24 bits, so truncate the input integers to it.
+    GLfloat fv0 = ((GLfloat)v[0] / 4294967295.0f);
+    GLfloat fv1 = ((GLfloat)v[1] / 4294967295.0f);
+    GLfloat fv2 = ((GLfloat)v[2] / 4294967295.0f);
+    GLfloat fv3 = ((GLfloat)v[3] / 4294967295.0f);
+    GLES.glVertexAttrib4f(index, fv0, fv1, fv2, fv3);
