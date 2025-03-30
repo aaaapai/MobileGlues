@@ -286,3 +286,14 @@ void glVertexAttrib4Niv( 	GLuint index,
             inormalize(v[3])
     );
 }
+
+GLAPI void APIENTRY glVertexAttrib4iv (GLuint index, const GLint *v) {
+    LOG()
+    GLES.glVertexAttrib4f(
+            index,
+            inormalize(v[0]),
+            inormalize(v[1]),
+            inormalize(v[2]),
+            inormalize(v[3])
+    );
+;
