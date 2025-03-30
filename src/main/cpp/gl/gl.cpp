@@ -10,7 +10,7 @@
 
 #define DEBUG 0
 
-void glClearDepth(GLclampd depth) {
+GLAPI void GLAPIENTRY glClearDepth(GLclampd depth) {
     LOG()
     GLES.glClearDepthf((GLfloat)depth);
     CHECK_GL_ERROR
