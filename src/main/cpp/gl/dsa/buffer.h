@@ -31,6 +31,8 @@ GLAPI APIENTRY void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsi
 
 GLAPI APIENTRY void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
 
+GLAPI APIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access);
+
 #ifdef __cplusplus
 }
 #endif
