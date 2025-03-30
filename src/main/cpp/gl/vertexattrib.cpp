@@ -21,15 +21,6 @@ void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z) {
     GLES.glVertexAttribI4ui(index, x, y, z, 0);
 }
 
-/**
- * Created by: artDev
- * Copyright (c) 2025 artDev, SerpentSpirale, PojavLauncherTeam, Digital Genesis LLC.
- * For use under LGPL-3.0
- */
-
-#include <proc.h>
-#include <egl.h>
-
 /* glVertexAttribXs family */
 void glVertexAttrib1s(GLuint index, GLshort v0) {
     GLES.glVertexAttrib1f(index, (GLfloat) v0);
