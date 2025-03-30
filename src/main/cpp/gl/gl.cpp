@@ -3,7 +3,7 @@
 //
 
 #include "../includes.h"
-#include "glcorearb.h"
+#include "gl.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
@@ -12,7 +12,7 @@
 
 void glClearDepth(GLclampd depth) {
     LOG()
-    GLES.glClearDepthf((float)depth);
+    GLES.glClearDepthf((GLfloat)depth);
     CHECK_GL_ERROR
 }
 
