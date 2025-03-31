@@ -8,7 +8,7 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "../gl/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
@@ -57,8 +57,8 @@ static const char *egl_lib[] = {
         nullptr
 };
 
-const char *GLES_ANGLE = "libGLESv2_angle.so";
-const char *EGL_ANGLE = "libEGL_angle.so";
+const static char *GLES_ANGLE = "libGLESv2_angle.so";
+const static char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
@@ -138,6 +138,9 @@ void InitGLESCapabilities() {
 
     InitGLESBaseExtensions();
 
+    GLES.glGetIntegerv(GL_MAJOR_VERSION, &g_gles_caps.major);
+    GLES.glGetIntegerv(GL_MINOR_VERSION, &g_gles_caps.minor);
+
 //    int has_GL_EXT_buffer_storage = 0;
 //    int has_GL_ARB_timer_query = 0;
 //    int has_GL_QCOM_texture_lod_bias = 0;
@@ -196,6 +199,9 @@ void InitGLESCapabilities() {
 
     if (global_settings.ext_gl43) {
         AppendExtension("OpenGL43");
+        AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
     }
 
     if (global_settings.ext_compute_shader) {
@@ -577,13 +583,13 @@ void init_target_gles() {
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
-    INIT_GLES_FUNC(glBruh)
+//    INIT_GLES_FUNC(glBruh)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)
     LOG_D("glMultiDrawElementsBaseVertexEXT() @ 0x%x", GLES.glMultiDrawElementsBaseVertexEXT)
 
-    LOG_D("glBruh() @ 0x%x", GLES.glBruh)
+//    LOG_D("glBruh() @ 0x%x", GLES.glBruh)
 
     LOG_D("Initializing %s @ hardware", RENDERERNAME)
     set_hardware();

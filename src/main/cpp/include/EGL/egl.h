@@ -156,6 +156,7 @@ typedef void *EGLClientBuffer;
 #define EGL_OPENVG_BIT			0x0002	/* EGL_RENDERABLE_TYPE mask bits */
 #define EGL_OPENGL_ES2_BIT		0x0004	/* EGL_RENDERABLE_TYPE mask bits */
 #define EGL_OPENGL_BIT			0x0008	/* EGL_RENDERABLE_TYPE mask bits */
+#define EGL_OPENGL_ES3_BIT_KHR	        0x0040	/* EGL_RENDERABLE_TYPE mask bits */
 
 /* QueryString targets */
 #define EGL_VENDOR			0x3053
