@@ -2,7 +2,7 @@
 #define MOBILEGLUES_GLES_LOADER_H_
 
 #include "../gl/log.h"
-#include "../gl/gl.h"
+#include "../gl/glcorearb.h"
 #include "gles.h"
 #include <dlfcn.h>
 #include <cstdio>
@@ -88,8 +88,8 @@ static name##_PTR egl_##name = NULL;                                        \
     GLenum ERR = GL_NO_ERROR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
-extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
+extern "C" GLAPI APIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__)  { \
     LOG()
 
 #if GLOBAL_DEBUG
@@ -98,7 +98,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
     type ret = GLES.name(__VA_ARGS__);                                    \
     GLenum ERR = GLES.glGetError();                                         \
     if (ERR != GL_NO_ERROR)                                                 \
-        LOG_E("ERROR: %d", ERR)                                             \
+        LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
     return ret;                                                             \
 }
 #else
@@ -124,7 +124,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
 #endif
 
 #define STUB_FUNCTION_HEAD(type,name,...)                                   \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
+extern "C" GLAPI APIENTRY type name(__VA_ARGS__) { \
     LOG()
 
 #define STUB_FUNCTION_END(type,name,...)                                    \
@@ -139,6 +139,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
 struct gles_caps_t {
     int major;
     int minor;
+    int maxtex;
     int GL_EXT_buffer_storage;
     int GL_EXT_disjoint_timer_query;
     int GL_QCOM_texture_lod_bias;

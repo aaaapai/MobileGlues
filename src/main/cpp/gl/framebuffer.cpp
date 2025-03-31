@@ -8,9 +8,9 @@
 
 #define DEBUG 0
 
-struct framebuffer_t* bound_framebuffer;
+static struct framebuffer_t* bound_framebuffer;
 
-GLint MAX_DRAW_BUFFERS = 0;
+static GLint MAX_DRAW_BUFFERS = 0;
 
 GLint getMaxDrawBuffers() {
     if (!MAX_DRAW_BUFFERS) {
@@ -100,7 +100,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     CHECK_GL_ERROR
 }
 
-void glDrawBuffer(GLenum buffer) {
+void glDrawBuffer(GLenum buf) {
     LOG()
 
     GLint currentFBO;
@@ -108,11 +108,11 @@ void glDrawBuffer(GLenum buffer) {
 
     if (currentFBO == 0) {
         GLenum buffers[1] = {GL_NONE};
-        switch (buffer) {
+        switch (buf) {
             case GL_FRONT:
             case GL_BACK:
             case GL_NONE:
-                buffers[0] = buffer;
+                buffers[0] = buf;
                 GLES.glDrawBuffers(1, buffers);
                 break;
             default:
@@ -122,17 +122,17 @@ void glDrawBuffer(GLenum buffer) {
         GLint maxAttachments;
         GLES.glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
 
-        if (buffer == GL_NONE) {
+        if (buf == GL_NONE) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
                 buffers[i] = GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
-        } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
-                   buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
+        } else if (buf >= GL_COLOR_ATTACHMENT0 &&
+                   buf < GL_COLOR_ATTACHMENT0 + maxAttachments) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
-                buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
+                buffers[i] = (i == (buf - GL_COLOR_ATTACHMENT0)) ? buf : GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         }

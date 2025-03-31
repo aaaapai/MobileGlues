@@ -7,20 +7,20 @@
 
 #define DEBUG 0
 
-GLint maxBufferId = 0;
-GLint maxArrayId = 0;
+static GLint maxBufferId = 0;
+static GLint maxArrayId = 0;
 
-std::unordered_map<GLuint, GLuint> g_gen_buffers;
-std::unordered_map<GLuint, GLuint> g_gen_arrays;
+static std::unordered_map<GLuint, GLuint> g_gen_buffers;
+static std::unordered_map<GLuint, GLuint> g_gen_arrays;
 
-std::unordered_map<GLenum, GLuint> g_bound_buffers;
-GLuint bound_array = 0;
+static std::unordered_map<GLenum, GLuint> g_bound_buffers;
+static GLuint bound_array = 0;
 
-std::unordered_map<GLuint, BufferMapping> g_active_mappings;
+static std::unordered_map<GLuint, BufferMapping> g_active_mappings;
 
-GLuint gen_buffer() {
+GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
-    g_gen_buffers[maxBufferId] = 0;
+    g_gen_buffers[maxBufferId] = realid;
     return maxBufferId;
 }
 
@@ -146,6 +146,10 @@ void glGenBuffers(GLsizei n, GLuint *buffers) {
     }
 }
 
+void glGenBuffersARB(GLsizei n, GLuint *buffers) {
+    glGenBuffers(n, buffers);
+}
+
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     LOG()
     LOG_D("glDeleteBuffers(%i, %p)", n, buffers)
@@ -159,10 +163,18 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     }
 }
 
+void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) {
+    glDeleteBuffers(n, buffers);
+}
+
 GLboolean glIsBuffer(GLuint buffer) {
     LOG()
     LOG_D("glIsBuffer, buffer = %d", buffer)
     return has_buffer(buffer);
+}
+
+GLboolean glIsBufferARB(GLuint buffer) {
+    glIsBuffer(buffer);
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {
@@ -349,11 +361,11 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #endif
 
 extern "C" {
-    GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
-    GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
-    GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
-    GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
-    GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+    GLAPI APIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
+    GLAPI APIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
+    GLAPI APIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
+    GLAPI APIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
+    GLAPI APIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
 }
 
 GLboolean glUnmapBuffer(GLenum target) {
