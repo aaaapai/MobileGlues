@@ -40,6 +40,26 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
 //        LOG_W("Warning: No GL_EXT_blend_func_extended, skipping glBindFragDataLocation...");
 //    }
 
+    if (strlen(name) > 8 && strncmp(name, "outColor", 8) == 0) {
+        const char* numberStr = name + 8;
+        bool isNumber = true;
+        for (int i = 0; numberStr[i] != '\0'; ++i) {
+            if (!isdigit(numberStr[i])) {
+                isNumber = false;
+                break;
+            }
+        }
+
+        if (isNumber) {
+            unsigned int extractedColor = static_cast<unsigned int>(std::stoul(numberStr));
+            if (extractedColor == color) {
+                // outColor was bound in glsl process. exit now
+                LOG_D("Find outColor* with color *, skipping")
+                return;
+            }
+        }
+    }
+
     char* origin_glsl = nullptr;
     if (shaderInfo.frag_data_changed) {
         size_t glslLen  = strlen(shaderInfo.frag_data_changed_converted) + 1;
