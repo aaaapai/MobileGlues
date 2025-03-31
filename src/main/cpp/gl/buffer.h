@@ -74,6 +74,10 @@ GLAPI APIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuin
 
 GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
 
+GLAPI APIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
+GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
+
 GLAPI APIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 
 GLAPI APIENTRY void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
