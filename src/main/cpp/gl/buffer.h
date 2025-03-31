@@ -68,7 +68,11 @@ GLAPI APIENTRY GLboolean glIsBufferARB(GLuint buffer);
 
 GLAPI APIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
-GLAPI APIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+GLAPI APIENTRY void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer);
+
+GLAPI APIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
+GLAPI APIENTRY GLboolean glUnmapBuffer(GLenum target);
 
 GLAPI APIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 

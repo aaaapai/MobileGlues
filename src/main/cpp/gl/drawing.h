@@ -30,6 +30,18 @@ struct draw_elements_indirect_command_t {
 
 GLAPI APIENTRY void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
 
+GLAPI APIENTRY void mg_glMultiDrawElementsBaseVertex_indirect(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
+
+GLAPI APIENTRY void mg_glMultiDrawElementsBaseVertex_multiindirect(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
+
+GLAPI APIENTRY void mg_glMultiDrawElementsBaseVertex_basevertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
+
+GLAPI APIENTRY void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
+
+GLAPI APIENTRY void mg_glMultiDrawElements_multiindirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
+
+GLAPI APIENTRY void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
+
 GLAPI APIENTRY void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 
 GLAPI APIENTRY void glDrawArrays(GLenum mode, GLint first, GLsizei count);

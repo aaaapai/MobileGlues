@@ -137,6 +137,8 @@ extern "C" GLAPI APIENTRY type name(__VA_ARGS__) { \
 }
 
 struct gles_caps_t {
+    int major;
+    int minor;
     int maxtex;
     int GL_EXT_buffer_storage;
     int GL_EXT_disjoint_timer_query;

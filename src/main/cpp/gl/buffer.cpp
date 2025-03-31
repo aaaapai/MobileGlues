@@ -253,6 +253,43 @@ void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLs
     CHECK_GL_ERROR
 }
 
+// Todo: any glGet* related to this function?
+void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
+    LOG()
+    LOG_D("glTexBuffer, target = %s, internalformat = %s, buffer = %d", glEnumToString(target), glEnumToString(internalformat), buffer)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glTexBuffer(target, internalformat, buffer);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glTexBuffer(target, internalformat, real_buffer);
+    CHECK_GL_ERROR
+}
+
+void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
+    LOG()
+    LOG_D("glTexBufferRange, target = %s, internalformat = %s, buffer = %d, offset = %p, size = %zi", glEnumToString(target), glEnumToString(internalformat), buffer, (void*) offset, size)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glTexBufferRange(target, internalformat, buffer, offset, size);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glTexBufferRange(target, internalformat, real_buffer, offset, size);
+    CHECK_GL_ERROR
+}
+
 void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) {
     LOG()
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
