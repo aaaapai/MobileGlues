@@ -18,7 +18,6 @@ static EGLSurface eglSurface = EGL_NO_SURFACE;
 static EGLContext eglContext = EGL_NO_CONTEXT;
 
 void init_target_egl() {
-
     LOAD_EGL(eglGetProcAddress);
     LOAD_EGL(eglBindAPI);
     LOAD_EGL(eglInitialize);
@@ -79,7 +78,7 @@ void init_target_egl() {
             goto cleanup;
         }
         if (configsFound) {
-            LOG_I("Using config without alpha channel");
+            LOG_D("Using config without alpha channel");
         } else {
             LOG_E("No valid EGL config found");
             goto cleanup;

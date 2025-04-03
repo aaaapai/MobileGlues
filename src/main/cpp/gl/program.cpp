@@ -26,8 +26,7 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
     LOG()
     LOG_D("glBindFragDataLocation(%d, %d, %s)", program, color, name)
 //    if (g_gles_caps.GL_EXT_blend_func_extended) {
-//        LOAD_GLES_FUNC(glBindFragDataLocationEXT)
-//        gles_glBindFragDataLocationEXT(program, color, name);
+//        GLES.glBindFragDataLocationEXT(program, color, name);
 //    } else {
 //        LOG_W("Warning: No GL_EXT_blend_func_extended, skipping glBindFragDataLocation...");
 //    }
@@ -157,43 +156,34 @@ void glLinkProgram(GLuint program) {
 
     LOG_D("glLinkProgram(%d)", program)
     if (!shaderInfo.converted.empty() && shaderInfo.frag_data_changed) {
-        LOAD_GLES_FUNC(glShaderSource)
-        LOAD_GLES_FUNC(glCompileShader)
-        LOAD_GLES_FUNC(glDetachShader)
-        LOAD_GLES_FUNC(glAttachShader)
-        gles_glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
-        gles_glCompileShader(shaderInfo.id);
-        LOAD_GLES_FUNC(glGetShaderiv)
+        GLES.glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
+        GLES.glCompileShader(shaderInfo.id);
         GLint status = 0;
-        gles_glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
+        GLES.glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
         if(status!=GL_TRUE) {
             char tmp[500];
-            LOAD_GLES_FUNC(glGetShaderInfoLog)
-            gles_glGetShaderInfoLog(shaderInfo.id, 500, nullptr, tmp);
+            GLES.glGetShaderInfoLog(shaderInfo.id, 500, nullptr, tmp);
             LOG_E("Failed to compile patched shader, log:\n%s", tmp)
         }
-        gles_glDetachShader(program, shaderInfo.id);
-        gles_glAttachShader(program, shaderInfo.id);
+        GLES.glDetachShader(program, shaderInfo.id);
+        GLES.glAttachShader(program, shaderInfo.id);
         CHECK_GL_ERROR
     }
     shaderInfo.id = 0;
     shaderInfo.converted = "";
     shaderInfo.frag_data_changed_converted = nullptr;
     shaderInfo.frag_data_changed = 0;
-    LOAD_GLES_FUNC(glLinkProgram)
-    gles_glLinkProgram(program);
+    GLES.glLinkProgram(program);
 
     CHECK_GL_ERROR
 }
 
 void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
     LOG()
-    LOAD_GLES_FUNC(glGetProgramiv)
-    gles_glGetProgramiv(program, pname, params);
+    GLES.glGetProgramiv(program, pname, params);
     if(global_settings.ignore_error >= 1 && (pname == GL_LINK_STATUS || pname == GL_VALIDATE_STATUS) && !*params) {
         GLchar infoLog[512];
-        LOAD_GLES_FUNC(glGetShaderInfoLog)
-        gles_glGetShaderInfoLog(program, 512, nullptr, infoLog);
+        GLES.glGetShaderInfoLog(program, 512, nullptr, infoLog);
         LOG_W_FORCE("Program %d linking failed: \n%s", program, infoLog)
         LOG_W_FORCE("Now try to cheat.")
         *params = GL_TRUE;

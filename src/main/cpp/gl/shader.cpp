@@ -76,8 +76,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
 //        for (int i=0; i<count; i++)
 //            strcat(source, string[i]);
 //    }
-    LOAD_GLES_FUNC(glShaderSource)
-    if (gles_glShaderSource) {
+    if (GLES.glShaderSource) {
         if(is_direct_shader(glsl_src.c_str())){
             LOG_D("[INFO] [Shader] Direct shader source: ")
             LOG_D("%s", glsl_src.c_str())
@@ -87,8 +86,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
             LOG_D("[INFO] [Shader] Shader source: ")
             LOG_D("%s", glsl_src.c_str())
             GLint shaderType;
-            LOAD_GLES_FUNC(glGetShaderiv)
-            gles_glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
+            GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
             essl_src = getCachedESSL(glsl_src.c_str(), hardware->es_version);
             if (essl_src.empty())
                 essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version);
@@ -102,24 +100,22 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
             shaderInfo.id = shader;
             shaderInfo.converted = essl_src;
             const char* s[] = { essl_src.c_str() };
-            gles_glShaderSource(shader, count, s, nullptr);
+            GLES.glShaderSource(shader, count, s, nullptr);
         }
         else
             LOG_E("Failed to convert glsl.")
         CHECK_GL_ERROR
     } else {
-        LOG_E("No gles_glShaderSource")
+        LOG_E("No GLES.glShaderSource")
     }
 }
 
 void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
     LOG()
-    LOAD_GLES_FUNC(glGetShaderiv)
-    gles_glGetShaderiv(shader, pname, params);
+    GLES.glGetShaderiv(shader, pname, params);
     if(global_settings.ignore_error >= 1 && pname == GL_COMPILE_STATUS && !*params) {
         GLchar infoLog[512];
-        LOAD_GLES_FUNC(glGetShaderInfoLog)
-        gles_glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        GLES.glGetShaderInfoLog(shader, 512, nullptr, infoLog);
         LOG_W_FORCE("Shader %d compilation failed: \n%s", shader, infoLog)
         LOG_W_FORCE("Now try to cheat.")
         *params = GL_TRUE;

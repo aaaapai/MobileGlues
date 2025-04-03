@@ -6,21 +6,23 @@
 #include "../gles/loader.h"
 
 #include <EGL/egl.h>
+
+#if !defined(__APPLE__)
 #include <vulkan/vulkan.h>
-#include <string.h>
+#endif
+
+#include <cstring>
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
         "libGLESv3",
-        NULL
+        nullptr
 };
-
-const GLubyte * (*gles_glGetString)( GLenum name );
 
 const char* getGPUInfo() {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE)
-        return NULL;
+    if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, nullptr, nullptr) != EGL_TRUE)
+        return nullptr;
 
     EGLint egl_attributes[] = {
             EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
@@ -29,9 +31,9 @@ const char* getGPUInfo() {
     };
 
     EGLint num_configs = 0;
-    if (eglChooseConfig(eglDisplay, egl_attributes, NULL, 0, &num_configs) != EGL_TRUE || num_configs == 0) {
+    if (eglChooseConfig(eglDisplay, egl_attributes, nullptr, 0, &num_configs) != EGL_TRUE || num_configs == 0) {
         eglTerminate(eglDisplay);
-        return NULL;
+        return nullptr;
     }
 
     EGLConfig eglConfig;
@@ -41,21 +43,21 @@ const char* getGPUInfo() {
     EGLContext context = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, egl_context_attributes);
     if (context == EGL_NO_CONTEXT) {
         eglTerminate(eglDisplay);
-        return NULL;
+        return nullptr;
     }
 
     if (eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, context) != EGL_TRUE) {
         eglDestroyContext(eglDisplay, context);
         eglTerminate(eglDisplay);
-        return NULL;
+        return nullptr;
     }
 
-    const char* renderer = NULL;
-    void* lib = open_lib(gles3_lib, NULL);
+    const char* renderer = nullptr;
+    void* lib = open_lib(gles3_lib, nullptr);
     if (lib) {
-        gles_glGetString = (const GLubyte * (*)( GLenum ))dlsym(lib, "glGetString");
-        if (gles_glGetString) {
-            renderer = (const char*)gles_glGetString(GL_RENDERER);
+        GLES.glGetString = (const GLubyte * (*)( GLenum ))dlsym(lib, "glGetString");
+        if (GLES.glGetString) {
+            renderer = (const char*)GLES.glGetString(GL_RENDERER);
         }
     }
 
@@ -70,35 +72,36 @@ int isAdreno(const char* gpu) {
 //    const char* gpu = getGPUInfo();
     if (!gpu)
         return 0;
-    return strstr(gpu, "Adreno") != NULL;
+    return strstr(gpu, "Adreno") != nullptr;
 }
 
 int isAdreno740(const char* gpu) {
 //    const char* gpu = getGPUInfo();
     if (!gpu)
         return 0;
-    return isAdreno(gpu) && (strstr(gpu, "740") != NULL);
+    return isAdreno(gpu) && (strstr(gpu, "740") != nullptr);
 }
 
 int isAdreno830(const char* gpu) {
 //    const char* gpu = getGPUInfo();
     if (!gpu)
         return 0;
-    return isAdreno(gpu) && (strstr(gpu, "830") != NULL);
+    return isAdreno(gpu) && (strstr(gpu, "830") != nullptr);
 }
 
 int hasVulkan13() {
+#if !defined(__APPLE__)
     VkResult result = VK_SUCCESS;
     uint32_t instanceExtensionCount = 0;
 
-    result = vkEnumerateInstanceExtensionProperties(NULL, &instanceExtensionCount, NULL);
+    result = vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, nullptr);
     if (result != VK_SUCCESS) {
         return 0;
     }
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pNext = NULL;
+    appInfo.pNext = nullptr;
     appInfo.pApplicationName = "Vulkan Check";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "MobileGlues";
@@ -107,24 +110,24 @@ int hasVulkan13() {
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pNext = NULL;
+    createInfo.pNext = nullptr;
     createInfo.flags = 0;
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledLayerCount = 0;
-    createInfo.ppEnabledLayerNames = NULL;
+    createInfo.ppEnabledLayerNames = nullptr;
     createInfo.enabledExtensionCount = 0;
     createInfo.ppEnabledExtensionNames = 0;
 
     VkInstance instance = {};
-    result = vkCreateInstance(&createInfo, NULL, &instance);
+    result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
         return 0;
     }
 
     uint32_t gpuCount = 0;
-    result = vkEnumeratePhysicalDevices(instance, &gpuCount, NULL);
+    result = vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
     if (result != VK_SUCCESS || gpuCount == 0) {
-        vkDestroyInstance(instance, NULL);
+        vkDestroyInstance(instance, nullptr);
         return 0;
     }
 
@@ -137,7 +140,7 @@ int hasVulkan13() {
         vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
 
         if (deviceProperties.apiVersion >= VK_API_VERSION_1_3) {
-            vkDestroyInstance(instance, NULL);
+            vkDestroyInstance(instance, nullptr);
             return 1;
         }
     }
@@ -145,5 +148,6 @@ int hasVulkan13() {
     free(physicalDevices);
 
     vkDestroyInstance(instance, NULL);
+#endif
     return 0;
 }

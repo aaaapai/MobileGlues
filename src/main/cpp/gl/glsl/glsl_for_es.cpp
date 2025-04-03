@@ -20,7 +20,9 @@
 
 #define DEBUG 0
 
+#if !defined(__APPLE__)
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+#endif
 
 //void trim(char* str) {
 //    char* end;
@@ -151,7 +153,7 @@ static TBuiltInResource InitResources()
 
 int getGLSLVersion(const char* glsl_code) {
     std::string code(glsl_code);
-    std::regex version_pattern(R"(#version\s+(\d{3}))");
+    static std::regex version_pattern(R"(#version\s+(\d{3}))");
     std::smatch match;
     if (std::regex_search(code, match, version_pattern)) {
         return std::stoi(match[1].str());
@@ -329,16 +331,16 @@ std::string forceSupporterOutput(const std::string& glslCode) {
 }
 
 std::string removeLayoutBinding(const std::string& glslCode) {
-    std::regex bindingRegex(R"(layout\s*\(\s*binding\s*=\s*\d+\s*\)\s*)");
+    static std::regex bindingRegex(R"(layout\s*\(\s*binding\s*=\s*\d+\s*\)\s*)");
     std::string result = std::regex_replace(glslCode, bindingRegex, "");
-    std::regex bindingRegex2(R"(layout\s*\(\s*binding\s*=\s*\d+\s*,)");
+    static std::regex bindingRegex2(R"(layout\s*\(\s*binding\s*=\s*\d+\s*,)");
     result = std::regex_replace(result, bindingRegex2, "layout(");
     return result;
 }
 
 // TODO
 [[maybe_unused]] std::string makeRGBWriteonly(const std::string& input) {
-    std::regex pattern(R"(.*layout\([^)]*rgba[^)]*\).*?)");
+    static std::regex pattern(R"(.*layout\([^)]*rgba[^)]*\).*?)");
     std::string result;
     std::string::size_type start = 0;
     std::string::size_type end;
@@ -567,6 +569,7 @@ void trim(std::string& str) {
     }).base(), str.end());
 }
 
+// Process all uniform declarations into `uniform <precision> <type> <name>;` form
 std::string process_uniform_declarations(const std::string& glslCode) {
     std::string result;
     size_t scan_pos = 0;
@@ -679,7 +682,7 @@ std::string process_uniform_declarations(const std::string& glslCode) {
 }
 
 std::string processOutColorLocations(const std::string& glslCode) {
-    const std::regex pattern(R"(\n(out highp vec4 outColor)(\d+);)");
+    const static std::regex pattern(R"(\n(out highp vec4 outColor)(\d+);)");
     const std::string replacement = "\nlayout(location=$2) $1$2;";
     return std::regex_replace(glslCode, pattern, replacement);
 }
@@ -861,24 +864,9 @@ int get_or_add_glsl_version(std::string& glsl) {
     return glsl_version;
 }
 
-std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
-#ifdef FEATURE_PRE_CONVERTED_GLSL
-    if (getGLSLVersion(glsl_code) == 430) {
-        char* converted = preConvertedGlsl(glsl_code);
-        if (converted) {
-            LOG_D("Find pre-converted glsl, now use it.")
-            return converted;
-        }
-    }
-#endif
-//    char* correct_glsl = glsl_code;
-    std::string correct_glsl_str = preprocess_glsl(glsl_code);
-    LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
-    int glsl_version = get_or_add_glsl_version(correct_glsl_str);
-
-    glslang::InitializeProcess();
+std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
     EShLanguage shader_language;
-    switch (glsl_type) {
+    switch (shader_type) {
         case GL_VERTEX_SHADER:
             shader_language = EShLanguage::EShLangVertex;
             break;
@@ -899,12 +887,12 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
             break;
         default:
             LOG_D("GLSL type not supported!")
-            return nullptr;
+            errc = -1;
+            return {};
     }
 
     glslang::TShader shader(shader_language);
-    const char* s[] = { correct_glsl_str.c_str() };
-    shader.setStrings(s, 1);
+    shader.setStrings(shader_src, 1);
 
     using namespace glslang;
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
@@ -917,7 +905,8 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 
     if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
         LOG_D("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
-        return nullptr;
+        errc = -1;
+        return {};
     }
     LOG_D("GLSL Compiled.")
 
@@ -925,18 +914,20 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     program.addShader(&shader);
 
     if (!program.link(EShMsgDefault)) {
-        LOG_D("Shader Linking ERROR: %s",program.getInfoLog())
-        return nullptr;
+        LOG_D("Shader Linking ERROR: %s", program.getInfoLog())
+        errc = -1;
+        return {};
     }
     LOG_D("Shader Linked." )
     std::vector<unsigned int> spirv_code;
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    errc = 0;
+    return spirv_code;
+}
 
-    const SpvId *spirv = spirv_code.data();
-    size_t word_count = spirv_code.size();
-
+std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
     spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
@@ -946,9 +937,12 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     const char *result = nullptr;
     size_t count;
 
-    LOG_D("spirv_code.size(): %d",spirv_code.size())
+    const SpvId *p_spirv = spirv.data();
+    size_t word_count = spirv.size();
+
+    LOG_D("spirv_code.size(): %d", spirv.size())
     spvc_context_create(&context);
-    spvc_context_parse_spirv(context, spirv, word_count, &ir);
+    spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
@@ -960,11 +954,53 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 
     if (!result) {
         LOG_E("Error: unexpected error in spirv-cross.")
-        return glsl_code;
+        errc = -1;
+        return "";
     }
+
     std::string essl = result;
+
     spvc_context_destroy(context);
 
+    errc = 0;
+    return essl;
+}
+
+static bool glslang_inited = false;
+std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
+#ifdef FEATURE_PRE_CONVERTED_GLSL
+    if (getGLSLVersion(glsl_code) == 430) {
+        char* converted = preConvertedGlsl(glsl_code);
+        if (converted) {
+            LOG_D("Find pre-converted glsl, now use it.")
+            return converted;
+        }
+    }
+#endif
+//    char* correct_glsl = glsl_code;
+    std::string correct_glsl_str = preprocess_glsl(glsl_code);
+    LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
+    int glsl_version = get_or_add_glsl_version(correct_glsl_str);
+
+    if (!glslang_inited) {
+        glslang::InitializeProcess();
+        glslang_inited = true;
+    }
+    const char* s[] = { correct_glsl_str.c_str() };
+    int errc = 0;
+    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
+    if (errc != 0) {
+        return_code = -1;
+        return "";
+    }
+    errc = 0;
+    std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
+    if (errc != 0) {
+        return_code = -2;
+        return "";
+    }
+
+    // Post-processing ESSL
     essl = removeLayoutBinding(essl);
     essl = processOutColorLocations(essl);
     essl = forceSupporterOutput(essl);
@@ -976,12 +1012,14 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
 
 //    free(shader_source);
-    glslang::FinalizeProcess();
-    return_code = 0;
+//    glslang::FinalizeProcess();
+    return_code = errc;
     return essl;
 }
 
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
+
+#if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
     if (esversion < 300) esversion = 300;
     std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
@@ -989,4 +1027,8 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 //    strcpy(ret, result);
     return_code = 0;
     return result;
+#else
+    LOG_W_FORCE("Cannot convert glsl with version %d in MacOS/iOS", esversion);
+    return std::string(glsl_code);
+#endif
 }

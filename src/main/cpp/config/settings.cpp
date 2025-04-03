@@ -13,6 +13,14 @@
 struct global_settings_t global_settings;
 
 void init_settings() {
+
+#if defined(__APPLE__)
+    global_settings.ext_gl43 = 0;
+    global_settings.ext_compute_shader = 0;
+    global_settings.maxGlslCacheSize = 30 * 1024 * 1024;
+    global_settings.enableCompatibleMode = 0;
+    global_settings.ignore_error = 2;
+#else
     int success = initialized;
     if (!success) {
         success = config_refresh();
@@ -117,4 +125,5 @@ void init_settings() {
     global_settings.maxGlslCacheSize = maxGlslCacheSize;
 
     global_settings.enableCompatibleMode = enableCompatibleMode;
+#endif
 }

@@ -2,7 +2,6 @@
 // Created by Swung 0x48 on 2024/10/10.
 //
 
-#include <linux/limits.h>
 #include <cstring>
 #include <cstdio>
 #include "loader.h"
@@ -88,6 +87,7 @@ void *open_lib(const char **names, const char *override) {
 }
 
 void load_libs() {
+#if !defined(__APPLE__)
     static int first = 1;
     if (!first) return;
     first = 0;
@@ -95,6 +95,10 @@ void load_libs() {
     const char *egl_override = global_settings.angle ? EGL_ANGLE : nullptr;
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
+#endif
+
+    gles = (void*)(~(uintptr_t)0);
+    egl = (void*)(~(uintptr_t)0);
 }
 
 void *proc_address(void *lib, const char *name) {
@@ -141,14 +145,12 @@ void InitGLESCapabilities() {
 //    int has_GL_EXT_buffer_storage = 0;
 //    int has_GL_ARB_timer_query = 0;
 //    int has_GL_QCOM_texture_lod_bias = 0;
-    LOAD_GLES_FUNC(glGetStringi)
-    LOAD_GLES_FUNC(glGetIntegerv)
 
     GLint num_es_extensions = 0;
-    gles_glGetIntegerv(GL_NUM_EXTENSIONS, &num_es_extensions);
+    GLES.glGetIntegerv(GL_NUM_EXTENSIONS, &num_es_extensions);
     LOG_D("Detected %d OpenGL ES extensions.", num_es_extensions)
     for (GLint i = 0; i < num_es_extensions; ++i) {
-        const char *extension = (const char *) gles_glGetStringi(GL_EXTENSIONS, i);
+        const char *extension = (const char *) GLES.glGetStringi(GL_EXTENSIONS, i);
         if (extension) {
             LOG_D("%s", (const char *) extension)
             if (strcmp(extension, "GL_EXT_buffer_storage") == 0) {
@@ -165,6 +167,12 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_read_format_bgra = 1;
             } else if (strcmp(extension, "GL_OES_mapbuffer") == 0) {
                 g_gles_caps.GL_OES_mapbuffer = 1;
+            } else if (strcmp(extension, "GL_EXT_multi_draw_indirect") == 0) {
+                g_gles_caps.GL_EXT_multi_draw_indirect = 1;
+            } else if (strcmp(extension, "GL_OES_draw_elements_base_vertex") == 0) {
+                g_gles_caps.GL_OES_draw_elements_base_vertex = 1;
+            } else if (strcmp(extension, "GL_OES_depth_texture") == 0) {
+                g_gles_caps.GL_OES_depth_texture = 1;
             } else if (strcmp(extension, "GL_OES_depth24") == 0) {
                 g_gles_caps.GL_OES_depth24 = 1;
             } else if (strcmp(extension, "GL_OES_depth_texture_float") == 0) {
@@ -178,6 +186,8 @@ void InitGLESCapabilities() {
             LOG_D("(nullptr)")
         }
     }
+
+    LOG_I("%sDetected GL_EXT_multi_draw_indirect!", g_gles_caps.GL_EXT_multi_draw_indirect ? "" : "Not ")
 
     if (g_gles_caps.GL_EXT_buffer_storage) {
         AppendExtension("GL_ARB_buffer_storage");
@@ -197,13 +207,19 @@ void InitGLESCapabilities() {
     }
 }
 
-void init_target_gles() {
-    init_gl_state();
+void LogGLESInfo() {
+    LOG_V("OpenGL ES: \n  GL_VERSION: %s\n  GL_RENDERER: %s\n  GL_VENDOR: %s\n  GL_SHADING_LANGUAGE_VERSION: %s",
+          GLES.glGetString(GL_VERSION),
+          GLES.glGetString(GL_RENDERER),
+          GLES.glGetString(GL_VENDOR),
+          GLES.glGetString(GL_SHADING_LANGUAGE_VERSION))
+}
 
+void InitGLESFunc() {
     memset(&g_gles_func, 0, sizeof(g_gles_func));
     INIT_GLES_FUNC(glActiveTexture)
     INIT_GLES_FUNC(glAttachShader)
-    INIT_GLES_FUNC(glBindAttribLocation)
+    INIT_GLES_FUNC(glBindAttribLocation);
     INIT_GLES_FUNC(glBindBuffer)
     INIT_GLES_FUNC(glBindFramebuffer)
     INIT_GLES_FUNC(glBindRenderbuffer)
@@ -568,7 +584,25 @@ void init_target_gles() {
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
 
-    LOG_D("Initializing %s @ hardware", RENDERERNAME)
+    INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
+    INIT_GLES_FUNC(glBruh)
+
+    LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
+    LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)
+    LOG_D("glMultiDrawElementsBaseVertexEXT() @ 0x%x", GLES.glMultiDrawElementsBaseVertexEXT)
+
+    LOG_D("glBruh() @ 0x%x", GLES.glBruh)
+}
+
+void init_target_gles() {
+    init_gl_state();
+    
+    InitGLESFunc();
+
+    LogGLESInfo();
+    
     set_hardware();
 
     InitGLESCapabilities();

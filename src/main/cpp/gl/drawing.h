@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <GLES3/gl32.h>
+#include <GLES/gl32.h>
 #include "../includes.h"
 #include "gl.h"
 #include "glcorearb.h"
@@ -21,7 +21,20 @@
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
+struct draw_elements_indirect_command_t {
+    GLuint  count;
+    GLuint  instanceCount;
+    GLuint  firstIndex;
+    GLint   baseVertex;
+    GLuint  reservedMustBeZero;
+};
+
+GLAPI GLAPIENTRY void glMultiDrawElementsBaseVertex(GLenum mode,
+                                                    const GLsizei *count,
+                                                    GLenum type,
+                                                    const GLvoid *const *indices,
+                                                    GLsizei drawcount,
+                                                    const GLint *basevertex);
 
 GLAPI GLAPIENTRY void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 

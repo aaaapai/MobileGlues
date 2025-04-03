@@ -23,8 +23,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage
     LOG()
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
           glEnumToString(target), size, data, glEnumToString(usage))
-    LOAD_GLES_FUNC(glBufferData)
-    gles_glBufferData(target, size, data, usage);
+    GLES.glBufferData(target, size, data, usage);
     CHECK_GL_ERROR
 }
 
@@ -32,17 +31,13 @@ void* glMapBuffer(GLenum target, GLenum access) {
     LOG()
     LOG_D("glMapBuffer, target = %s, access = %s", glEnumToString(target), glEnumToString(access))
     if(g_gles_caps.GL_OES_mapbuffer) {
-        LOAD_GLES_FUNC(glMapBufferOES)
-        return gles_glMapBufferOES(target, access);
+        return GLES.glMapBufferOES(target, access);
     }
     if (get_binding_query(target) == 0) {
         return nullptr;
     }
     GLint current_buffer;
-    LOAD_GLES_FUNC(glGetIntegerv)
-    LOAD_GLES_FUNC(glGetBufferParameteriv)
-    LOAD_GLES_FUNC(glMapBufferRange)
-    gles_glGetIntegerv(get_binding_query(target), &current_buffer);
+    GLES.glGetIntegerv(get_binding_query(target), &current_buffer);
     if (current_buffer == 0) {
         return nullptr;
     }
@@ -50,7 +45,7 @@ void* glMapBuffer(GLenum target, GLenum access) {
         return nullptr;
     }
     GLint buffer_size;
-    gles_glGetBufferParameteriv(target, GL_BUFFER_SIZE, &buffer_size);
+    GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &buffer_size);
     if (buffer_size <= 0 || glGetError() != GL_NO_ERROR) {
         return nullptr;
     }
@@ -62,7 +57,7 @@ void* glMapBuffer(GLenum target, GLenum access) {
         default:  
             return nullptr;
     }
-    void* ptr = gles_glMapBufferRange(target, 0, buffer_size, flags);
+    void* ptr = GLES.glMapBufferRange(target, 0, buffer_size, flags);
     if (!ptr) return nullptr;
     BufferMapping mapping;
     mapping.target = target;
@@ -97,11 +92,14 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+#if !defined(__APPLE__)
 GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
 GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
 GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
 GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
 GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+#endif
 
 #ifdef __cplusplus
 }
@@ -109,14 +107,12 @@ GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute_
 
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
-    LOAD_GLES_FUNC(glUnmapBuffer)
     if(g_gles_caps.GL_OES_mapbuffer)
-        return gles_glUnmapBuffer(target);
+        return GLES.glUnmapBuffer(target);
     
     GLint buffer;
     GLenum binding_query = get_binding_query(target);
-    LOAD_GLES_FUNC(glGetIntegerv)
-    gles_glGetIntegerv(binding_query, &buffer);
+    GLES.glGetIntegerv(binding_query, &buffer);
 
     if (buffer == 0)
         return GL_FALSE;
@@ -137,7 +133,7 @@ GLboolean glUnmapBuffer(GLenum target) {
     }
 #endif
 
-    GLboolean result = gles_glUnmapBuffer(target);
+    GLboolean result = GLES.glUnmapBuffer(target);
     g_active_mappings.erase(buffer);
     CHECK_GL_ERROR
     return result;
@@ -145,15 +141,13 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
-    LOAD_GLES_FUNC(glBufferStorageEXT)
-    if(gles_glBufferStorageEXT)
-        gles_glBufferStorageEXT(target,size,data,flags);
+    if(GLES.glBufferStorageEXT)
+        GLES.glBufferStorageEXT(target,size,data,flags);
     CHECK_GL_ERROR
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {
     LOG()
     LOG_D("glBindBuffer, target = %s, buffer = %d", glEnumToString(target), buffer)
-    LOAD_GLES_FUNC(glBindBuffer)
-    gles_glBindBuffer(target, buffer);
+    GLES.glBindBuffer(target, buffer);
 }

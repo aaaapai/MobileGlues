@@ -522,6 +522,11 @@ GL_FUNC_TYPEDEF(void, glBindFragDataLocationEXT, GLuint program, GLuint colorNum
                 const GLchar *name)
 GL_FUNC_TYPEDEF(void*, glMapBufferOES, GLenum target, GLenum access)
 
+GL_FUNC_TYPEDEF(void, glMultiDrawArraysIndirectEXT, GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
+GL_FUNC_TYPEDEF(void, glMultiDrawElementsIndirectEXT, GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
+GL_FUNC_TYPEDEF(void, glBruh)
+GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
+
 #define GL_FUNC_DECL(name) \
 name##_PTR name;
 
@@ -892,9 +897,17 @@ struct gles_func_t {
     GL_FUNC_DECL(glGetQueryObjecti64vEXT)
     GL_FUNC_DECL(glBindFragDataLocationEXT)
     GL_FUNC_DECL(glMapBufferOES)
+
+    GL_FUNC_DECL(glMultiDrawArraysIndirectEXT)
+    GL_FUNC_DECL(glMultiDrawElementsIndirectEXT)
+    GL_FUNC_DECL(glMultiDrawElementsBaseVertexEXT)
+
+    GL_FUNC_DECL(glBruh)
 };
 
 extern struct gles_func_t g_gles_func;
+
+#define GLES g_gles_func
 
 #ifdef __cplusplus
 }

@@ -14,8 +14,7 @@ GLint MAX_DRAW_BUFFERS = 0;
 
 GLint getMaxDrawBuffers() {
     if (!MAX_DRAW_BUFFERS) {
-        LOAD_GLES_FUNC(glGetIntegerv)
-        gles_glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
+        GLES.glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
     }
     return MAX_DRAW_BUFFERS;
 }
@@ -35,8 +34,7 @@ void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment) {
 
     struct attachment_t attachment = attach[old_attachment - GL_COLOR_ATTACHMENT0];
 
-    LOAD_GLES_FUNC(glFramebufferTexture2D)
-    gles_glFramebufferTexture2D(bound_framebuffer->current_target, target_attachment, attachment.textarget, attachment.texture, attachment.level);
+    GLES.glFramebufferTexture2D(bound_framebuffer->current_target, target_attachment, attachment.textarget, attachment.texture, attachment.level);
 }
 
 void glBindFramebuffer(GLenum target, GLuint framebuffer) {
@@ -46,8 +44,7 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer) {
 
     LOG_D("glBindFramebuffer(0x%x, %d)", target, framebuffer)
 
-    LOAD_GLES_FUNC(glBindFramebuffer)
-    gles_glBindFramebuffer(target, framebuffer);
+    GLES.glBindFramebuffer(target, framebuffer);
     CHECK_GL_ERROR_NO_INIT
 
     if (!bound_framebuffer) {
@@ -98,8 +95,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
         bound_framebuffer->current_target = target;
     }
 
-    LOAD_GLES_FUNC(glFramebufferTexture2D)
-    gles_glFramebufferTexture2D(target, attachment, textarget, texture, level);
+    GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
     CHECK_GL_ERROR
 }
@@ -107,11 +103,8 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 void glDrawBuffer(GLenum buffer) {
     LOG()
 
-    LOAD_GLES_FUNC(glDrawBuffers)
-    LOAD_GLES_FUNC(glGetIntegerv)
-
     GLint currentFBO;
-    gles_glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 
     if (currentFBO == 0) {
         GLenum buffers[1] = {GL_NONE};
@@ -120,28 +113,28 @@ void glDrawBuffer(GLenum buffer) {
             case GL_BACK:
             case GL_NONE:
                 buffers[0] = buffer;
-                gles_glDrawBuffers(1, buffers);
+                GLES.glDrawBuffers(1, buffers);
                 break;
             default:
                 break;
         }
     } else {
         GLint maxAttachments;
-        gles_glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
+        GLES.glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
 
         if (buffer == GL_NONE) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
                 buffers[i] = GL_NONE;
             }
-            gles_glDrawBuffers(maxAttachments, buffers);
+            GLES.glDrawBuffers(maxAttachments, buffers);
         } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
                    buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
                 buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
             }
-            gles_glDrawBuffers(maxAttachments, buffers);
+            GLES.glDrawBuffers(maxAttachments, buffers);
         }
     }
 }
@@ -163,8 +156,7 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs) {
         }
     }
 
-    LOAD_GLES_FUNC(glDrawBuffers)
-    gles_glDrawBuffers(n, new_bufs);
+    GLES.glDrawBuffers(n, new_bufs);
 
     CHECK_GL_ERROR
 }
@@ -173,14 +165,12 @@ void glReadBuffer(GLenum src) {
     LOG()
     LOG_D("glReadBuffer, src = %s", glEnumToString(src))
 
-    LOAD_GLES_FUNC(glReadBuffer)
-    gles_glReadBuffer(src);
+    GLES.glReadBuffer(src);
 }
 
 GLenum glCheckFramebufferStatus(GLenum target) {
     LOG()
-    LOAD_GLES_FUNC(glCheckFramebufferStatus)
-    GLenum status = gles_glCheckFramebufferStatus(target);
+    GLenum status = GLES.glCheckFramebufferStatus(target);
     if(global_settings.ignore_error >= 2 && status != GL_FRAMEBUFFER_COMPLETE) {
         LOG_W_FORCE("Framebuffer %d isn't GL_FRAMEBUFFER_COMPLETE: %d", target, status)
         LOG_W_FORCE("Now try to cheat.")
