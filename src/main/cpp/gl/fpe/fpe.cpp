@@ -71,7 +71,7 @@ void log_vtx_attrib_data(const void* ptr, GLenum type, int size, int stride, int
 }
 #endif
 
-static bool fpe_inited = false;
+bool fpe_inited = false;
 int init_fpe() {
     LOG_I("Initializing fixed-function pipeline...")
 
