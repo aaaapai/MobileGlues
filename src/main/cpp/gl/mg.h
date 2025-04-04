@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <android/log.h>
 
-#include "gl.h"
+#include "glcorearb.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -51,6 +51,7 @@ struct gl_state_s {
     GLsizei proxy_width;
     GLsizei proxy_height;
     GLenum proxy_intformat;
+    int polygon_mode;
 };
 typedef struct gl_state_s *gl_state_t;
 extern gl_state_t gl_state;

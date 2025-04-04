@@ -14,7 +14,7 @@ FUNC_GL_STATE_SIZEI(proxy_width)
 FUNC_GL_STATE_SIZEI(proxy_height)
 FUNC_GL_STATE_ENUM(proxy_intformat)
 
-FILE* file;
+static FILE* file;
 
 void start_log() {
     file = fopen(log_file_path, "a");

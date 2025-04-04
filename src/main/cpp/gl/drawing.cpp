@@ -11,7 +11,7 @@
 
 static bool g_indirect_cmds_inited = false;
 static GLsizei g_cmdbufsize = 0;
-GLuint g_indirectbuffer = 0;
+static GLuint g_indirectbuffer = 0;
 
 void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *const *indices,
                              GLsizei primcount, const GLint *basevertex) {
