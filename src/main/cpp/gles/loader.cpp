@@ -371,7 +371,6 @@ void init_target_gles() {
     INIT_GLES_FUNC(glIsQuery)
     INIT_GLES_FUNC(glBeginQuery)
     INIT_GLES_FUNC(glEndQuery)
-    INIT_GLES_FUNC(glQueryCounter)
     INIT_GLES_FUNC(glGetQueryiv)
     INIT_GLES_FUNC(glGetQueryObjectuiv)
     INIT_GLES_FUNC(glUnmapBuffer)
