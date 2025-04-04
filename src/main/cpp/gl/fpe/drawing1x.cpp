@@ -396,7 +396,7 @@ void glColor4f( GLfloat red, GLfloat green,
 
     auto& attr = g_glstate.fpe_state.vertexpointer_array.attributes[vp2idx(GL_COLOR_ARRAY)];
     auto& vpa = g_glstate.fpe_state.vertexpointer_array;
-    vpa.enabled_pointers;
+    vpa.enabled_pointers();
     if (vpa.buffer_based) {
         attr.size = 4;
         attr.usage = GL_COLOR_ARRAY;
