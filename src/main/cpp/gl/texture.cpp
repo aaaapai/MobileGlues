@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <android/log.h>
 
-#include "gl.h"
+#include "glcorearb.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -30,8 +30,8 @@ int nlevel(int size, int level) {
     return size;
 }
 
-std::unordered_map<GLuint, texture_t> g_textures;
-GLuint bound_texture = 0;
+static std::unordered_map<GLuint, texture_t> g_textures;
+static GLuint bound_texture = 0;
 
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
     if (format && *format == GL_BGRA)

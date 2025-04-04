@@ -4,16 +4,15 @@
 
 #include "../includes.h"
 #include "gl.h"
-#include "glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
 
 #define DEBUG 0
 
-void glClearDepth(GLclampd depth) {
+GLAPI void GLAPIENTRY glClearDepth(GLclampd depth) {
     LOG()
-    GLES.glClearDepthf((float)depth);
+    GLES.glClearDepthf((GLfloat)depth);
     CHECK_GL_ERROR
 }
 
