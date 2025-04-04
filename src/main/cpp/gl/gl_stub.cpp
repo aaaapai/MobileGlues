@@ -22,7 +22,7 @@ STUB_FUNCTION_HEAD(void, glIndexMask, GLuint mask ) STUB_FUNCTION_END_NO_RETURN(
 STUB_FUNCTION_HEAD(void, glLogicOp, GLenum opcode ) STUB_FUNCTION_END_NO_RETURN(void, glLogicOp,opcode)
 STUB_FUNCTION_HEAD(void, glPointSize, GLfloat size ) STUB_FUNCTION_END_NO_RETURN(void, glPointSize,size)
 STUB_FUNCTION_HEAD(void, glLineStipple, GLint factor, GLushort pattern ) STUB_FUNCTION_END_NO_RETURN(void, glLineStipple,factor,pattern)
-STUB_FUNCTION_HEAD(void, glPolygonMode, GLenum face, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glPolygonMode,face,mode)
+//STUB_FUNCTION_HEAD(void, glPolygonMode, GLenum face, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glPolygonMode,face,mode)
 STUB_FUNCTION_HEAD(void, glPolygonStipple, const GLubyte *mask ) STUB_FUNCTION_END_NO_RETURN(void, glPolygonStipple,mask)
 STUB_FUNCTION_HEAD(void, glGetPolygonStipple, GLubyte *mask ) STUB_FUNCTION_END_NO_RETURN(void, glGetPolygonStipple,mask)
 STUB_FUNCTION_HEAD(void, glEdgeFlag, GLboolean flag ) STUB_FUNCTION_END_NO_RETURN(void, glEdgeFlag,flag)
