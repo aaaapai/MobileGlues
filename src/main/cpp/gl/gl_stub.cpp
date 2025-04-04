@@ -2486,7 +2486,6 @@ STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fSUN, GLuin
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN,const GLuint* rc, const GLfloat* tc, const GLfloat* n, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN,rc,tc,n,v)
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN, GLuint rc, GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN,rc,s,t,r,g,b,a,nx,ny,nz,x,y,z)
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,const GLuint* rc, const GLfloat* tc, const GLfloat* c, const GLfloat* n, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,rc,tc,c,n,v)
-STUB_FUNCTION_HEAD(void, glQueryCounter,GLuint id, GLenum target); STUB_FUNCTION_END_NO_RETURN(void, glQueryCounter,id,target);
 
 #ifdef __cplusplus
 }
