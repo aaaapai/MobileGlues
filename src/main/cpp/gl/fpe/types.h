@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 #include <vector>
+#include <sstream>
 #include "fpe_shadergen.h"
 
 #define GL_FRAGMENT_DEPTH 0x8452
@@ -35,18 +36,6 @@ struct vertexattribute_t {
 
 #define VERTEX_POINTER_COUNT (8 + MAX_TEX)
 struct vertex_pointer_array_t {
-    // Fixed-function VAO
-    // Reserve a vao purely for fpe, so that
-    // it won't mess up with other states in
-    // programmable pipeline.
-    GLuint fpe_vao = 0;
-
-    GLuint fpe_vbo = 0;
-
-    GLuint fpe_ibo = 0;
-
-    std::vector<uint32_t> fpe_ibo_buffer;
-
     const void* starting_pointer = NULL;
     GLsizei stride = 0;
 
@@ -75,6 +64,20 @@ struct light_t {
     GLfloat spot_cutoff = 180.; // 0-90, 180
 };
 
+struct fixed_function_draw_state_t {
+    GLenum primitive = GL_NONE;
+    glm::vec3 normal = {0, 0, 1};
+    glm::vec4 color = {1, 1, 1, 1};
+    glm::vec4 texcoord[MAX_TEX];
+
+    size_t vertex_count = 0;
+
+    inline void reset() {
+        primitive = GL_NONE;
+        vertex_count = 0;
+    }
+};
+
 struct fixed_function_state_t {
     GLenum client_active_texture = GL_TEXTURE0; // glClientActiveTexture, specifies active texcood
     GLenum alpha_func = GL_ALWAYS; // glAlphaFunc
@@ -85,6 +88,20 @@ struct fixed_function_state_t {
     GLenum light_model_color_ctrl = GL_SINGLE_COLOR; // glLightModel(GL_LIGHT_MODEL_COLOR_CONTROL)
     int light_model_local_viewer = 0; // glLightModel(GL_LIGHT_MODEL_LOCAL_VIEWER)
     int light_model_two_side = 0; // glLightModel(GL_LIGHT_MODEL_TWO_SIDE)
+
+    // Fixed-function VAO
+    // Reserve a vao purely for fpe, so that
+    // it won't mess up with other states in
+    // programmable pipeline.
+    GLuint fpe_vao = 0;
+
+    GLuint fpe_vbo = 0;
+
+    GLuint fpe_ibo = 0;
+
+    std::vector<uint32_t> fpe_ib;
+
+    std::stringstream fpe_vb;
 
     struct vertex_pointer_array_t vertexpointer_array;
     struct fixed_function_bool_t fpe_bools;
@@ -123,9 +140,10 @@ private:
 };
 
 struct glstate_t {
-
     struct fixed_function_state_t fpe_state;
     struct fixed_function_uniform_t fpe_uniform;
+
+    struct fixed_function_draw_state_t fpe_draw;
 
     GLuint fpe_vtx_shader = 0;
     GLuint fpe_frag_shader = 0;

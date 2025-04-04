@@ -5,6 +5,7 @@
 #include "list.h"
 #include "pointer_utils.h"
 #include "../log.h"
+#include "fpe.hpp"
 
 #define DEBUG 0
 
@@ -50,8 +51,9 @@ void glCallList(GLuint list) {
         if (DisplayListManager::isRecording())
             return;
     }
-
+    GET_PREV_PROGRAM
     DisplayListManager::callList(list);
+    SET_PREV_PROGRAM
 }
 
 void glCallLists(GLsizei n, GLenum type, const GLvoid* lists) {
@@ -63,7 +65,7 @@ void glCallLists(GLsizei n, GLenum type, const GLvoid* lists) {
         if (DisplayListManager::isRecording())
             return;
     }
-
+    GET_PREV_PROGRAM
     const auto* ptr = static_cast<const uint8_t*>(lists);
     for (int i = 0; i < n; ++i) {
         GLuint offset = 0;
@@ -125,6 +127,7 @@ void glCallLists(GLsizei n, GLenum type, const GLvoid* lists) {
         }
         DisplayListManager::callList(currentListBase + offset);
     }
+    SET_PREV_PROGRAM
 }
 
 void glListBase(GLuint base) {

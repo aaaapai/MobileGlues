@@ -391,8 +391,8 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     INIT_CHECK_GL_ERROR
 
     CHECK_GL_ERROR_NO_INIT
+    GET_PREV_PROGRAM
     int do_draw_element = commit_fpe_state_on_draw(&mode, &first, &count);
-
     if (do_draw_element) {
         LOG_D("Switch to glDrawElements(), mode = %s, count = %u", glEnumToString(mode), count)
 
@@ -400,6 +400,7 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     } else
         GLES.glDrawArrays(mode, first, count);
 
+    SET_PREV_PROGRAM
     CHECK_GL_ERROR_NO_INIT
 }
 

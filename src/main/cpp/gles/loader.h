@@ -80,7 +80,7 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR  {}
+#define INIT_CHECK_GL_ERROR GLenum ERR = GL_NO_ERROR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
@@ -140,6 +140,8 @@ struct gles_caps_t {
     int major;
     int minor;
     int maxtex;
+    int major;
+    int minor;
     int GL_EXT_buffer_storage;
     int GL_EXT_disjoint_timer_query;
     int GL_QCOM_texture_lod_bias;
