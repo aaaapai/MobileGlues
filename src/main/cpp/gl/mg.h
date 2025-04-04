@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <android/log.h>
 
-#include "gl.h"
+#include "glcorearb.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -62,6 +62,8 @@ GLenum map_tex_target(GLenum target);
 void start_log();
 
 void write_log(const char *format, ...);
+
+void write_log_n(const char *format, ...);
 
 void clear_log();
 

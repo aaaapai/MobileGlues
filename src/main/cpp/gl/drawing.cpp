@@ -5,12 +5,13 @@
 #include "drawing.h"
 #include "buffer.h"
 #include "framebuffer.h"
+#include "fpe/fpe.hpp"
 
 #define DEBUG 0
 
 static bool g_indirect_cmds_inited = false;
 static GLsizei g_cmdbufsize = 0;
-GLuint g_indirectbuffer = 0;
+static GLuint g_indirectbuffer = 0;
 
 void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *const *indices,
                              GLsizei primcount, const GLint *basevertex) {
@@ -314,6 +315,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, co
     CHECK_GL_ERROR
 }
 
+
 void glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices, GLsizei primcount) {
     LOG()
 
@@ -382,9 +384,31 @@ void glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const v
 
 }
 
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    LOG()
+    LOG_D("glDrawArrays(), mode = %s, first = %d, count = %u", glEnumToString(mode), first, count)
+
+    INIT_CHECK_GL_ERROR
+
+    CHECK_GL_ERROR_NO_INIT
+    int do_draw_element = commit_fpe_state_on_draw(&mode, &first, &count);
+
+    if (do_draw_element) {
+        LOG_D("Switch to glDrawElements(), mode = %s, count = %u", glEnumToString(mode), count)
+
+        GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, (void *) 0);
+    } else
+        GLES.glDrawArrays(mode, first, count);
+
+    CHECK_GL_ERROR_NO_INIT
+}
+
+///*_Thread_local*/ static bool unexpected_error = false; // solve the crash error for ANGLE
+// Why thread local here? We've never PRETEND we are thread safe.
+
 // solve the crash error for ANGLE, but it will make Derivative Main with Optifine not work!
 
-//_Thread_local static bool unexpected_error = false; 
+//_Thread_local static bool unexpected_error = false;
 
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
     LOG()
