@@ -42,7 +42,7 @@ void init_settings() {
         enableExtComputeShader = 0;
     if (enableCompatibleMode < 0 || enableCompatibleMode > 1)
         enableCompatibleMode = 0;
-    if ((int)multidrawMode < 0 || (int)multidrawMode > 3)
+    if ((int)multidrawMode < 0 || (int)multidrawMode > 4)
         multidrawMode = multidraw_mode_t::Auto;
 
     // 1205
@@ -138,6 +138,9 @@ void init_settings() {
         case multidraw_mode_t::PreferMultidrawIndirect:
             draw_mode_str = "Multidraw indirect";
             break;
+        case multidraw_mode_t::DrawElements:
+            draw_mode_str = "DrawElements";
+            break;
         case multidraw_mode_t::Auto:
             draw_mode_str = "Auto";
             break;
@@ -166,8 +169,13 @@ void init_settings_post() {
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
             LOG_V("multidrawMode = PreferIndirect")
-            global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
-            LOG_V("    -> Indirect (OK)")
+            if (indirect) {
+                global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
+                LOG_V("    -> Indirect (OK)")
+            } else {
+                global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
+                LOG_V("    -> DrawElements (Preferred not supported, falling back)")
+            }
             break;
         case multidraw_mode_t::PreferBaseVertex:
             LOG_V("multidrawMode = PreferUnroll")
@@ -177,10 +185,17 @@ void init_settings_post() {
             } else if (multidraw) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferMultidrawIndirect;
                 LOG_V("    -> MultidrawIndirect (Preferred not supported, falling back)")
-            } else {
+            } else if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
                 LOG_V("    -> Indirect (Preferred not supported, falling back)")
+            } else {
+                global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
+                LOG_V("    -> DrawElements (Preferred not supported, falling back)")
             }
+            break;
+        case multidraw_mode_t::DrawElements:
+            LOG_V("multidrawMode = DrawElements")
+            global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
             break;
         case multidraw_mode_t::Auto:
         default:
@@ -188,9 +203,12 @@ void init_settings_post() {
             if (multidraw) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferMultidrawIndirect;
                 LOG_V("    -> MultidrawIndirect")
-            } else {
+            } else if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
-                LOG_V("    -> Indirect")
+                LOG_V("    -> Indirect (Preferred not supported, falling back)")
+            } else {
+                global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
+                LOG_V("    -> DrawElements (Preferred not supported, falling back)")
             }
             break;
     }

@@ -13,8 +13,6 @@ static bool g_indirect_cmds_inited = false;
 static GLsizei g_cmdbufsize = 0;
 static GLuint g_indirectbuffer = 0;
 
-#define DRAW_INDIRECT
-
 void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *const *indices,
                              GLsizei primcount, const GLint *basevertex) {
     if (!g_indirect_cmds_inited) {
@@ -75,6 +73,91 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
     GLES.glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
 }
 
+void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
+    LOG()
+
+    GLint prevElementBuffer;
+    GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevElementBuffer);
+
+    for (GLsizei i = 0; i < primcount; ++i) {
+        if (counts[i] <= 0) continue;
+
+        GLsizei currentCount = counts[i];
+        const GLvoid *currentIndices = indices[i];
+        GLint currentBaseVertex = basevertex[i];
+
+        size_t indexSize;
+        switch (type) {
+            case GL_UNSIGNED_INT:  indexSize = sizeof(GLuint);   break;
+            case GL_UNSIGNED_SHORT: indexSize = sizeof(GLushort); break;
+            case GL_UNSIGNED_BYTE:  indexSize = sizeof(GLubyte);  break;
+            default: return;
+        }
+
+        GLuint tempBuffer;
+        GLES.glGenBuffers(1, &tempBuffer);
+        GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tempBuffer);
+
+        void *srcData = nullptr;
+        void *tempIndices = malloc(currentCount * indexSize);
+        if (!tempIndices) {
+            GLES.glDeleteBuffers(1, &tempBuffer);
+            continue;
+        }
+
+        if (prevElementBuffer != 0) {
+            GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
+            srcData = GLES.glMapBufferRange(
+                    GL_ELEMENT_ARRAY_BUFFER,
+                    (GLintptr)currentIndices,
+                    currentCount * indexSize,
+                    GL_MAP_READ_BIT
+            );
+
+            if (!srcData) {
+                free(tempIndices);
+                GLES.glDeleteBuffers(1, &tempBuffer);
+                continue;
+            }
+        } else {
+            srcData = (void*)currentIndices;
+        }
+
+        switch (type) {
+            case GL_UNSIGNED_INT:
+                for (int j = 0; j < currentCount; ++j) {
+                    ((GLuint *)tempIndices)[j] = ((GLuint *)srcData)[j] + currentBaseVertex;
+                }
+                break;
+            case GL_UNSIGNED_SHORT:
+                for (int j = 0; j < currentCount; ++j) {
+                    ((GLushort *)tempIndices)[j] = ((GLushort *)srcData)[j] + currentBaseVertex;
+                }
+                break;
+            case GL_UNSIGNED_BYTE:
+                for (int j = 0; j < currentCount; ++j) {
+                    ((GLubyte *)tempIndices)[j] = ((GLubyte *)srcData)[j] + currentBaseVertex;
+                }
+                break;
+        }
+
+        if (prevElementBuffer != 0) {
+            GLES.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+        }
+
+        GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tempBuffer);
+        GLES.glBufferData(GL_ELEMENT_ARRAY_BUFFER, currentCount * indexSize, tempIndices, GL_STREAM_DRAW);
+        free(tempIndices);
+        GLES.glDrawElements(mode, currentCount, type, 0);
+
+        GLES.glDeleteBuffers(1, &tempBuffer);
+    }
+
+    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
+    
+    CHECK_GL_ERROR
+}
+
 void mg_glMultiDrawElementsBaseVertex_indirect(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
 
@@ -126,6 +209,19 @@ void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum t
     CHECK_GL_ERROR
 }
 
+void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
+    LOG()
+
+    for (GLsizei i = 0; i < primcount; ++i) {
+        const GLsizei c = count[i];
+        if (c > 0) {
+            GLES.glDrawElements(mode, c, type, indices[i]);
+        }
+    }
+
+    CHECK_GL_ERROR
+}
+
 void mg_glMultiDrawElements_multiindirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
 
@@ -152,8 +248,6 @@ void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum
 
 void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
-
-#ifdef DRAW_INDIRECT
 
     if (!g_indirect_cmds_inited) {
         GLES.glGenBuffers(1, &g_indirectbuffer);
@@ -218,19 +312,6 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, co
         GLES.glDrawElementsIndirect(mode, type, offset);
     }
 
-
-#else
-
-    for (GLsizei i = 0; i < primcount; ++i) {
-        const GLsizei count = counts[i];
-        if (count > 0) {
-            LOG_D("GLES.glDrawElementsBaseVertex, mode = %s, count = %d, type = %s, indices[i] = 0x%x, basevertex[i] = %d",
-                  glEnumToString(mode), count, glEnumToString(type), indices[i], basevertex[i])
-            GLES.glDrawElementsBaseVertex(mode, count, type, indices[i], basevertex[i]);
-        }
-    }
-#endif
-
     CHECK_GL_ERROR
 }
 
@@ -238,7 +319,6 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, co
 void glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices, GLsizei primcount) {
     LOG()
 
-#ifdef DRAW_INDIRECT
     if (!g_indirect_cmds_inited) {
         GLES.glGenBuffers(1, &g_indirectbuffer);
         GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_indirectbuffer);
@@ -302,16 +382,6 @@ void glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const v
         GLES.glDrawElementsIndirect(mode, type, offset);
     }
 
-#else
-    
-    for (GLsizei i = 0; i < primcount; ++i) {
-        const GLsizei c = count[i];
-        if (c > 0) {
-            GLES.glDrawElements(mode, c, type, indices[i]);
-        }
-    }
-    
-#endif
 }
 
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
