@@ -45,10 +45,13 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = 0;
             break;
         case GL_MAX_TEXTURE_IMAGE_UNITS: {
-            int es_params = 16;
-            GLES.glGetIntegerv(pname, &es_params);
-            CHECK_GL_ERROR
-            (*params) = es_params * 2;
+            if (g_gles_caps.maxtex <= 0) {
+                int es_params = 16;
+                GLES.glGetIntegerv(pname, &es_params);
+                CHECK_GL_ERROR
+                g_gles_caps.maxtex = (es_params < 32) ? 32 : es_params;
+            }
+            (*params) = g_gles_caps.maxtex;
             break;
         }
         case GL_ARRAY_BUFFER_BINDING:
@@ -114,11 +117,17 @@ void InitGLESBaseExtensions() {
              "OpenGL13 "
              "OpenGL14 "
              "OpenGL15 "
+             "OpenGL20 "
+             "OpenGL21 "
              "OpenGL30 "
              "OpenGL31 "
              "OpenGL32 "
              "OpenGL33 "
              "OpenGL40 "
+             //"OpenGL43 "
+             //"ARB_compute_shader "
+             "GL_ARB_get_program_binary "
+             "GL_ARB_multitexture "
              "GL_ARB_shader_storage_buffer_object "
              "GL_ARB_shader_image_load_store "
              "GL_ARB_clear_texture "

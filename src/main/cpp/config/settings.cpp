@@ -172,16 +172,19 @@ void init_settings_post() {
             if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
                 LOG_V("    -> Indirect (OK)")
+            } else if (basevertex) {
+                global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
+                LOG_V("    -> BaseVertex (Preferred not supported, falling back)")
             } else {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
             }
             break;
         case multidraw_mode_t::PreferBaseVertex:
-            LOG_V("multidrawMode = PreferUnroll")
+            LOG_V("multidrawMode = PreferBaseVertex")
             if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
-                LOG_V("    -> Unroll (OK)")
+                LOG_V("    -> BaseVertex (OK)")
             } else if (multidraw) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferMultidrawIndirect;
                 LOG_V("    -> MultidrawIndirect (Preferred not supported, falling back)")
@@ -202,13 +205,16 @@ void init_settings_post() {
             LOG_V("multidrawMode = Auto")
             if (multidraw) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferMultidrawIndirect;
-                LOG_V("    -> MultidrawIndirect")
+                LOG_V("    -> MultidrawIndirect (Auto detected)")
             } else if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
-                LOG_V("    -> Indirect (Preferred not supported, falling back)")
+                LOG_V("    -> Indirect (Auto detected)")
+            } else if (basevertex) {
+                global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
+                LOG_V("    -> BaseVertex (Auto detected)")
             } else {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
-                LOG_V("    -> DrawElements (Preferred not supported, falling back)")
+                LOG_V("    -> DrawElements (Auto detected)")
             }
             break;
     }

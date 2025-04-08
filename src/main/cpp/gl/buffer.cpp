@@ -13,22 +13,22 @@ GLint maxBufferId = 0;
 GLint maxArrayId = 0;
 
 // Map: MG buffer ID -> GLES real buffer ID
-std::unordered_map<GLuint, GLuint> g_gen_buffers;
+unordered_map<GLuint, GLuint> g_gen_buffers;
 // Map: MG array ID -> GLES real array ID
-std::unordered_map<GLuint, GLuint> g_gen_arrays;
+unordered_map<GLuint, GLuint> g_gen_arrays;
 
 // Map: MG buffer ID -> GL4ES buffer ID
-std::unordered_map<GLuint, GLuint> g_buffer_map_mg_gl4es;
+unordered_map<GLuint, GLuint> g_buffer_map_mg_gl4es;
 // Map: MG array ID -> GL4ES array ID
-std::unordered_map<GLuint, GLuint> g_va_map_mg_gl4es;
+unordered_map<GLuint, GLuint> g_va_map_mg_gl4es;
 
 // Map: GLenum target -> currently bound MG buffer ID
-std::unordered_map<GLenum, GLuint> g_bound_buffers;
+unordered_map<GLenum, GLuint> g_bound_buffers;
 // Currently bound MG array ID
 GLuint bound_array = 0;
 
 // Map: GLES buffer ID -> Active mapping info (for glMapBuffer/glUnmapBuffer emulation)
-std::unordered_map<GLuint, BufferMapping> g_active_mappings;
+unordered_map<GLuint, BufferMapping> g_active_mappings;
 
 GLuint gen_buffer() {
     LOG_D("gen_buffer: Generating a new buffer. Previous maxBufferId was %d", maxBufferId)
@@ -171,6 +171,10 @@ void glGenBuffers(GLsizei n, GLuint *buffers) {
     free(gl4es_buffers);
 }
 
+void glGenBuffersARB(GLsizei n, GLuint *buffers) {
+    glGenBuffers(n, buffers);
+}
+
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     LOG()
     LOG_D("glDeleteBuffers(%i, %p)", n, buffers)
@@ -222,10 +226,18 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     }
 }
 
+void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) {
+    glDeleteBuffers(n, buffers);
+}
+
 GLboolean glIsBuffer(GLuint buffer) {
     LOG()
     LOG_D("glIsBuffer, buffer = %d", buffer)
     return has_buffer(buffer);
+}
+
+GLboolean glIsBufferARB(GLuint buffer) {
+    glIsBuffer(buffer);
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {

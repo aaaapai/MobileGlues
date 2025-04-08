@@ -5,6 +5,7 @@
 #include "drawing.h"
 #include "buffer.h"
 #include "framebuffer.h"
+#include "fpe/fpe.hpp"
 
 #define DEBUG 0
 
@@ -421,6 +422,13 @@ void glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const v
         GLES.glDrawElementsIndirect(mode, type, offset);
     }
 }
+
+///*_Thread_local*/ static bool unexpected_error = false; // solve the crash error for ANGLE
+// Why thread local here? We've never PRETEND we are thread safe.
+
+// solve the crash error for ANGLE, but it will make Derivative Main with Optifine not work!
+
+//_Thread_local static bool unexpected_error = false;
 
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
     LOG()
