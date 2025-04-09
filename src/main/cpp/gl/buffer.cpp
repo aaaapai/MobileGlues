@@ -151,6 +151,10 @@ void glGenBuffers(GLsizei n, GLuint *buffers) {
     }
 }
 
+void glGenBuffersARB(GLsizei n, GLuint *buffers) {
+    glGenBuffers(n, buffers);
+}
+
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     LOG()
     LOG_D("glDeleteBuffers(%i, %p)", n, buffers)
@@ -164,10 +168,18 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     }
 }
 
+void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) {
+    glDeleteBuffers(n, buffers);
+}
+
 GLboolean glIsBuffer(GLuint buffer) {
     LOG()
     LOG_D("glIsBuffer, buffer = %d", buffer)
     return has_buffer(buffer);
+}
+
+GLboolean glIsBufferARB(GLuint buffer) {
+    glIsBuffer(buffer);
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {

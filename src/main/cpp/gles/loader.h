@@ -80,12 +80,12 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR GLenum ERR = GL_NO_ERROR;
+#define INIT_CHECK_GL_ERROR __attribute__((visibility("default"))) GLenum ERR = GL_NO_ERROR; (void)ERR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
-    GLenum ERR = GL_NO_ERROR;
+    __attribute__((visibility("default"))) GLenum ERR = GL_NO_ERROR; (void)ERR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
 extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
@@ -131,7 +131,6 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
     return (type)0;                                                         \
 }
-
 #define STUB_FUNCTION_END_NO_RETURN(type,name,...)                          \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
 }

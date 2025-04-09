@@ -421,4 +421,3 @@ void glColor4f( GLfloat red, GLfloat green,
 
     mglColor<GLfloat, 4>({red, green, blue, alpha});
 }
-
