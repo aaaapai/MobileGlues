@@ -418,7 +418,5 @@ void glColor4f( GLfloat red, GLfloat green,
         attr.value = glm::vec4(red, green, blue, alpha);
         attr.varies = false;
     }
-
     mglColor<GLfloat, 4>({red, green, blue, alpha});
 }
-
