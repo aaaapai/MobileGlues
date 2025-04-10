@@ -4,19 +4,24 @@
 
 #include "buffer.h"
 #include <unordered_map>
+#include "ankerl/unordered_dense.h"
+
+template <typename K, typename V>
+using unordered_map = ankerl::unordered_dense::map<K, V>;
+//using unordered_map = std::unordered_map<K, V>;
 
 #define DEBUG 0
 
 GLint maxBufferId = 0;
 GLint maxArrayId = 0;
 
-std::unordered_map<GLuint, GLuint> g_gen_buffers;
-std::unordered_map<GLuint, GLuint> g_gen_arrays;
+unordered_map<GLuint, GLuint> g_gen_buffers;
+unordered_map<GLuint, GLuint> g_gen_arrays;
 
-std::unordered_map<GLenum, GLuint> g_bound_buffers;
+unordered_map<GLenum, GLuint> g_bound_buffers;
 GLuint bound_array = 0;
 
-std::unordered_map<GLuint, BufferMapping> g_active_mappings;
+unordered_map<GLuint, BufferMapping> g_active_mappings;
 
 GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
@@ -146,6 +151,10 @@ void glGenBuffers(GLsizei n, GLuint *buffers) {
     }
 }
 
+void glGenBuffersARB(GLsizei n, GLuint *buffers) {
+    glGenBuffers(n, buffers);
+}
+
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     LOG()
     LOG_D("glDeleteBuffers(%i, %p)", n, buffers)
@@ -159,10 +168,18 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     }
 }
 
+void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) {
+    glDeleteBuffers(n, buffers);
+}
+
 GLboolean glIsBuffer(GLuint buffer) {
     LOG()
     LOG_D("glIsBuffer, buffer = %d", buffer)
     return has_buffer(buffer);
+}
+
+GLboolean glIsBufferARB(GLuint buffer) {
+    glIsBuffer(buffer);
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {
@@ -238,6 +255,43 @@ void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLs
         CHECK_GL_ERROR
     }
     GLES.glBindVertexBuffer(bindingindex, real_buffer, offset, stride);
+    CHECK_GL_ERROR
+}
+
+// Todo: any glGet* related to this function?
+void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
+    LOG()
+    LOG_D("glTexBuffer, target = %s, internalformat = %s, buffer = %d", glEnumToString(target), glEnumToString(internalformat), buffer)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glTexBuffer(target, internalformat, buffer);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glTexBuffer(target, internalformat, real_buffer);
+    CHECK_GL_ERROR
+}
+
+void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
+    LOG()
+    LOG_D("glTexBufferRange, target = %s, internalformat = %s, buffer = %d, offset = %p, size = %zi", glEnumToString(target), glEnumToString(internalformat), buffer, (void*) offset, size)
+    if (!has_buffer(buffer) || buffer == 0) {
+        GLES.glTexBufferRange(target, internalformat, buffer, offset, size);
+        CHECK_GL_ERROR
+        return;
+    }
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        GLES.glGenBuffers(1, &real_buffer);
+        modify_buffer(buffer, real_buffer);
+        CHECK_GL_ERROR
+    }
+    GLES.glTexBufferRange(target, internalformat, real_buffer, offset, size);
     CHECK_GL_ERROR
 }
 

@@ -6,7 +6,6 @@
 
 #include "../includes.h"
 #include "gl.h"
-#include "glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
@@ -57,9 +56,15 @@ static GLenum get_binding_query(GLenum target);
 
 GLAPI GLAPIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
 
+GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers); 
+
 GLAPI GLAPIENTRY void glDeleteBuffers(GLsizei n, const GLuint *buffers);
 
+GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers);
+
 GLAPI GLAPIENTRY GLboolean glIsBuffer(GLuint buffer);
+
+GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer);
 
 GLAPI GLAPIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
@@ -68,6 +73,10 @@ GLAPI GLAPIENTRY void glBindBufferRange(GLenum target, GLuint index, GLuint buff
 GLAPI GLAPIENTRY void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 
 GLAPI GLAPIENTRY void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+
+GLAPI GLAPIENTRY void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer);
+
+GLAPI GLAPIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
 
 GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
 

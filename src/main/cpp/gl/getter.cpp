@@ -5,17 +5,42 @@
 #include "getter.h"
 #include "../config/settings.h"
 #include "buffer.h"
+#include "fpe/fpe.hpp"
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <string>
 #include <vector>
 
 #define DEBUG 0
+
+void glGetFloatv(GLenum pname, GLfloat *params) {
+    LOG()
+    LOG_D("glGetFloatv, pname: %s", glEnumToString(pname))
+
+    switch (pname) {
+        case GL_MODELVIEW_MATRIX:{
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_MODELVIEW)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        case GL_PROJECTION_MATRIX:
+        {
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_PROJECTION)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        default:
+            GLES.glGetFloatv(pname, params);
+            LOG_D("  -> %.2f",*params)
+            CHECK_GL_ERROR
+    }
+}
 
 void glGetIntegerv(GLenum pname, GLint *params) {
     LOG()
     LOG_D("glGetIntegerv, pname: %s", glEnumToString(pname))
     switch (pname) {
         case GL_CONTEXT_PROFILE_MASK:
-            (*params) = GL_CONTEXT_CORE_PROFILE_BIT;
+            (*params) = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
             break;
         case GL_NUM_EXTENSIONS:
             static GLint num_extensions = -1;
@@ -43,10 +68,13 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = 0;
             break;
         case GL_MAX_TEXTURE_IMAGE_UNITS: {
-            int es_params = 16;
-            GLES.glGetIntegerv(pname, &es_params);
-            CHECK_GL_ERROR
-            (*params) = es_params * 2;
+            if (g_gles_caps.maxtex <= 0) {
+                int es_params = 16;
+                GLES.glGetIntegerv(pname, &es_params);
+                CHECK_GL_ERROR
+                g_gles_caps.maxtex = (es_params < 32) ? 32 : es_params;
+            }
+            (*params) = g_gles_caps.maxtex;
             break;
         }
         case GL_ARRAY_BUFFER_BINDING:
@@ -104,12 +132,22 @@ void InitGLESBaseExtensions() {
              "GL_ARB_shading_language_100 "
              "GL_ARB_imaging "
              "GL_ARB_draw_buffers_blend "
+             "OpenGL11 "
+             "OpenGL12 "
+             "OpenGL13 "
+             "OpenGL14 "
              "OpenGL15 "
+             "OpenGL20 "
+             "OpenGL21 "
              "OpenGL30 "
              "OpenGL31 "
              "OpenGL32 "
              "OpenGL33 "
              "OpenGL40 "
+             //"OpenGL43 "
+             //"ARB_compute_shader "
+             "GL_ARB_get_program_binary "
+             "GL_ARB_multitexture "
              "GL_ARB_shader_storage_buffer_object "
              "GL_ARB_shader_image_load_store "
              "GL_ARB_clear_texture "
@@ -242,7 +280,7 @@ const GLubyte * glGetString( GLenum name ) {
             return (const GLubyte *)versionCache.c_str();
         }
 
-        case GL_RENDERER: 
+        case GL_RENDERER:
         {
             if (rendererString == std::string("")) {
                 const char* gpuName = getGpuName();

@@ -80,12 +80,12 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR  {}
+#define INIT_CHECK_GL_ERROR __attribute__((used)) GLenum ERR = GL_NO_ERROR; (void)ERR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
-    GLenum ERR = GL_NO_ERROR;
+    __attribute__((used)) GLenum ERR = GL_NO_ERROR; (void)ERR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
 extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
@@ -98,7 +98,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
     type ret = GLES.name(__VA_ARGS__);                                    \
     GLenum ERR = GLES.glGetError();                                         \
     if (ERR != GL_NO_ERROR)                                                 \
-        LOG_E("ERROR: %d", ERR)                                             \
+        LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
     return ret;                                                             \
 }
 #else
@@ -131,12 +131,14 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
     return (type)0;                                                         \
 }
-
 #define STUB_FUNCTION_END_NO_RETURN(type,name,...)                          \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
 }
 
 struct gles_caps_t {
+    int maxtex;
+    int major;
+    int minor;
     int GL_EXT_buffer_storage;
     int GL_EXT_disjoint_timer_query;
     int GL_QCOM_texture_lod_bias;

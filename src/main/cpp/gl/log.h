@@ -8,7 +8,9 @@
 
 #define FORCE_SYNC_WITH_LOG_FILE 0
 
-#define GLOBAL_DEBUG 1
+#define GLOBAL_DEBUG 0
+
+#define GLOBAL_DEBUG_E 1
 
 #define LOG_CALLED_FUNCS 0
 
@@ -25,6 +27,7 @@ const char *glEnumToString(GLenum e);
 #if GLOBAL_DEBUG_FORCE_OFF
 #define LOG()  {}
 #define LOG_D(...) {}
+#define LOG_D_N(...) {}
 #define LOG_W(...) {}
 #define LOG_E(...) {}
 #define LOG_F(...) {}
@@ -44,13 +47,14 @@ const char *glEnumToString(GLenum e);
 void log_unique_function(const char* func_name);
 #else
 #define LOG() \
-    if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, "Use function: %s", __FUNCTION__);printf("Use function: %s\n", __FUNCTION__);write_log("Use function: %s\n", __FUNCTION__);}
+    if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, "\nUse function: %s", __FUNCTION__);printf("\nUse function: %s\n", __FUNCTION__);write_log("\nUse function: %s\n", __FUNCTION__);}
 #endif
 
 #define LOG_D(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_D_N(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_DEBUG, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);write_log_n(__VA_ARGS__);}
 #define LOG_W(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_WARN, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
-#define LOG_E(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_ERROR, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
-#define LOG_F(...) if(DEBUG||GLOBAL_DEBUG) {__android_log_print(ANDROID_LOG_FATAL, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_E(...) if(DEBUG||GLOBAL_DEBUG||GLOBAL_DEBUG_E) {__android_log_print(ANDROID_LOG_ERROR, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
+#define LOG_F(...) if(DEBUG||GLOBAL_DEBUG||GLOBAL_DEBUG_E) {__android_log_print(ANDROID_LOG_FATAL, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
 #endif
 
 #define LOG_V(...) {__android_log_print(ANDROID_LOG_VERBOSE, RENDERERNAME, __VA_ARGS__);printf(__VA_ARGS__);printf("\n");write_log(__VA_ARGS__);}
