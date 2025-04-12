@@ -18,7 +18,7 @@
 
 //#define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 0
+#define DEBUG 1
 
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
 
