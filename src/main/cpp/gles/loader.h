@@ -47,7 +47,7 @@ static name##_PTR egl_##name = NULL;                                        \
             egl_##name = (name##_PTR)proc_address(egl, #name);              \
         }                                                                   \
         if (egl_##name == NULL)                                             \
-        LOG_W("Error: " #name " is NULL\n");                                \
+        LOG_E("Error: " #name " is NULL\n");                                \
     }                                                                       \
 }
 
@@ -80,12 +80,12 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR GLenum ERR = GL_NO_ERROR;
+#define INIT_CHECK_GL_ERROR __attribute__((used)) GLenum ERR = GL_NO_ERROR; (void)ERR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
-    GLenum ERR = GL_NO_ERROR;
+    __attribute__((used)) GLenum ERR = GL_NO_ERROR; (void)ERR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
 extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
@@ -103,7 +103,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
 }
 #else
 #define NATIVE_FUNCTION_END(type,name,...)                                  \
-    LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
+    LOG_E("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
     type ret = GLES.name(__VA_ARGS__);                                    \
     CHECK_GL_ERROR                                                          \
     return ret;                                                             \
@@ -118,7 +118,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
 }
 #else
 #define NATIVE_FUNCTION_END_NO_RETURN(type,name,...)                        \
-    LOG_D("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
+    LOG_E("Use native function: %s @ %s(...)", RENDERERNAME, __FUNCTION__); \
     GLES.name(__VA_ARGS__);                                               \
 }
 #endif
@@ -131,7 +131,6 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
     return (type)0;                                                         \
 }
-
 #define STUB_FUNCTION_END_NO_RETURN(type,name,...)                          \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
 }

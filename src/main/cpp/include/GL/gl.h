@@ -1897,7 +1897,6 @@ GLAPI void GLAPIENTRY glMultiTexCoord4s( GLenum target, GLshort s, GLshort t, GL
 
 GLAPI void GLAPIENTRY glMultiTexCoord4sv( GLenum target, const GLshort *v );
 
-
 GLAPI void GLAPIENTRY glLoadTransposeMatrixd( const GLdouble m[16] );
 
 GLAPI void GLAPIENTRY glLoadTransposeMatrixf( const GLfloat m[16] );

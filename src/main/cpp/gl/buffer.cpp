@@ -23,9 +23,9 @@ GLuint bound_array = 0;
 
 unordered_map<GLuint, BufferMapping> g_active_mappings;
 
-GLuint gen_buffer() {
+GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
-    g_gen_buffers[maxBufferId] = 0;
+    g_gen_buffers[maxBufferId] = realid;
     return maxBufferId;
 }
 
@@ -151,6 +151,10 @@ void glGenBuffers(GLsizei n, GLuint *buffers) {
     }
 }
 
+void glGenBuffersARB(GLsizei n, GLuint *buffers) {
+    glGenBuffers(n, buffers);
+}
+
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     LOG()
     LOG_D("glDeleteBuffers(%i, %p)", n, buffers)
@@ -164,10 +168,18 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     }
 }
 
+void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) {
+    glDeleteBuffers(n, buffers);
+}
+
 GLboolean glIsBuffer(GLuint buffer) {
     LOG()
     LOG_D("glIsBuffer, buffer = %d", buffer)
     return has_buffer(buffer);
+}
+
+GLboolean glIsBufferARB(GLuint buffer) {
+    glIsBuffer(buffer);
 }
 
 void glBindBuffer(GLenum target, GLuint buffer) {
@@ -185,6 +197,7 @@ void glBindBuffer(GLenum target, GLuint buffer) {
         modify_buffer(buffer, real_buffer);
         CHECK_GL_ERROR
     }
+    LOG_D("glBindBuffer: %d -> %d", buffer, real_buffer)
     GLES.glBindBuffer(target, real_buffer);
     CHECK_GL_ERROR
 }
@@ -434,16 +447,19 @@ void glBindVertexArray(GLuint array) {
     LOG_D("glBindVertexArray(%d)", array)
     bound_array = array;
     if (!has_array(array) || array == 0) {
+        LOG_D("Does not have va=%d found!", array)
         GLES.glBindVertexArray(array);
         CHECK_GL_ERROR
         return;
     }
     GLuint real_array = find_real_array(array);
     if (!real_array) {
+        LOG_D("va=%d not initialized, initializing...", array)
         GLES.glGenVertexArrays(1, &real_array);
         modify_array(array, real_array);
         CHECK_GL_ERROR
     }
+    LOG_D("glBindVertexArray: %d -> %d", array, real_array)
     GLES.glBindVertexArray(real_array);
     CHECK_GL_ERROR
 }

@@ -8,7 +8,7 @@
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
-#include <GLES/gl32.h>
+#include <GLES/gl3.h>
 
 #define DEBUG 0
 
@@ -41,7 +41,7 @@ NATIVE_FUNCTION_HEAD(GLuint, glCreateProgram) NATIVE_FUNCTION_END(GLuint, glCrea
 NATIVE_FUNCTION_HEAD(GLuint, glCreateShader, GLenum type) NATIVE_FUNCTION_END(GLuint, glCreateShader, type)
 NATIVE_FUNCTION_HEAD(void, glCullFace, GLenum mode) NATIVE_FUNCTION_END_NO_RETURN(void, glCullFace, mode)
 //NATIVE_FUNCTION_HEAD(void, glDeleteBuffers, GLsizei n, const GLuint *buffers) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteBuffers, n,buffers)
-NATIVE_FUNCTION_HEAD(void, glDeleteFramebuffers, GLsizei n, const GLuint *framebuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteFramebuffers, n,framebuffers)
+//NATIVE_FUNCTION_HEAD(void, glDeleteFramebuffers, GLsizei n, const GLuint *framebuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteFramebuffers, n,framebuffers)
 NATIVE_FUNCTION_HEAD(void, glDeleteProgram, GLuint program) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteProgram, program)
 NATIVE_FUNCTION_HEAD(void, glDeleteRenderbuffers, GLsizei n, const GLuint *renderbuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteRenderbuffers, n,renderbuffers)
 NATIVE_FUNCTION_HEAD(void, glDeleteShader, GLuint shader) NATIVE_FUNCTION_END_NO_RETURN(void, glDeleteShader, shader)
@@ -63,7 +63,7 @@ NATIVE_FUNCTION_HEAD(void, glFramebufferRenderbuffer, GLenum target, GLenum atta
 NATIVE_FUNCTION_HEAD(void, glFrontFace, GLenum mode) NATIVE_FUNCTION_END_NO_RETURN(void, glFrontFace, mode)
 //NATIVE_FUNCTION_HEAD(void, glGenBuffers, GLsizei n, GLuint *buffers) NATIVE_FUNCTION_END_NO_RETURN(void, glGenBuffers, n,buffers)
 NATIVE_FUNCTION_HEAD(void, glGenerateMipmap, GLenum target) NATIVE_FUNCTION_END_NO_RETURN(void, glGenerateMipmap, target)
-NATIVE_FUNCTION_HEAD(void, glGenFramebuffers, GLsizei n, GLuint *framebuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glGenFramebuffers, n,framebuffers)
+//NATIVE_FUNCTION_HEAD(void, glGenFramebuffers, GLsizei n, GLuint *framebuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glGenFramebuffers, n,framebuffers)
 NATIVE_FUNCTION_HEAD(void, glGenRenderbuffers, GLsizei n, GLuint *renderbuffers) NATIVE_FUNCTION_END_NO_RETURN(void, glGenRenderbuffers, n,renderbuffers)
 //NATIVE_FUNCTION_HEAD(void, glGenTextures, GLsizei n, GLuint *textures) NATIVE_FUNCTION_END_NO_RETURN(void, glGenTextures, n,textures)
 NATIVE_FUNCTION_HEAD(void, glGetActiveAttrib, GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) NATIVE_FUNCTION_END_NO_RETURN(void, glGetActiveAttrib, program,index,bufSize,length,size,type,name)
@@ -141,18 +141,18 @@ NATIVE_FUNCTION_HEAD(void, glUniform4iv, GLint location, GLsizei count, const GL
 NATIVE_FUNCTION_HEAD(void, glUniformMatrix2fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) NATIVE_FUNCTION_END_NO_RETURN(void, glUniformMatrix2fv, location,count,transpose,value)
 NATIVE_FUNCTION_HEAD(void, glUniformMatrix3fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) NATIVE_FUNCTION_END_NO_RETURN(void, glUniformMatrix3fv, location,count,transpose,value)
 NATIVE_FUNCTION_HEAD(void, glUniformMatrix4fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) NATIVE_FUNCTION_END_NO_RETURN(void, glUniformMatrix4fv, location,count,transpose,value)
-NATIVE_FUNCTION_HEAD(void, glUseProgram, GLuint program) NATIVE_FUNCTION_END_NO_RETURN(void, glUseProgram, program)
+//NATIVE_FUNCTION_HEAD(void, glUseProgram, GLuint program) NATIVE_FUNCTION_END_NO_RETURN(void, glUseProgram, program)
 NATIVE_FUNCTION_HEAD(void, glValidateProgram, GLuint program) NATIVE_FUNCTION_END_NO_RETURN(void, glValidateProgram, program)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib1f, GLuint index, GLfloat x) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib1f, index,x)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib1fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib1fv, index,v)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib2f, GLuint index, GLfloat x, GLfloat y) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib2f, index,x,y)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib2fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib2fv, index,v)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib3f, GLuint index, GLfloat x, GLfloat y, GLfloat z) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib3f, index,x,y,z)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib3fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib3fv, index,v)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib4f, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib4f, index,x,y,z,w)
-NATIVE_FUNCTION_HEAD(void, glVertexAttrib4fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib4fv, index,v)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib1f, GLuint index, GLfloat x) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib1f, index,x)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib1fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib1fv, index,v)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib2f, GLuint index, GLfloat x, GLfloat y) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib2f, index,x,y)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib2fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib2fv, index,v)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib3f, GLuint index, GLfloat x, GLfloat y, GLfloat z) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib3f, index,x,y,z)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib3fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib3fv, index,v)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib4f, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib4f, index,x,y,z,w)
+//NATIVE_FUNCTION_HEAD(void, glVertexAttrib4fv, GLuint index, const GLfloat *v) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttrib4fv, index,v)
 NATIVE_FUNCTION_HEAD(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) NATIVE_FUNCTION_END_NO_RETURN(void, glVertexAttribPointer, index,size,type,normalized,stride,pointer)
-NATIVE_FUNCTION_HEAD(void, glViewport, GLint x, GLint y, GLsizei width, GLsizei height) NATIVE_FUNCTION_END_NO_RETURN(void, glViewport, x,y,width,height)
+//NATIVE_FUNCTION_HEAD(void, glViewport, GLint x, GLint y, GLsizei width, GLsizei height) NATIVE_FUNCTION_END_NO_RETURN(void, glViewport, x,y,width,height)
 //NATIVE_FUNCTION_HEAD(void, glReadBuffer, GLenum src) NATIVE_FUNCTION_END_NO_RETURN(void, glReadBuffer, src)
 NATIVE_FUNCTION_HEAD(void, glDrawRangeElements, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices) NATIVE_FUNCTION_END_NO_RETURN(void, glDrawRangeElements, mode,start,end,count,type,indices)
 //NATIVE_FUNCTION_HEAD(void, glTexImage3D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels) NATIVE_FUNCTION_END_NO_RETURN(void, glTexImage3D, target,level,internalformat,width,height,depth,border,format,type,pixels)
