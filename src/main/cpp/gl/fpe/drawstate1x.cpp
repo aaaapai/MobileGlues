@@ -124,7 +124,6 @@ void fixed_function_draw_state_t::compile_vertexattrib(vertex_pointer_array_t& v
                     .normalized = GL_FALSE,
                     .stride = 0,
                     .pointer = (const void*)offset,
-//                    .varying = true
             };
             offset += sizes.texcoord_size[i] * sizeof(GLfloat);
         }

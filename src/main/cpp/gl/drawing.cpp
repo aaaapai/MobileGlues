@@ -67,7 +67,7 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
         pcmds[i].firstIndex = static_cast<GLuint>(byteOffset / elementSize);
         pcmds[i].count = counts[i];
         pcmds[i].instanceCount = 1;
-        pcmds[i].baseVertex = basevertex[i];
+        pcmds[i].baseVertex = basevertex ? basevertex[i] : 0;
         pcmds[i].reservedMustBeZero = 0;
     }
 

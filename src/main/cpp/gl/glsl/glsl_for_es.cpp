@@ -18,7 +18,7 @@
 
 //#define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 0
+#define DEBUG 1
 
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
 
@@ -1008,6 +1008,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
+    spvc_set active = nullptr;
     spvc_compiler_options options = nullptr;
     spvc_resources resources = nullptr;
     const spvc_reflected_resource *list = nullptr;
