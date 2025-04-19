@@ -152,7 +152,8 @@ void InitGLESBaseExtensions() {
              "GL_ARB_shader_image_load_store "
              "GL_ARB_clear_texture "
              "GL_ARB_get_program_binary "
-             "GL_ARB_separate_shader_objects ";
+             "GL_ARB_separate_shader_objects "
+             "GL_NV_shader_noperspective_interpolation";
 }
 
 void AppendExtension(const char* ext) {
