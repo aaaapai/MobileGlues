@@ -22,7 +22,7 @@ GLAPI GLAPIENTRY GLboolean glIsFramebufferEXT(GLuint framebuffer);
 GLAPI GLAPIENTRY void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
 GLAPI GLAPIENTRY void glDeleteFramebuffersEXT(GLsizei n, const GLuint *framebuffers);
 GLAPI GLAPIENTRY void glGenFramebuffersEXT(GLsizei n, GLuint *framebuffers);
-GLenum glCheckFramebufferStatusEXT(GLenum target);
+GLAPI GLAPIENTRY GLenum glCheckFramebufferStatusEXT(GLenum target);
 GLAPI GLAPIENTRY void glFramebufferTexture2DEXT(GLenum target, GLenum attachment,
                                       GLenum textarget, GLuint texture, GLint level);
 GLAPI GLAPIENTRY void glFramebufferRenderbufferEXT(GLenum target, GLenum attachment,
@@ -53,7 +53,7 @@ GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleARB(GLenum target, GLsizei
                                                 GLenum internalformat,
                                                 GLsizei width, GLsizei height);
 GLAPI GLAPIENTRY void glBindFramebufferARB(GLenum target, GLuint framebuffer);
-GLenum glCheckFramebufferStatusARB(GLenum target);
+GLAPI GLAPIENTRY GLenum glCheckFramebufferStatusARB(GLenum target);
 GLAPI GLAPIENTRY void glFramebufferTexture1DARB(GLenum target, GLenum attachment,
                                       GLenum textarget, GLuint texture, GLint level);
 GLAPI GLAPIENTRY void glFramebufferTexture2DARB(GLenum target, GLenum attachment,
@@ -70,11 +70,11 @@ GLAPI GLAPIENTRY void glFramebufferTexture3DEXT(GLenum target, GLenum attachment
 GLAPI GLAPIENTRY void glFramebufferTexture1DEXT(GLenum target, GLenum attachment, GLenum textarget,
                                       GLuint texture, GLint level);
 GLAPI GLAPIENTRY void glDeleteObjectARB(GLhandleARB obj);
-GLhandleARB glGetHandleARB(GLenum pname);
+GLAPI GLAPIENTRY GLhandleARB glGetHandleARB(GLenum pname);
 GLAPI GLAPIENTRY void glDetachObjectARB(GLhandleARB containerObj, GLhandleARB attachedObj);
-GLhandleARB glCreateShaderObjectARB(GLenum shaderType);
+GLAPI GLAPIENTRY GLhandleARB glCreateShaderObjectARB(GLenum shaderType);
 
-GLhandleARB glCreateProgramObjectARB(void);
+GLAPI GLAPIENTRY GLhandleARB glCreateProgramObjectARB(void);
 
 GLAPI GLAPIENTRY void glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj);
 
