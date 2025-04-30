@@ -10,6 +10,37 @@
 
 #define DEBUG 0
 
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    LOG()
+    LOG_D("glDrawArrays(), mode = %s, first = %d, count = %u", glEnumToString(mode), first, count)
+
+    LIST_RECORD(glDrawArrays, {}, mode, first, count)
+
+    // TODO: deal with draw in list later
+    if (DisplayListManager::isCalling()) {
+        return;
+    }
+
+    INIT_CHECK_GL_ERROR
+
+    CHECK_GL_ERROR_NO_INIT
+    GET_PREV_PROGRAM
+    int do_draw_element = commit_fpe_state_on_draw(&mode, &first, &count);
+    if (do_draw_element) {
+        LOG_D("Switch to glDrawElements(), mode = %s, count = %u", glEnumToString(mode), count)
+
+        GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, (void *) 0);
+    } else
+        GLES.glDrawArrays(mode, first, count);
+
+    SET_PREV_PROGRAM
+    GLES.glBindVertexArray(0);
+    CHECK_GL_ERROR_NO_INIT
+}
+
+///*_Thread_local*/ static bool unexpected_error = false; // solve the crash error for ANGLE
+// Why thread local here? We've never PRETEND we are thread safe.
+
 // solve the crash error for ANGLE, but it will make Derivative Main with Optifine not work!
 
 //_Thread_local static bool unexpected_error = false;
