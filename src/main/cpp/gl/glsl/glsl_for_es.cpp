@@ -936,7 +936,7 @@ int get_or_add_glsl_version(std::string& glsl) {
     if (glsl_version == -1) {
         glsl_version = 140;
         glsl.insert(0, "#version 140\n");
-    } else if (glsl_version < 150) {
+    } else if (glsl_version < 140) {
         // force upgrade glsl version
         glsl = replace_line_starting_with(glsl, "#version", "#version 150 compatibility\n");
         glsl_version = 150;
