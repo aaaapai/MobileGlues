@@ -257,6 +257,8 @@ const GLubyte * glGetString( GLenum name ) {
             return (const GLubyte *)rendererString.c_str();
         }
         case GL_SHADING_LANGUAGE_VERSION:
+            if (hardware->es_version < 310)
+                return (const GLubyte *) "4.00 MobileGlues with glslang and SPIRV-Cross";
             return (const GLubyte *) "4.50 MobileGlues with glslang and SPIRV-Cross";
         case GL_EXTENSIONS:
             return (const GLubyte *) GetExtensionsList();
