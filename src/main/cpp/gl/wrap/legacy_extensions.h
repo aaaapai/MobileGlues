@@ -36,14 +36,16 @@ GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei
 GLAPI GLAPIENTRY void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                                               GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                                               GLbitfield mask, GLenum filter);
+                                              
 GLAPI GLAPIENTRY void glBlitFramebufferLayersEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
-                                       GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                                       GLbitfield mask, GLenum filter
+                                                         GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                                                         GLbitfield mask, GLenum filter);
+                                                         
 GLAPI GLAPIENTRY void glBlitFramebufferLayerEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
-                                      GLint srcLayer,
-                                      GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                                      GLint dstLayer,
-                                      GLbitfield mask, GLenum filter);
+                                                        GLint srcLayer,
+                                                        GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                                                        GLint dstLayer,
+                                                        GLbitfield mask, GLenum filter);
 
 GLAPI GLAPIENTRY void glRenderbufferStorageARB(GLenum target, GLenum internalformat,
                                      GLsizei width, GLsizei height);
@@ -75,31 +77,57 @@ GLhandleARB glCreateShaderObjectARB(GLenum shaderType);
 GLhandleARB glCreateProgramObjectARB(void);
 
 GLAPI GLAPIENTRY void glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj);
+
 GLAPI GLAPIENTRY void glLinkProgramARB(GLhandleARB programObj);
+
 GLAPI GLAPIENTRY void glUseProgramObjectARB(GLhandleARB programObj);
+
 GLAPI GLAPIENTRY void glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params);
+
 GLAPI GLAPIENTRY void glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params);
+
 GLAPI GLAPIENTRY void glVertexAttrib1sARB(GLuint index, GLshort v0);
+
 GLAPI GLAPIENTRY void glVertexAttrib1dARB(GLuint index, GLdouble v0);
+
 GLAPI GLAPIENTRY void glVertexAttrib2sARB(GLuint index, GLshort v0, GLshort v1);
+
 GLAPI GLAPIENTRY void glVertexAttrib2dARB(GLuint index, GLdouble v0, GLdouble v1);
-GLAPI GLAPIENTRY void glVertexAttrib3sARB(GLuint index, GLshort v0, GLshort v1, GLshort v2
+
+GLAPI GLAPIENTRY void glVertexAttrib3sARB(GLuint index, GLshort v0, GLshort v1, GLshort v2);
+
 GLAPI GLAPIENTRY void glVertexAttrib3dARB(GLuint index, GLdouble v0, GLdouble v1, GLdouble v2);
+
 GLAPI GLAPIENTRY void glVertexAttrib4sARB(GLuint index, GLshort v0, GLshort v1, GLshort v2, GLshort v3);
+
 GLAPI GLAPIENTRY void glVertexAttrib4dARB(GLuint index, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
+
 GLAPI GLAPIENTRY void glVertexAttrib1svARB(GLuint index, const GLshort *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib1dvARB(GLuint index, const GLdouble *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib2svARB(GLuint index, const GLshort *v);
-GLAPI GLAPIENTRY void glVertexAttrib2dvARB(GLuint index, const GLdouble *v); 
+
+GLAPI GLAPIENTRY void glVertexAttrib2dvARB(GLuint index, const GLdouble *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib3svARB(GLuint index, const GLshort *v);
-GLAPI GLAPIENTRY void glVertexAttrib3dvARB(GLuint index, const GLdouble *v
+
+GLAPI GLAPIENTRY void glVertexAttrib3dvARB(GLuint index, const GLdouble *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4svARB(GLuint index, const GLshort *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4dvARB(GLuint index, const GLdouble *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4ivARB(GLuint index, const GLint *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4bvARB(GLuint index, const GLbyte *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4ubvARB(GLuint index, const GLubyte *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4usvARB(GLuint index, const GLushort *v);
+
 GLAPI GLAPIENTRY void glVertexAttrib4uivARB(GLuint index, const GLuint *v);
+
 GLAPI GLAPIENTRY void glGetVertexAttribdvARB(GLuint index, GLenum pname, GLdouble *params);
 GLAPI GLAPIENTRY void glGetActiveUniformName(GLuint program,
                           GLuint uniformIndex,
