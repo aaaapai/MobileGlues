@@ -71,66 +71,66 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
     GLES.glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
 }
 
-static bool g_drawssbo_inited = false;
-static GLsizei g_drawssbo_size = 0;
-GLuint g_drawssbo = 0;
+//static bool g_drawssbo_inited = false;
+//static GLsizei g_drawssbo_size = 0;
+//GLuint g_drawssbo = 0;
 
-void prepare_compute_drawcmd_ssbo(const GLsizei *counts, GLenum type, const void *const *indices,
-                             GLsizei primcount, const GLint *basevertex) {
-    if (!g_drawssbo_inited) {
-        GLES.glGenBuffers(1, &g_drawssbo);
-        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_drawssbo);
-        g_drawssbo_size = 1;
-        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
-                          g_drawssbo_size * sizeof(drawcmd_compute_t), NULL, GL_DYNAMIC_DRAW);
-
-        g_drawssbo_inited = true;
-    }
-
-    if (g_drawssbo_size < primcount) {
-        size_t sz = g_drawssbo_size;
-
-        LOG_D("Before resize: %d", sz)
-
-        // 2-exponential to reduce reallocation
-        while (sz < primcount)
-            sz *= 2;
-
-        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
-                          sz * sizeof(drawcmd_compute_t), NULL, GL_DYNAMIC_DRAW);
-        g_drawssbo_size = sz;
-    }
-
-    LOG_D("After resize: %d", g_drawssbo_size)
-
-    auto* pcmds = (drawcmd_compute_t*)
-            GLES.glMapBufferRange(GL_DRAW_INDIRECT_BUFFER,
-                                  0, primcount * sizeof(drawcmd_compute_t),
-                                  GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-
-    GLsizei elementSize;
-    switch (type) {
-        case GL_UNSIGNED_BYTE:
-            elementSize = 1;
-            break;
-        case GL_UNSIGNED_SHORT:
-            elementSize = 2;
-            break;
-        case GL_UNSIGNED_INT:
-            elementSize = 4;
-            break;
-        default:
-            elementSize = 4;
-    }
-
-    for (GLsizei i = 0; i < primcount; ++i) {
-        auto byteOffset = reinterpret_cast<uintptr_t>(indices[i]);
-        pcmds[i].firstIndex = static_cast<GLuint>(byteOffset / elementSize);
-        pcmds[i].baseVertex = basevertex ? basevertex[i] : 0;
-    }
-
-    GLES.glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
-}
+//void prepare_compute_drawcmd_ssbo(const GLsizei *counts, GLenum type, const void *const *indices,
+//                             GLsizei primcount, const GLint *basevertex) {
+//    if (!g_drawssbo_inited) {
+//        GLES.glGenBuffers(1, &g_drawssbo);
+//        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_drawssbo);
+//        g_drawssbo_size = 1;
+//        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
+//                          g_drawssbo_size * sizeof(drawcmd_compute_t), NULL, GL_DYNAMIC_DRAW);
+//
+//        g_drawssbo_inited = true;
+//    }
+//
+//    if (g_drawssbo_size < primcount) {
+//        size_t sz = g_drawssbo_size;
+//
+//        LOG_D("Before resize: %d", sz)
+//
+//        // 2-exponential to reduce reallocation
+//        while (sz < primcount)
+//            sz *= 2;
+//
+//        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
+//                          sz * sizeof(drawcmd_compute_t), NULL, GL_DYNAMIC_DRAW);
+//        g_drawssbo_size = sz;
+//    }
+//
+//    LOG_D("After resize: %d", g_drawssbo_size)
+//
+//    auto* pcmds = (drawcmd_compute_t*)
+//            GLES.glMapBufferRange(GL_DRAW_INDIRECT_BUFFER,
+//                                  0, primcount * sizeof(drawcmd_compute_t),
+//                                  GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+//
+//    GLsizei elementSize;
+//    switch (type) {
+//        case GL_UNSIGNED_BYTE:
+//            elementSize = 1;
+//            break;
+//        case GL_UNSIGNED_SHORT:
+//            elementSize = 2;
+//            break;
+//        case GL_UNSIGNED_INT:
+//            elementSize = 4;
+//            break;
+//        default:
+//            elementSize = 4;
+//    }
+//
+//    for (GLsizei i = 0; i < primcount; ++i) {
+//        auto byteOffset = reinterpret_cast<uintptr_t>(indices[i]);
+//        pcmds[i].firstIndex = static_cast<GLuint>(byteOffset / elementSize);
+//        pcmds[i].baseVertex = basevertex ? basevertex[i] : 0;
+//    }
+//
+//    GLES.glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
+//}
 
 void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
@@ -310,18 +310,20 @@ R"(#version 310 es
 
 layout(local_size_x = 64) in;
 
-struct DrawCommand {
-//    uint  count;
-//    uint  instanceCount;
-    uint  firstIndex;
-    int   baseVertex;
-//    uint  reservedMustBeZero;
-};
+//struct DrawCommand {
+////    uint  count;
+////    uint  instanceCount;
+//    uint  firstIndex;
+//    int   baseVertex;
+////    uint  reservedMustBeZero;
+//};
 
 layout(std430, binding = 0) readonly buffer Input { uint in_indices[]; };
-layout(std430, binding = 1) readonly buffer Draws { DrawCommand draws[]; };
-layout(std430, binding = 2) readonly buffer Prefix { uint prefixSums[]; };
-layout(std430, binding = 3) writeonly buffer Output { uint out_indices[]; };
+//layout(std430, binding = 1) readonly buffer Draws { DrawCommand draws[]; };
+layout(std430, binding = 1) readonly buffer FirstIndex { uint firstIndex[]; };
+layout(std430, binding = 2) readonly buffer BaseVertex { int baseVertex[]; };
+layout(std430, binding = 3) readonly buffer Prefix { uint prefixSums[]; };
+layout(std430, binding = 4) writeonly buffer Output { uint out_indices[]; };
 
 void main() {
     uint outIdx = gl_GlobalInvocationID.x;
@@ -329,13 +331,13 @@ void main() {
     return;
 
     // Find out draw call #
-//    int low = 0;
-//    int high = prefixSums.length();
-//    for (low = 0; low < high; ++low) {
-//        if (prefixSums[low] > outIdx) {
-//            break;
-//        }
-//    }
+    //    int low = 0;
+    //    int high = prefixSums.length();
+    //    for (low = 0; low < high; ++low) {
+    //        if (prefixSums[low] > outIdx) {
+    //            break;
+    //        }
+    //    }
 
     int low = 0;
     int high = prefixSums.length() - 1;
@@ -350,19 +352,21 @@ void main() {
     }
 
     // figure out which index to take
-    DrawCommand cmd = draws[low];
+    //DrawCommand cmd = draws[low];
     uint localIdx = outIdx - ((low == 0) ? 0u : (prefixSums[low - 1]));
-    uint inIndex = localIdx + cmd.firstIndex;
+    uint inIndex = localIdx + firstIndex[low] / 4u; // elementSize == 4
 
     // Write out
-    out_indices[outIdx] = uint(int(in_indices[inIndex]) + cmd.baseVertex);
+    out_indices[outIdx] = uint(int(in_indices[inIndex]) + baseVertex[low]);
 }
 
 )";
 
 static bool g_compute_inited = false;
-std::vector<GLuint> g_prefix_sum;
+std::vector<GLuint> g_prefix_sum(1);
 GLuint g_prefixsumbuffer = 0;
+GLuint g_firstidx_ssbo = 0;
+GLuint g_basevtx_ssbo = 0;
 GLuint g_outputibo = 0;
 GLuint g_compute_program = 0;
 char g_compile_info[1024];
@@ -429,11 +433,14 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
     // Align compute shader input format with standard OpenGL indirect-draw format
 //    prepare_indirect_buffer(counts, type, indices, primcount, basevertex);
-    prepare_compute_drawcmd_ssbo(counts, type, indices, primcount, basevertex);
+//    prepare_compute_drawcmd_ssbo(counts, type, indices, primcount, basevertex);
 
     // Init compute buffers
     if (!g_compute_inited) {
         LOG_D("Initializing multidraw compute pipeline...")
+        GLES.glGenBuffers(1, &g_prefixsumbuffer);
+        GLES.glGenBuffers(1, &g_firstidx_ssbo);
+        GLES.glGenBuffers(1, &g_basevtx_ssbo);
         GLES.glGenBuffers(1, &g_prefixsumbuffer);
         GLES.glGenBuffers(1, &g_outputibo);
 
@@ -443,8 +450,10 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     }
 
     // Resize prefix sum buffer if needed
-    if (g_prefix_sum.size() < g_drawssbo_size)
-        g_prefix_sum.resize(g_drawssbo_size);
+    size_t sz = g_prefix_sum.empty() ? 1 : g_prefix_sum.size();
+    while (sz < primcount)
+        sz *= 2;
+    g_prefix_sum.resize(sz);
 
     // Calculate prefix sum
     g_prefix_sum[0] = counts[0];
@@ -453,6 +462,16 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     }
 
     // Fill in the data
+    GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_firstidx_ssbo);
+    CHECK_GL_ERROR_NO_INIT
+    GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * primcount, indices, GL_DYNAMIC_DRAW);
+    CHECK_GL_ERROR_NO_INIT
+
+    GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_basevtx_ssbo);
+    CHECK_GL_ERROR_NO_INIT
+    GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLint) * primcount, basevertex, GL_DYNAMIC_DRAW);
+    CHECK_GL_ERROR_NO_INIT
+
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_prefixsumbuffer);
     CHECK_GL_ERROR_NO_INIT
     GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * primcount, g_prefix_sum.data(), GL_DYNAMIC_DRAW);
@@ -474,13 +493,24 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 
     // Bind buffers
+//    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ibo);
+//    CHECK_GL_ERROR_NO_INIT
+//    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_drawssbo);
+//    CHECK_GL_ERROR_NO_INIT
+//    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_prefixsumbuffer);
+//    CHECK_GL_ERROR_NO_INIT
+//    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, g_outputibo);
+//    CHECK_GL_ERROR_NO_INIT
+
     GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ibo);
     CHECK_GL_ERROR_NO_INIT
-    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_drawssbo);
+    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_firstidx_ssbo);
     CHECK_GL_ERROR_NO_INIT
-    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_prefixsumbuffer);
+    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_basevtx_ssbo);
     CHECK_GL_ERROR_NO_INIT
-    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, g_outputibo);
+    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, g_prefixsumbuffer);
+    CHECK_GL_ERROR_NO_INIT
+    GLES.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, g_outputibo);
     CHECK_GL_ERROR_NO_INIT
 
     // Save states

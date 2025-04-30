@@ -2,18 +2,20 @@
 
 layout(local_size_x = 64) in;
 
-struct DrawCommand {
-    uint  count;
-    uint  instanceCount;
-    uint  firstIndex;
-    int   baseVertex;
-    uint  reservedMustBeZero;
-};
+//struct DrawCommand {
+////    uint  count;
+////    uint  instanceCount;
+//    uint  firstIndex;
+//    int   baseVertex;
+////    uint  reservedMustBeZero;
+//};
 
 layout(std430, binding = 0) readonly buffer Input { uint in_indices[]; };
-layout(std430, binding = 1) readonly buffer Draws { DrawCommand draws[]; };
-layout(std430, binding = 2) readonly buffer Prefix { uint prefixSums[]; };
-layout(std430, binding = 3) writeonly buffer Output { uint out_indices[]; };
+//layout(std430, binding = 1) readonly buffer Draws { DrawCommand draws[]; };
+layout(std430, binding = 1) readonly buffer FirstIndex { uint firstIndex[]; };
+layout(std430, binding = 2) readonly buffer BaseVertex { int baseVertex[]; };
+layout(std430, binding = 3) readonly buffer Prefix { uint prefixSums[]; };
+layout(std430, binding = 4) writeonly buffer Output { uint out_indices[]; };
 
 void main() {
     uint outIdx = gl_GlobalInvocationID.x;
@@ -22,7 +24,7 @@ void main() {
 
     // Find out draw call #
     //    int low = 0;
-    //    int high = draws.length();
+    //    int high = prefixSums.length();
     //    for (low = 0; low < high; ++low) {
     //        if (prefixSums[low] > outIdx) {
     //            break;
@@ -30,7 +32,7 @@ void main() {
     //    }
 
     int low = 0;
-    int high = prefixSums.length();
+    int high = prefixSums.length() - 1;
     while (low < high) {
         int mid = low + (high - low) / 2;
         if (prefixSums[mid] > outIdx) {
@@ -42,11 +44,10 @@ void main() {
     }
 
     // figure out which index to take
-    DrawCommand cmd = draws[low];
+    //DrawCommand cmd = draws[low];
     uint localIdx = outIdx - ((low == 0) ? 0u : (prefixSums[low - 1]));
-    uint inIndex = localIdx + cmd.firstIndex;
+    uint inIndex = localIdx + firstIndex[low] / 4u; // elementSize == 4
 
     // Write out
-    out_indices[outIdx] = uint(in_indices[inIndex] + uint(cmd.baseVertex));
-    //    out_indices[outIdx] = uint(cmd.baseVertex);
+    out_indices[outIdx] = uint(int(in_indices[inIndex]) + baseVertex[low]);
 }
