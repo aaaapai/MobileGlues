@@ -9,7 +9,6 @@
 
 #define DEBUG 0
 
-extern "C" {
 GLboolean glIsRenderbufferEXT(GLuint renderbuffer) {
      return GLES.glIsRenderbuffer(renderbuffer);
 }
@@ -279,7 +278,9 @@ void glVertexAttrib4uivARB(GLuint index, const GLuint *v) { glVertexAttrib4fv(in
 //    return glGetAttribLocation(programObj, name);
 //}
 
-void glGetVertexAttribdvARB(GLuint index, GLenum pname, GLdouble *params) { glGetVertexAttribfv(index, pname,(GLfloat*) params); }
+void glGetVertexAttribdvARB(GLuint index, GLenum pname, GLdouble *params) {
+     glGetVertexAttribfv(index, pname,(GLfloat*) params);
+}
 //void glGetVertexAttribfvARB(GLuint index, GLenum pname, GLfloat *params) { glGetVertexAttribfv(index, pname, params); }
 //void glGetVertexAttribivARB(GLuint index, GLenum pname, GLint *params) { glGetVertexAttribiv(index, pname, params); }
 //void glGetVertexAttribPointervARB(GLuint index, GLenum pname, void **pointer) {
@@ -353,5 +354,3 @@ void glGetAttachedObjectsARB(GLhandleARB program, GLsizei maxCount, GLsizei* cou
 }
 
 //GLhandleARB glCreateProgramARB() { return glCreateProgram(); }
-
-}

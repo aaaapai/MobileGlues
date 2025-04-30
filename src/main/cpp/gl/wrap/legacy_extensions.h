@@ -29,13 +29,13 @@ GLAPI GLAPIENTRY void glFramebufferRenderbufferEXT(GLenum target, GLenum attachm
                                          GLenum renderbuffertarget, GLuint renderbuffer);
 GLAPI GLAPIENTRY void glGetFramebufferAttachmentParameterivEXT(GLenum target, GLenum attachment,
                                                      GLenum pname, GLint *params);
-GLAPI GLAPIENTRY void glGenerateMipmapEXT(GLenum target
+GLAPI GLAPIENTRY void glGenerateMipmapEXT(GLenum target);
 GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples,
-                                                GLenum internalformat,
-                                                GLsizei width, GLsizei height
+                                       GLenum internalformat,
+                                       GLsizei width, GLsizei height);
 GLAPI GLAPIENTRY void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
-                                 GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                                 GLbitfield mask, GLenum filter
+                                              GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                                              GLbitfield mask, GLenum filter);
 GLAPI GLAPIENTRY void glBlitFramebufferLayersEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                                        GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                                        GLbitfield mask, GLenum filter
