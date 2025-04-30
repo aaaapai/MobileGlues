@@ -918,6 +918,11 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
         replace_all(ret, "varying", "in");
     }
 
+    replace_all(ret, "texture2D", "texture");
+    replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
+    replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
+    replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
+    
     // replace gl_FragColor
 //    inject_fragcolor(ret);
 
