@@ -237,7 +237,7 @@ void set_es_version() {
     if (sscanf(ESVersion, "OpenGL ES %d.%d", &major, &minor) == 2) {
         hardware->es_version = major * 100 + minor * 10;
     } else {
-        hardware->es_version = 300;
+        hardware->es_version = 320;
     }
     LOG_I("OpenGL ES Version: %s (%d)", ESVersion, hardware->es_version)
     if (hardware->es_version < 300) {

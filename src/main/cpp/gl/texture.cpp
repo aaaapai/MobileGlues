@@ -7,7 +7,7 @@
 #include <cstring>
 #include <malloc.h>
 #include <vector>
-#include <unordered_map>
+#include "ankerl/unordered_dense.h"
 #include <android/log.h>
 
 #include "GL/gl.h"
@@ -30,7 +30,7 @@ int nlevel(int size, int level) {
     return size;
 }
 
-std::unordered_map<GLuint, texture_t> g_textures;
+ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 GLuint bound_texture = 0;
 
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
