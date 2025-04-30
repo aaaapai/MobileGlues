@@ -20,7 +20,7 @@ static const char *vk_lib[] = {
 };
 
 
-const char* getGPUInfo() {
+std::string getGPUInfo() {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, nullptr, nullptr) != EGL_TRUE)
         return nullptr;
@@ -53,7 +53,7 @@ const char* getGPUInfo() {
         return nullptr;
     }
 
-    const char* renderer = nullptr;
+    std::string renderer;
     void* lib = open_lib(gles3_lib, nullptr);
     if (lib) {
         GLES.glGetString = (const GLubyte * (*)( GLenum ))dlsym(lib, "glGetString");

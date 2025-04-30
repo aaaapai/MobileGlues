@@ -6,12 +6,13 @@
 #define MOBILEGLUES_PLUGIN_GPU_UTILS_H
 
 #include <string.h>
+#include <string>
+
+std::string getGPUInfo();
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-const char *getGPUInfo();
 
 int isAdreno(const char *gpu);
 

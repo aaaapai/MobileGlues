@@ -57,6 +57,8 @@ void init_settings() {
 
     char* var = getenv("MG_DIR_PATH");
 
+    LOG_V("MG_DIR_PATH = %s", var ? var : "(null)")
+
     if (fclVersion == 0 && zlVersion == 0 && pgwVersion == 0 && !var) {
         LOG_V("Unsupported launcher detected, force using default config.")
         enableANGLE = 0;
@@ -68,16 +70,17 @@ void init_settings() {
     }
 
     // Determining actual ANGLE mode
-    const char* gpuString = getGPUInfo();
-    LOG_D("GPU: %s", gpuString)
+    std::string gpuString = getGPUInfo();
+    const char* gpu_cstr = gpuString.c_str();
+    LOG_D("GPU: %s", gpu_cstr ? gpu_cstr : "(unknown)")
 
     if (enableANGLE == 2 || enableANGLE == 3) {
         // Force enable / disable
         global_settings.angle = enableANGLE - 2;
     } else {
-        int isQcom = isAdreno(gpuString);
-        int is740 = isAdreno740(gpuString);
-        //int is830 = isAdreno830(gpuString);
+        int isQcom = isAdreno(gpu_cstr);
+        int is740 = isAdreno740(gpu_cstr);
+        //int is830 = isAdreno830(gpu_cstr);
         int hasVk13 = hasVulkan13();
 
         LOG_D("Is Adreno? = %s", isQcom ? "true" : "false")

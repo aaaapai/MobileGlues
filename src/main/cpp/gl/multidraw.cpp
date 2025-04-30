@@ -368,6 +368,7 @@ GLuint g_compute_program = 0;
 char g_compile_info[1024];
 
 GLuint compile_compute_program(const std::string& src) {
+    INIT_CHECK_GL_ERROR
     auto program = GLES.glCreateProgram();
     CHECK_GL_ERROR_NO_INIT
     GLuint shader = GLES.glCreateShader(GL_COMPUTE_SHADER);
@@ -500,7 +501,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
     // Wait for compute to complete
     LOG_D("memory barrier")
-    GLES.glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ELEMENT_ARRAY_BARRIER_BIT);
+    GLES.glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     CHECK_GL_ERROR_NO_INIT
 
     // Bind index buffer and do draw
