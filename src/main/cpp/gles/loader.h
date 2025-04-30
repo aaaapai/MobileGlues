@@ -2,7 +2,7 @@
 #define MOBILEGLUES_GLES_LOADER_H_
 
 #include "../gl/log.h"
-#include "../gl/gl.h"
+#include "GL/gl.h"
 #include "gles.h"
 #include <dlfcn.h>
 #include <cstdio>
@@ -47,7 +47,7 @@ static name##_PTR egl_##name = NULL;                                        \
             egl_##name = (name##_PTR)proc_address(egl, #name);              \
         }                                                                   \
         if (egl_##name == NULL)                                             \
-        LOG_W("Error: " #name " is NULL\n");                                \
+        LOG_E("Error: " #name " is NULL\n");                                \
     }                                                                       \
 }
 
@@ -80,12 +80,12 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR  {}
+#define INIT_CHECK_GL_ERROR GLenum ERR = GL_NO_ERROR; (void)ERR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
-    GLenum ERR = GL_NO_ERROR;
+    GLenum ERR = GL_NO_ERROR; (void)ERR;
 
 #define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
 extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
@@ -98,7 +98,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
     type ret = GLES.name(__VA_ARGS__);                                    \
     GLenum ERR = GLES.glGetError();                                         \
     if (ERR != GL_NO_ERROR)                                                 \
-        LOG_E("ERROR: %d", ERR)                                             \
+        LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
     return ret;                                                             \
 }
 #else
@@ -128,15 +128,17 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
     LOG()
 
 #define STUB_FUNCTION_END(type,name,...)                                    \
+    if(trigger_stub_function) return;                                       \
+    trigger_stub_function = true;                                           \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
     return (type)0;                                                         \
 }
-
 #define STUB_FUNCTION_END_NO_RETURN(type,name,...)                          \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
 }
 
 struct gles_caps_t {
+    int maxtex;
     int major;
     int minor;
     int GL_EXT_buffer_storage;

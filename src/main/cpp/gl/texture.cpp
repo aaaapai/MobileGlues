@@ -7,10 +7,10 @@
 #include <cstring>
 #include <malloc.h>
 #include <vector>
-#include <unordered_map>
+#include "ankerl/unordered_dense.h"
 #include <android/log.h>
 
-#include "gl.h"
+#include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
@@ -30,7 +30,7 @@ int nlevel(int size, int level) {
     return size;
 }
 
-std::unordered_map<GLuint, texture_t> g_textures;
+ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 GLuint bound_texture = 0;
 
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
@@ -152,7 +152,7 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
             if (format)
                 *format = GL_RGBA;
             break;
-            
+
         case GL_RGBA16F:
         case GL_R16F:
             if(type)
@@ -172,7 +172,7 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
             if(format)
                 *format = GL_RGB;
             break;
-            
+
         case GL_RGB16F:
             if(type)
                 *type = GL_HALF_FLOAT;
@@ -216,10 +216,17 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
                     *format = GL_RGB;
             }
             else if (type && *internal_format == GL_RGBA16_SNORM && *type != GL_SHORT) {
-                *type = GL_SHORT; 
+                *type = GL_SHORT;
             }
             break;
     }
+}
+
+void glGenTextures( GLsizei n, GLuint *textures ) {
+    LOG()
+    LOG_D("glGenTextures, n = %d, textures = 0x%x", n, textures);
+    GLES.glGenTextures(n, textures);
+    CHECK_GL_ERROR
 }
 
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
@@ -227,12 +234,45 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
     pname = pname_convert(pname);
     LOG_D("glTexParameterf, target: %d, pname: %d, param: %f",target, pname, param)
 
+    switch (pname) {
+        case GL_TEXTURE_LOD_BIAS:
+        case GL_TEXTURE_LOD_BIAS_QCOM:
+            if (!g_gles_caps.GL_QCOM_texture_lod_bias)
+                LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
+            return;
+        case GL_TEXTURE_MIN_FILTER:
+        case GL_TEXTURE_MAG_FILTER:
+        case GL_TEXTURE_WRAP_S:
+        case GL_TEXTURE_WRAP_T:
+        case GL_TEXTURE_WRAP_R: {
+            LOG_D("GL_TEXTURE_WRAP_*/GL_TEXTURE_*_FILTER, glTexParameterf -> glTexParameteri");
+            glTexParameteri(target, pname, (GLint)param);
+            CHECK_GL_ERROR
+            return;
+        }
+    }
+
+    GLES.glTexParameterf(target,pname, param);
+    CHECK_GL_ERROR
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param) {
+    LOG()
+    pname = pname_convert(pname);
+    LOG_D("glTexParameteri, pname: 0x%x", pname)
+
     if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
         LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
         return;
     }
 
-    GLES.glTexParameterf(target,pname, param);
+    switch (param) {
+        case GL_CLAMP:
+            GLES.glTexParameteri(target, pname, GL_CLAMP_TO_EDGE);
+            break;
+        default:
+            GLES.glTexParameteri(target, pname, param);
+    }
     CHECK_GL_ERROR
 }
 
@@ -253,6 +293,9 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
         return;
     }
 
+//    LOAD_GLES_FUNC(glTexImage1D);
+//    gles_glTexImage1D(target, level, internalFormat, width, border, format, type, pixels);
+
     CHECK_GL_ERROR
 }
 
@@ -261,10 +304,10 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
     auto& tex = g_textures[bound_texture];
     tex.internal_format = internalFormat;
     GLenum transfer_format = format;
-//    tex.format = format;
-    LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
-          glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
-          width,height,border,glEnumToString(format),glEnumToString(type), pixels)
+    GLenum transfer_type = type;
+    LOG_D("mg_glTexImage2D, target: %s, level: %d, internalFormat: %s->%s, width: %d, height: %d, border: %d, format: %s, type: %s, pixels: 0x%x",
+          glEnumToString(target), level, glEnumToString(internalFormat), glEnumToString(internalFormat),
+          width, height, border, glEnumToString(format), glEnumToString(type), pixels)
     internal_convert(reinterpret_cast<GLenum *>(&internalFormat), &type, &format);
     LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
@@ -306,6 +349,38 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
         CHECK_GL_ERROR
     }
 
+    // Fix for 1.12
+    if (transfer_format == GL_BGRA && tex.format != transfer_format
+        && transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV)
+    {
+        LOG_D("Detected GL_BGRA/GL_UNSIGNED_INT_8_8_8_8_REV format @ tex = %d, do swizzle", bound_texture)
+        internalFormat = GL_BGRA;
+        format = GL_BGRA;
+        type = GL_UNSIGNED_BYTE;
+//        if (tex.swizzle_param[0] == 0) {
+//            tex.swizzle_param[0] = GL_RED;
+//            tex.swizzle_param[1] = GL_GREEN;
+//            tex.swizzle_param[2] = GL_BLUE;
+//            tex.swizzle_param[3] = GL_ALPHA;
+//        }
+//
+//        GLint r = tex.swizzle_param[0];
+//        GLint g = tex.swizzle_param[1];
+//        GLint b = tex.swizzle_param[2];
+//        GLint a = tex.swizzle_param[3];
+//        tex.swizzle_param[0] = b;
+//        tex.swizzle_param[1] = g;
+//        tex.swizzle_param[2] = r;
+//        tex.swizzle_param[3] = a;
+//        tex.format = transfer_format;
+//
+//        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, tex.swizzle_param[0]);
+//        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, tex.swizzle_param[1]);
+//        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, tex.swizzle_param[2]);
+//        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, tex.swizzle_param[3]);
+        CHECK_GL_ERROR
+    }
+
     GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 
     CHECK_GL_ERROR
@@ -342,6 +417,8 @@ void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat, GLsize
     return;
     internal_convert(&internalFormat,nullptr,nullptr);
 
+//    GLES.glTexStorage1D(target, levels, internalFormat, width);
+
     CHECK_GL_ERROR
 }
 
@@ -377,6 +454,8 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x
     LOG_D("glCopyTexImage1D, target: %d, level: %d, internalFormat: %d, x: %d, y: %d, width: %d, border: %d",
           target, level, internalFormat, x, y, width, border)
     return;
+
+//    GLES.glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
 
     CHECK_GL_ERROR
 }
@@ -588,15 +667,15 @@ void glGetTexLevelParameteriv(GLenum target, GLint level,GLenum pname, GLint *pa
         switch (pname) {
             case GL_TEXTURE_WIDTH:
                 (*params) = nlevel(gl_state->proxy_width, level);
-                break;
+                return;
             case GL_TEXTURE_HEIGHT:
                 (*params) = nlevel(gl_state->proxy_height, level);
-                break;
+                return;
             case GL_TEXTURE_INTERNAL_FORMAT:
                 (*params) = (GLint)gl_state->proxy_intformat;
-                break;
-            default:
                 return;
+            default:
+                break;
         }
     }
     LOG_D("es.glGetTexLevelParameteriv,target: %s, level: %d, pname: %s",glEnumToString(target),level,glEnumToString(pname))
@@ -640,8 +719,11 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
             glEnumToString(target), level, xoffset, yoffset, width, height, glEnumToString(format),
           glEnumToString(type), pixels)
 
-    if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
+    if (format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8)) {
         format = GL_RGBA;
+        type = GL_UNSIGNED_BYTE;
+    }
+    if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8_REV) {
         type = GL_UNSIGNED_BYTE;
     }
 
@@ -696,7 +778,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
     LOG()
     LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = 0x%x",
           glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
-          
+
     GLint prevFBO;
     GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     GLenum bindingTarget = get_binding_for_target(target);
@@ -762,10 +844,10 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
     LOG()
     LOG_D("glReadPixels, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=0x%x",
           x, y, width, height, format, type, pixels)
-          
+
     static int count = 0;
     GLenum prevFormat = format;
-    
+
     if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
         format = GL_RGBA;
         type = GL_UNSIGNED_BYTE;
@@ -788,18 +870,50 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
     CHECK_GL_ERROR
 }
 
-void glTexParameteri(GLenum target, GLenum pname, GLint param) {
-    LOG()
-    pname = pname_convert(pname);
-    LOG_D("glTexParameteri, pname: 0x%x", pname)
 
-    if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
-        LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
-        return;
+template<typename T>
+void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents) {
+    const uint8_t* src = static_cast<const uint8_t*>(data);
+
+    switch(type) {
+        case GL_UNSIGNED_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(src[i]);
+            }
+            break;
+        case GL_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int8_t*>(src + i));
+            }
+            break;
+        case GL_UNSIGNED_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint16_t*>(src + i*2));
+            }
+            break;
+        case GL_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int16_t*>(src + i*2));
+            }
+            break;
+        case GL_UNSIGNED_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint32_t*>(src + i*4));
+            }
+            break;
+        case GL_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int32_t*>(src + i*4));
+            }
+            break;
+        case GL_FLOAT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const float*>(src + i*4));
+            }
+            break;
+        default:
+            break;
     }
-
-    GLES.glTexParameteri(target,pname,param);
-    CHECK_GL_ERROR
 }
 
 void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
@@ -822,7 +936,6 @@ void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, co
         CHECK_GL_ERROR_NO_INIT
         return;
     }
-    
     GLES.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     CHECK_GL_ERROR_NO_INIT
 

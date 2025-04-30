@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <android/log.h>
 
-#include "gl.h"
+#include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"

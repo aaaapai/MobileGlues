@@ -8,8 +8,8 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
-#include "../gl/glext.h"
+#include "GL/gl.h"
+#include "GL/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -199,6 +199,9 @@ void InitGLESCapabilities() {
 
     if (global_settings.ext_gl43) {
         AppendExtension("OpenGL43");
+        AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
     }
 
     if (global_settings.ext_compute_shader) {
@@ -576,6 +579,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjecti64vEXT)
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
+    INIT_GLES_FUNC(glFramebufferTexture3DOES)
 
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
