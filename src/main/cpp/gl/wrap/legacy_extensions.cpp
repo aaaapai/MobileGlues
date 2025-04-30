@@ -10,19 +10,19 @@
 
 extern "C" {
 GLAPI GLAPIENTRY GLboolean glIsRenderbufferEXT(GLuint renderbuffer) {
-return glIsRenderbuffer(renderbuffer);
+return GLES.glIsRenderbuffer(renderbuffer);
 }
 
 GLAPI GLAPIENTRY void glBindRenderbufferEXT(GLenum target, GLuint renderbuffer) {
-    glBindRenderbuffer(target, renderbuffer);
+    GLES.glBindRenderbuffer(target, renderbuffer);
 }
 
 GLAPI GLAPIENTRY void glDeleteRenderbuffersEXT(GLsizei n, const GLuint *renderbuffers) {
-    glDeleteRenderbuffers(n, renderbuffers);
+    GLES.glDeleteRenderbuffers(n, renderbuffers);
 }
 
 GLAPI GLAPIENTRY void glGenRenderbuffersEXT(GLsizei n, GLuint *renderbuffers) {
-    glGenRenderbuffers(n, renderbuffers);
+    GLES.glGenRenderbuffers(n, renderbuffers);
 }
 
 GLAPI GLAPIENTRY void glRenderbufferStorageEXT(GLenum target, GLenum internalformat,
@@ -31,11 +31,11 @@ GLAPI GLAPIENTRY void glRenderbufferStorageEXT(GLenum target, GLenum internalfor
 }
 
 GLAPI GLAPIENTRY void glGetRenderbufferParameterivEXT(GLenum target, GLenum pname, GLint *params) {
-    glGetRenderbufferParameteriv(target, pname, params);
+    GLES.glGetRenderbufferParameteriv(target, pname, params);
 }
 
 GLAPI GLAPIENTRY GLboolean glIsFramebufferEXT(GLuint framebuffer) {
-return glIsFramebuffer(framebuffer);
+return GLES.glIsFramebuffer(framebuffer);
 }
 
 GLAPI GLAPIENTRY void glBindFramebufferEXT(GLenum target, GLuint framebuffer) {
@@ -43,11 +43,11 @@ GLAPI GLAPIENTRY void glBindFramebufferEXT(GLenum target, GLuint framebuffer) {
 }
 
 GLAPI GLAPIENTRY void glDeleteFramebuffersEXT(GLsizei n, const GLuint *framebuffers) {
-    glDeleteFramebuffers(n, framebuffers);
+    GLES.glDeleteFramebuffers(n, framebuffers);
 }
 
 GLAPI GLAPIENTRY void glGenFramebuffersEXT(GLsizei n, GLuint *framebuffers) {
-    glGenFramebuffers(n, framebuffers);
+    GLES.glGenFramebuffers(n, framebuffers);
 }
 
 GLAPI GLAPIENTRY GLenum glCheckFramebufferStatusEXT(GLenum target) {
@@ -61,16 +61,16 @@ GLAPI GLAPIENTRY void glFramebufferTexture2DEXT(GLenum target, GLenum attachment
 
 GLAPI GLAPIENTRY void glFramebufferRenderbufferEXT(GLenum target, GLenum attachment,
                                          GLenum renderbuffertarget, GLuint renderbuffer) {
-    glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+    GLES.glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 }
 
 GLAPI GLAPIENTRY void glGetFramebufferAttachmentParameterivEXT(GLenum target, GLenum attachment,
                                                      GLenum pname, GLint *params) {
-    glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
+    GLES.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
 }
 
 GLAPI GLAPIENTRY void glGenerateMipmapEXT(GLenum target) {
-    glGenerateMipmap(target);
+    GLES.glGenerateMipmap(target);
 }
 
 GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples,
@@ -82,7 +82,7 @@ GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei
 GLAPI GLAPIENTRY void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                                  GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                                  GLbitfield mask, GLenum filter) {
-    glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
+    GLES.glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
                       dstX0, dstY0, dstX1, dstY1,
                       mask, filter);
 }
@@ -90,9 +90,9 @@ GLAPI GLAPIENTRY void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1
 GLAPI GLAPIENTRY void glBlitFramebufferLayersEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                                        GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                                        GLbitfield mask, GLenum filter) {
-    //glBlitFramebufferLayers(srcX0, srcY0, srcX1, srcY1,
-    //                        dstX0, dstY0, dstX1, dstY1,
-    //                        mask, filter);
+    GLES.glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
+                            dstX0, dstY0, dstX1, dstY1,
+                            mask, filter);
 }
 
 GLAPI GLAPIENTRY void glBlitFramebufferLayerEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
@@ -119,7 +119,7 @@ GLAPI GLAPIENTRY void glRenderbufferStorageARB(GLenum target, GLenum internalfor
 GLAPI GLAPIENTRY void glRenderbufferStorageMultisampleARB(GLenum target, GLsizei samples,
                                                 GLenum internalformat,
                                                 GLsizei width, GLsizei height) {
-    glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
+    GLES.glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
 }
 
 GLAPI GLAPIENTRY void glBindFramebufferARB(GLenum target, GLuint framebuffer) {
@@ -159,10 +159,10 @@ GLAPI GLAPIENTRY void glFramebufferTexture3DEXT(GLenum target, GLenum attachment
 }
     
 GLAPI GLAPIENTRY void glDeleteObjectARB(GLhandleARB obj) {
-    if (glIsProgram(obj)) {
-        glDeleteProgram(obj);
+    if (GLES.glIsProgram(obj)) {
+        GLES.glDeleteProgram(obj);
     } else {
-        glDeleteShader(obj);
+        GLES.glDeleteShader(obj);
     }
 }
 
@@ -176,11 +176,11 @@ GLAPI GLAPIENTRY GLhandleARB glGetHandleARB(GLenum pname) {
 }
 
 GLAPI GLAPIENTRY void glDetachObjectARB(GLhandleARB containerObj, GLhandleARB attachedObj) {
-    glDetachShader(containerObj, attachedObj);
+    GLES.glDetachShader(containerObj, attachedObj);
 }
 
 GLAPI GLAPIENTRY GLhandleARB glCreateShaderObjectARB(GLenum shaderType) {
-    return glCreateShader(shaderType);
+    return GLES.glCreateShader(shaderType);
 }
 
 GLAPI GLAPIENTRY void glShaderSourceARB(GLhandleARB shaderObj, GLsizei count,
@@ -189,11 +189,11 @@ GLAPI GLAPIENTRY void glShaderSourceARB(GLhandleARB shaderObj, GLsizei count,
 }
 
 GLAPI GLAPIENTRY GLhandleARB glCreateProgramObjectARB(void) {
-    return glCreateProgram();
+    return GLES.glCreateProgram();
 }
 
 GLAPI GLAPIENTRY void glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj) {
-    glAttachShader(containerObj, obj);
+    GLES.glAttachShader(containerObj, obj);
 }
 
 GLAPI GLAPIENTRY void glLinkProgramARB(GLhandleARB programObj) {
@@ -201,12 +201,12 @@ GLAPI GLAPIENTRY void glLinkProgramARB(GLhandleARB programObj) {
 }
 
 GLAPI GLAPIENTRY void glUseProgramObjectARB(GLhandleARB programObj) {
-    glUseProgram(programObj);
+    GLES.glUseProgram(programObj);
 }
 
 GLAPI GLAPIENTRY void glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params) {
     GLint iparam;
-    if (glIsShader(obj)) {
+    if (GLES.glIsShader(obj)) {
         glGetShaderiv(obj, pname, &iparam);
     } else {
         glGetProgramiv(obj, pname, &iparam);
@@ -217,7 +217,7 @@ GLAPI GLAPIENTRY void glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, G
 }
 
 GLAPI GLAPIENTRY void glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params) {
-    if (glIsShader(obj)) {
+    if (GLES.glIsShader(obj)) {
         glGetShaderiv(obj, pname, params);
     } else {
         glGetProgramiv(obj, pname, params);
@@ -295,7 +295,7 @@ GLAPI GLAPIENTRY void glGetActiveUniformName(GLuint program,
     GLenum uniformType;
     char rawName[bufSize];
 
-    glGetActiveUniform(program, uniformIndex, bufSize, length,
+    GLES.glGetActiveUniform(program, uniformIndex, bufSize, length,
                        &uniformSize, &uniformType, rawName);
 
     char* bracketPos = strchr(rawName, '[');
@@ -316,7 +316,7 @@ GLAPI GLAPIENTRY void glGetActiveUniformNameARB(GLuint program,
                                       char* uniformName) __attribute__((alias("glGetActiveUniformName")));
 
 GLAPI GLAPIENTRY GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const char *name) {
-    if (program == 0 || glIsProgram(program) == GL_FALSE) {
+    if (program == 0 || GLES.glIsProgram(program) == GL_FALSE) {
         return -1;
     }
 
@@ -345,10 +345,10 @@ GLAPI GLAPIENTRY GLint glGetProgramResourceLocationIndex(GLuint program, GLenum 
 GLAPI GLAPIENTRY void glGetProgramResourceLocationIndexARB(GLuint program, GLenum programInterface, const char *name) __attribute__((alias("glGetProgramResourceLocationIndex")));
 
 GLAPI GLAPIENTRY void glGetAttachedObjectsARB(GLhandleARB program, GLsizei maxCount, GLsizei* count, GLhandleARB* objects) {
-    if (program == 0 || glIsProgram(program) == GL_FALSE) {
+    if (program == 0 || GLES.glIsProgram(program) == GL_FALSE) {
         return;
     }
-    glGetAttachedShaders(program, maxCount, count, (GLuint*)objects);
+    GLES.glGetAttachedShaders(program, maxCount, count, (GLuint*)objects);
 }
 
 //GLAPI GLAPIENTRY GLhandleARB glCreateProgramARB() { return glCreateProgram(); }
