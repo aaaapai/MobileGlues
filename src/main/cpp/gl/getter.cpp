@@ -251,6 +251,7 @@ const char* getGLESName() {
 }
 
 static std::string rendererString;
+static std::string vendorString;
 static std::string versionString;
 const GLubyte * glGetString( GLenum name ) {
     LOG()
@@ -271,35 +272,34 @@ const GLubyte * glGetString( GLenum name ) {
     */
     switch (name) {
         case GL_VENDOR: {
-            if(versionString.empty()) {
+            if(vendorString.empty()) {
                 std::string vendor = "Swung0x48, BZLZHH, Tungsten";
 #if defined(VERSION_TYPE) && (VERSION_TYPE == VERSION_ALPHA)
                 vendor += " | §c§l内测版本, 严禁任何外传!§r";
 #endif
-                versionString = vendor;
+                vendorString = vendor;
             }
-            return (const GLubyte *)versionString.c_str();
+            return (const GLubyte *)vendorString.c_str();
         }
         case GL_VERSION: {
-            static std::string versionCache;
-            if (versionCache.empty()) {
-                versionCache = "4.0.0 MobileGlues ";
-                versionCache += std::to_string(MAJOR) + "."
+            if (versionString.empty()) {
+                versionString = "4.0.0 MobileGlues ";
+                versionString += std::to_string(MAJOR) + "."
                                 +  std::to_string(MINOR) + "."
                                 +  std::to_string(REVISION);
 #if PATCH != 0
-                versionCache += "." + std::to_string(PATCH);
+                versionString += "." + std::to_string(PATCH);
 #endif
 #if defined(VERSION_TYPE)
 #if VERSION_TYPE == VERSION_ALPHA
-                versionCache += " | §4§l如果您在公开平台看到这一提示, 则发布者已违规!§r";
+                versionString += " | §4§l如果您在公开平台看到这一提示, 则发布者已违规!§r";
 #elif VERSION_TYPE == VERSION_DEVELOPMENT
-                versionCache += ".Dev";
+                versionString += ".Dev";
 #endif
 #endif
-                versionCache += VERSION_SUFFIX;
+                versionString += VERSION_SUFFIX;
             }
-            return (const GLubyte *)versionCache.c_str();
+            return (const GLubyte *)versionString.c_str();
         }
 
         case GL_RENDERER:
