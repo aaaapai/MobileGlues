@@ -19,8 +19,8 @@ typedef struct {
 
 typedef struct {
     GLenum current_target;
-    struct attachment_t* draw_attachment;
-    struct attachment_t* read_attachment;
+    attachment_t* draw_attachment;
+    attachment_t* read_attachment;
 } framebuffer_t;
 
 GLint getMaxDrawBuffers();
