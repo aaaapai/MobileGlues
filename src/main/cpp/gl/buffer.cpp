@@ -24,9 +24,9 @@ unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
 
 unordered_map<GLuint, BufferMapping> g_active_mappings;
 
-GLuint gen_buffer(GLuint realid) {
+GLuint gen_buffer() {
     maxBufferId++;
-    g_gen_buffers[maxBufferId] = realid;
+    g_gen_buffers[maxBufferId] = 0;
     return maxBufferId;
 }
 
