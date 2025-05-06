@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <GLES3/gl32.h>
+#include <GLES3/gl3.h>
 #include "../includes.h"
 #include "GL/gl.h"
 #include "GL/glcorearb.h"

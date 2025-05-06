@@ -3,11 +3,14 @@
 //
 #include "../includes.h"
 #include "GL/gl.h"
+#include "GL/glext.h"
 #include "GL/glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
 #define DEBUG false
+
+bool trigger_stub_function = false;
 
 #ifdef __cplusplus
 extern "C" {
@@ -653,20 +656,20 @@ STUB_FUNCTION_HEAD(void, glTransformFeedbackBufferRange, GLuint xfb, GLuint inde
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbackiv, GLuint xfb, GLenum pname, GLint* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbackiv,xfb,pname,param)
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki_v, GLuint xfb, GLenum pname, GLuint index, GLint* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki_v,xfb,pname,index,param)
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki64_v, GLuint xfb, GLenum pname, GLuint index, GLint64* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki64_v,xfb,pname,index,param)
-STUB_FUNCTION_HEAD(void, glCreateBuffers, GLsizei n, GLuint* buffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateBuffers,n,buffers)
+//STUB_FUNCTION_HEAD(void, glCreateBuffers, GLsizei n, GLuint* buffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateBuffers,n,buffers)
 STUB_FUNCTION_HEAD(void, glNamedBufferStorage, GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferStorage,buffer,size,data,flags)
 STUB_FUNCTION_HEAD(void, glNamedBufferData, GLuint buffer, GLsizeiptr size, const void* data, GLenum usage); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferData,buffer,size,data,usage)
-STUB_FUNCTION_HEAD(void, glNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubData,buffer,offset,size,data)
+//STUB_FUNCTION_HEAD(void, glNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubData,buffer,offset,size,data)
 STUB_FUNCTION_HEAD(void, glCopyNamedBufferSubData, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size); STUB_FUNCTION_END_NO_RETURN(void, glCopyNamedBufferSubData,readBuffer,writeBuffer,readOffset,writeOffset,size)
 STUB_FUNCTION_HEAD(void, glClearNamedBufferData, GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferData,buffer,internalformat,format,type,data)
 STUB_FUNCTION_HEAD(void, glClearNamedBufferSubData, GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferSubData,buffer,internalformat,offset,size,format,type,data)
 STUB_FUNCTION_HEAD(GLboolean, glUnmapNamedBuffer, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(GLboolean, glUnmapNamedBuffer,buffer)
-STUB_FUNCTION_HEAD(void, glFlushMappedNamedBufferRange, GLuint buffer, GLintptr offset, GLsizeiptr length); STUB_FUNCTION_END_NO_RETURN(void, glFlushMappedNamedBufferRange,buffer,offset,length)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteriv, GLuint buffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteriv,buffer,pname,params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteri64v, GLuint buffer, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteri64v,buffer,pname,params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferPointerv, GLuint buffer, GLenum pname, void* *params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferPointerv,buffer,pname,*params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferSubData,buffer,offset,size,data)
-STUB_FUNCTION_HEAD(void, glCreateFramebuffers, GLsizei n, GLuint* framebuffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateFramebuffers,n,framebuffers)
+//STUB_FUNCTION_HEAD(void, glFlushMappedNamedBufferRange, GLuint buffer, GLintptr offset, GLsizeiptr length); STUB_FUNCTION_END_NO_RETURN(void, glFlushMappedNamedBufferRange,buffer,offset,length)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteriv, GLuint buffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteriv,buffer,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteri64v, GLuint buffer, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteri64v,buffer,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferPointerv, GLuint buffer, GLenum pname, void* *params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferPointerv,buffer,pname,*params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferSubData,buffer,offset,size,data)
+//STUB_FUNCTION_HEAD(void, glCreateFramebuffers, GLsizei n, GLuint* framebuffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateFramebuffers,n,framebuffers)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferRenderbuffer, GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferRenderbuffer,framebuffer,attachment,renderbuffertarget,renderbuffer)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferParameteri, GLuint framebuffer, GLenum pname, GLint param); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferParameteri,framebuffer,pname,param)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferTexture, GLuint framebuffer, GLenum attachment, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferTexture,framebuffer,attachment,texture,level)
@@ -2660,7 +2663,7 @@ GLAPI GLAPIENTRY void glRasterPos2usv(const GLushort *v) { LOG_W("Stub: glRaster
 GLAPI GLAPIENTRY void glVertex3bv(const GLbyte *v) { LOG_W("Stub: glVertex3bv") }
 GLAPI GLAPIENTRY void glFramebufferTextureLayerEXT(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) { LOG_W("Stub: glFramebufferTextureLayerEXT") }
 GLAPI GLAPIENTRY void glQueryCounterARB(GLuint id, GLenum target) { LOG_W("Stub: glQueryCounterARB") }
-GLAPI GLAPIENTRY void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) { LOG_W("Stub: glVertexAttrib2s") }
+//GLAPI GLAPIENTRY void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) { LOG_W("Stub: glVertexAttrib2s") }
 GLAPI GLAPIENTRY void glWindowPos2b(GLbyte x, GLbyte y) { LOG_W("Stub: glWindowPos2b") }
 GLAPI GLAPIENTRY void glTexCoord2usv(const GLushort *v) { LOG_W("Stub: glTexCoord2usv") }
 GLAPI GLAPIENTRY void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glVertexAttrib4Nub") }

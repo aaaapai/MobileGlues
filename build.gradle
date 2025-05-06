@@ -5,7 +5,7 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'com.swung0x48.mobileglues'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdk 21

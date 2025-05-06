@@ -16,6 +16,10 @@
 #include <utility>
 #include <type_traits>
 
+template <typename K, typename V>
+using unordered_map = ankerl::unordered_dense::map<K, V>;
+
+
 #define DEBUG 0
 
 // Todo: record more functions

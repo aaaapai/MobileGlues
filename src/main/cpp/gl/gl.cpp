@@ -8,6 +8,7 @@
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
+#include "gl_mg.h"
 
 #define DEBUG 0
 
@@ -20,4 +21,5 @@ void glClearDepth(GLclampd depth) {
 void glHint(GLenum target, GLenum mode) {
     LOG()
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
+    GLES.glHint(target, mode);
 }

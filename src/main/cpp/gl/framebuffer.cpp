@@ -79,7 +79,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= getMaxDrawBuffers()) {
+    if (bound_framebuffer && static_cast<GLenum>(attachment - GL_COLOR_ATTACHMENT0) <= static_cast<GLenum>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
@@ -129,7 +129,7 @@ void glDrawBuffer(GLenum buffer) {
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
-                   buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
+                   buffer < GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(maxAttachments)) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
                 buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
@@ -147,7 +147,7 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs) {
     GLenum new_bufs[n];
 
     for (int i = 0; i < n; i++) {
-        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(getMaxDrawBuffers())) {
             GLenum target_attachment = GL_COLOR_ATTACHMENT0 + i;
             new_bufs[i] = target_attachment;
             rebind_framebuffer(bufs[i], target_attachment);

@@ -11,13 +11,13 @@
 extern "C" {
 #endif
 
-struct attachment_t {
+typedef struct attachment_t {
     GLenum textarget;
     GLuint texture;
     GLint level;
 };
 
-struct framebuffer_t {
+typedef struct framebuffer_t {
     GLenum current_target;
     struct attachment_t* draw_attachment;
     struct attachment_t* read_attachment;
@@ -36,6 +36,10 @@ GLAPI GLAPIENTRY void glDrawBuffers(GLsizei n, const GLenum *bufs);
 GLAPI GLAPIENTRY void glReadBuffer(GLenum src);
 
 GLAPI GLAPIENTRY GLenum glCheckFramebufferStatus(GLenum target);
+
+GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);
+
+GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers);
 
 #ifdef __cplusplus
 }
