@@ -58,6 +58,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         config/settings.cpp
         gl/dsa/buffer.cpp
         gl/dsa/framebuffer.cpp
+        gl/dsa/textures.cpp
         gl/fpe/fpe.cpp
         gl/fpe/state.cpp
         gl/fpe/transformation.cpp
