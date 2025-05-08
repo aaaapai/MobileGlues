@@ -160,8 +160,10 @@ static GLenum get_binding_query(GLenum target) {
 void glGenBuffers(GLsizei n, GLuint *buffers) {
     LOG()
     LOG_D("glGenBuffers(%i, %p)", n, buffers)
+
+    GLuint realid = 0;
     for (int i = 0; i < n; ++i) {
-        buffers[i] = gen_buffer();
+        buffers[i] = gen_buffer(realid);
     }
 }
 
