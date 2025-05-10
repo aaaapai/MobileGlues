@@ -31,7 +31,7 @@ void* loadTurnipVulkan() {
 
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
     if (!linkerhook)
-        printf("!linkerhook")
+        printf("!linkerhook");
         return nullptr;
 
     void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
