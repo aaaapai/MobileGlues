@@ -6,6 +6,8 @@ enable_language(CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES OFF)  # 强制使用传统 PAGE_SIZE
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -fvisibility=hidden -funwind-tables -g -D_THREAD_SAFE -fPIC -stdlib=libc++")
