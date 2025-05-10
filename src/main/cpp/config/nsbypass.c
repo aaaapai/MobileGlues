@@ -16,7 +16,7 @@
 #include <elf.h>
 #include <unistd.h>
 
-_Thread_local size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
+#define PAGE_SIZE 4096
 
 #define OP_MS 0b11111100000000000000000000000000
 #define BL_OP 0b10010100000000000000000000000000
