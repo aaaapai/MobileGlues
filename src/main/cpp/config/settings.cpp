@@ -18,34 +18,30 @@
 struct global_settings_t global_settings;
 
 void* loadTurnipVulkan() {
+    printf("loadTurnipVulkan");
     const char* native_dir = getenv("DRIVER_PATH");
     const char* cache_dir = getenv("TMPDIR");
 
     if (!native_dir)
         printf("no native_dir");
-        return nullptr;
 
     if (!linker_ns_load(native_dir))
         printf("!linker_ns_load(native_dir)");
-        return nullptr;
 
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
     if (!linkerhook)
         printf("!linkerhook");
-        return nullptr;
 
     void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
     if (!turnip_driver_handle) {
         printf("(!turnip_driver_handle");
         dlclose(linkerhook);
-        return nullptr;
     }
 
     void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
     if (!dl_android) {
         dlclose(linkerhook);
         dlclose(turnip_driver_handle);
-        return nullptr;
     }
 
     void* android_get_exported_namespace = dlsym(dl_android, "android_get_exported_namespace");
@@ -311,7 +307,7 @@ void init_settings() {
     if (global_settings.angle) {
         setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
         setenv("LIBGL_EGL", "libEGL_angle.so", 1);
-        load_vulkan();
+        load_vulkan();         printf("load_vulkan");
     }
 
     if (enableNoError == 1 || enableNoError == 2 || enableNoError == 3) {
