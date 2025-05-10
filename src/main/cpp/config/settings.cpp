@@ -13,7 +13,7 @@
 #include "nsbypass.h"
 #include "vulkan/vulkan_core.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 struct global_settings_t global_settings;
 
