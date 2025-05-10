@@ -307,7 +307,7 @@ void init_settings() {
         setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
         setenv("LIBGL_EGL", "libEGL_angle.so", 1);
         load_vulkan();
-         printf("load_vulkan");
+        printf("load_vulkan");
     }
 
     if (enableNoError == 1 || enableNoError == 2 || enableNoError == 3) {
