@@ -22,17 +22,21 @@ void* loadTurnipVulkan() {
     const char* cache_dir = getenv("TMPDIR");
 
     if (!native_dir)
+        printf("no native_dir");
         return nullptr;
 
     if (!linker_ns_load(native_dir))
+        printf("!linker_ns_load(native_dir)");
         return nullptr;
 
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
     if (!linkerhook)
+        printf("!linkerhook")
         return nullptr;
 
     void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
     if (!turnip_driver_handle) {
+        printf("(!turnip_driver_handle");
         dlclose(linkerhook);
         return nullptr;
     }
@@ -55,7 +59,7 @@ void* loadTurnipVulkan() {
 
     linkerhookPassHandles(turnip_driver_handle, android_dlopen_ext, android_get_exported_namespace);
     
-    void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", RTLD_LOCAL | RTLD_NOW);
+    void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
     if (!libvulkan) {
         dlclose(dl_android);
         dlclose(linkerhook);
