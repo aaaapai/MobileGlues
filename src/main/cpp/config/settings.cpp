@@ -200,6 +200,7 @@ static void set_vulkan_ptr(void* ptr) {
 }
 
 void load_vulkan() {
+    loadTurnipVulkan();
     void* result = loadTurnipVulkan();
     if(result != nullptr) {
         printf("AdrenoSupp: Loaded Turnip, loader address: %p\n", result);
