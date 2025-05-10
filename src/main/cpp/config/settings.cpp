@@ -50,7 +50,6 @@ void* loadTurnipVulkan() {
         dlclose(dl_android);
         dlclose(linkerhook);
         dlclose(turnip_driver_handle);
-        return nullptr;
     }
 
     linkerhookPassHandles(turnip_driver_handle, android_dlopen_ext, android_get_exported_namespace);
@@ -60,7 +59,6 @@ void* loadTurnipVulkan() {
         dlclose(dl_android);
         dlclose(linkerhook);
         dlclose(turnip_driver_handle);
-        return nullptr;
     }
 
     return libvulkan;
@@ -195,6 +193,7 @@ std::string deviceTypeToString(VkPhysicalDeviceType type) {
 }
 
 static void set_vulkan_ptr(void* ptr) {
+    printf("set_vulkan_ptr");
     char envval[64];
     sprintf(envval, "%" PRIxPTR, (uintptr_t)ptr);
     setenv("VULKAN_PTR", envval, 1);
@@ -307,7 +306,8 @@ void init_settings() {
     if (global_settings.angle) {
         setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
         setenv("LIBGL_EGL", "libEGL_angle.so", 1);
-        load_vulkan();         printf("load_vulkan");
+        load_vulkan();
+         printf("load_vulkan");
     }
 
     if (enableNoError == 1 || enableNoError == 2 || enableNoError == 3) {
