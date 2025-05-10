@@ -14,8 +14,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <elf.h>
+#include <unistd.h>
 
-#define PAGE_SIZE 4096  // 假设 4KB，但可能不兼容 16KB 设备！
+size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
 
 #define OP_MS 0b11111100000000000000000000000000
 #define BL_OP 0b10010100000000000000000000000000
