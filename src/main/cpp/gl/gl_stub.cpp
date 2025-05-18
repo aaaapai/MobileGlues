@@ -691,7 +691,7 @@ STUB_FUNCTION_HEAD(void, glCreateRenderbuffers, GLsizei n, GLuint* renderbuffers
 STUB_FUNCTION_HEAD(void, glNamedRenderbufferStorage, GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height); STUB_FUNCTION_END_NO_RETURN(void, glNamedRenderbufferStorage,renderbuffer,internalformat,width,height)
 STUB_FUNCTION_HEAD(void, glNamedRenderbufferStorageMultisample, GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height); STUB_FUNCTION_END_NO_RETURN(void, glNamedRenderbufferStorageMultisample,renderbuffer,samples,internalformat,width,height)
 STUB_FUNCTION_HEAD(void, glGetNamedRenderbufferParameteriv, GLuint renderbuffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedRenderbufferParameteriv,renderbuffer,pname,params)
-//STUB_FUNCTION_HEAD(void, glCreateTextures, GLenum target, GLsizei n, GLuint* textures); STUB_FUNCTION_END_NO_RETURN(void, glCreateTextures,target,n,textures)
+STUB_FUNCTION_HEAD(void, glCreateTextures, GLenum target, GLsizei n, GLuint* textures); STUB_FUNCTION_END_NO_RETURN(void, glCreateTextures,target,n,textures)
 STUB_FUNCTION_HEAD(void, glTextureBuffer, GLuint texture, GLenum internalformat, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(void, glTextureBuffer,texture,internalformat,buffer)
 STUB_FUNCTION_HEAD(void, glTextureBufferRange, GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size); STUB_FUNCTION_END_NO_RETURN(void, glTextureBufferRange,texture,internalformat,buffer,offset,size)
 STUB_FUNCTION_HEAD(void, glTextureStorage1D, GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width); STUB_FUNCTION_END_NO_RETURN(void, glTextureStorage1D,texture,levels,internalformat,width)
