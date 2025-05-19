@@ -13,6 +13,16 @@
 struct global_settings_t global_settings;
 
 void init_settings() {
+#if defined(__APPLE__)
+    global_settings.angle = 0;
+    global_settings.ignore_error = 1;
+    global_settings.ext_gl43 = 0;
+    global_settings.ext_compute_shader = 0;
+    global_settings.max_glsl_cache_size = 30 * 1024 * 1024;
+    global_settings.enable_compatible_mode = 0;
+    global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
+#else
+    
     int success = initialized;
     if (!success) {
         success = config_refresh();
@@ -129,7 +139,8 @@ void init_settings() {
     global_settings.enable_compatible_mode = enableCompatibleMode;
 
     global_settings.multidraw_mode = multidrawMode;
-
+#endif
+    
     std::string draw_mode_str;
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:

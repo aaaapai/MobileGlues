@@ -87,10 +87,14 @@ static name##_PTR egl_##name = NULL;                                        \
 #define INIT_CHECK_GL_ERROR_FORCE                                           \
     GLenum ERR = GL_NO_ERROR; (void)ERR;
 
-#define NATIVE_FUNCTION_HEAD(type,name,...)                                 \
+#ifndef __APPLE__
+#define NATIVE_FUNCTION_HEAD(type,name,...) \
 extern "C" GLAPI GLAPIENTRY type name##ARB(__VA_ARGS__) __attribute__((alias(#name))); \
-extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  { \
-    LOG()
+extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
+#else
+#define NATIVE_FUNCTION_HEAD(type,name,...) \
+extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
+#endif
 
 #if GLOBAL_DEBUG
 #define NATIVE_FUNCTION_END(type,name,...)                                  \

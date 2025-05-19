@@ -9,7 +9,11 @@
 extern "C" {
 #endif
 
+#if !defined(__APPLE__)
 #include <__stddef_size_t.h>
+#else
+typedef unsigned long size_t;
+#endif
 
 enum class multidraw_mode_t: int {
     Auto = 0,

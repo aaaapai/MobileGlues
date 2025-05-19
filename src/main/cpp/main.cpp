@@ -2,9 +2,9 @@
 // Created by Swung 0x48 on 2024/10/7.
 //
 
-#include <string.h>
+#include <cstring>
 #include <sys/stat.h>
-#include <errno.h>
+#include <cerrno>
 #include "includes.h"
 #include "GL/gl.h"
 #include "egl/egl.h"
@@ -17,15 +17,19 @@
 
 #define DEBUG 0
 
-__attribute__((used)) const char* license = "GNU LGPL-2.1 License";
+#ifndef __APPLE__
+__attribute__((used))
+#endif
+const char* license = "GNU LGPL-2.1 License";
 
+#ifndef __APPLE__
 extern char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
 void init_libshaderconv() {
     const char *shaderconv_lib = "libshaderconv";
     const char *func_name = "MesaConvertShader";
-    const char *glslconv_name[] = {shaderconv_lib, NULL};
+    const char *glslconv_name[] = {shaderconv_lib, nullptr};
     void* glslconv = open_lib(glslconv_name, shaderconv_lib);
-    if (glslconv == NULL) {
+    if (glslconv == nullptr) {
         LOG_D("%s not found\n", shaderconv_lib);
     }
     else {
@@ -37,6 +41,7 @@ void init_libshaderconv() {
         }
     }
 }
+#endif
 
 void init_config() {
     if (check_path())
@@ -225,14 +230,17 @@ void proc_init() {
 
     init_settings_post();
 
+#ifndef __APPLE__
     init_libshaderconv();
-
-    //init_watermark_res();
+#endif
+    
 #if PROFILING
     init_perfetto();
 #endif
 
     // Cleanup
+#ifndef __APPLE__
     destroy_temp_egl_ctx();
+#endif
     g_initialized = 1;
 }

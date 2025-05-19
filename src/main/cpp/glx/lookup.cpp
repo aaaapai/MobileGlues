@@ -4,10 +4,10 @@
 
 #include "lookup.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <dlfcn.h>
 #include <EGL/egl.h>
-#include <string.h>
+#include <cstring>
 #include "../includes.h"
 #include "../gl/log.h"
 #include "../gl/envvars.h"
@@ -15,10 +15,10 @@
 
 #define DEBUG 0
 
-void* get_multidraw_func(const char* name) {
+const char* handle_multidraw_func_name(const char* name) {
     std::string namestr = name;
     if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements") {
-        return nullptr;
+        return name;
     } else {
         namestr = "mg_" + namestr;
     }
@@ -44,42 +44,30 @@ void* get_multidraw_func(const char* name) {
             return nullptr;
     }
 
-    return dlsym(RTLD_DEFAULT, namestr.c_str());
+    return namestr.c_str();
 }
 
 void *glXGetProcAddress(const char *name) {
     LOG()
+    name = handle_multidraw_func_name(name);
+#ifdef __APPLE__
+    return dlsym((void*)(~(uintptr_t)0), name);
+#else
+    
     void* proc = nullptr;
 
-    proc = get_multidraw_func(name);
-
-    if (!proc)
-        proc = dlsym(RTLD_DEFAULT, (const char*)name);
+    proc = dlsym(RTLD_DEFAULT, (const char*)name);
 
     if (!proc) {
         fprintf(stderr, "Failed to get OpenGL function %s: %s\n", name, dlerror());
         LOG_W("Failed to get OpenGL function: %s", (const char*)name)
-        return NULL;
+        return nullptr;
     }
 
     return proc;
+#endif
 }
 
 void *glXGetProcAddressARB(const char *name) {
-    LOG()
-    void* proc = nullptr;
-
-    proc = get_multidraw_func(name);
-
-    if (!proc)
-        proc = dlsym(RTLD_DEFAULT, (const char*)name);
-
-    LOG_D("glXGetProcAddressARB(\"%s\")", name)
-    if (!proc) {
-        fprintf(stderr, "Failed to get OpenGL function %s: %s\n", name, dlerror());
-        LOG_W("Failed to get OpenGL function: %s", (const char*)name)
-        return NULL;
-    }
-
-    return proc;
+    return glXGetProcAddress(name);
 }

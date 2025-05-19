@@ -4,7 +4,9 @@
 
 #include "gpu_utils.h"
 #include "../gles/loader.h"
+#if !defined(__APPLE__)
 #include "vulkan/vulkan.h"
+#endif
 
 #include <EGL/egl.h>
 #include <cstring>
@@ -97,6 +99,8 @@ int hasVulkan13() {
     if (!vulkan_lib)
         return 0;
 
+#ifndef __APPLE__
+    
     typedef VkResult (*PFN_vkEnumerateInstanceExtensionProperties)(const char*, uint32_t*, VkExtensionProperties*);
     typedef VkResult (*PFN_vkCreateInstance)(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*);
     typedef void (*PFN_vkDestroyInstance)(VkInstance, const VkAllocationCallbacks*);
@@ -179,4 +183,6 @@ int hasVulkan13() {
 
     dlclose(vulkan_lib);
     return 0;
+    
+#endif
 }

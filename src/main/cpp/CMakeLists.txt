@@ -77,64 +77,39 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./includes
         ./glm
         ./3rdparty/xxhash)
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.so
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libGenericCodeGen.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang-default-resource-limits.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libMachineIndependent.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libOSDependent.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-diff.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-link.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-lint.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-opt.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-reduce.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
-        ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
-        android
-        log
-        EGL
-)
-
-target_include_directories(mobileglues PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
+if(MACOS)
+        # iOS
+        set(iOS_LIB_DIR ${CMAKE_SOURCE_DIR}/libraries/ios)
+        target_link_libraries(${CMAKE_PROJECT_NAME}
+                ${iOS_LIB_DIR}/libglslang.a
+                ${iOS_LIB_DIR}/libspirv-cross-c-shared.dylib
+                ${iOS_LIB_DIR}/libGenericCodeGen.a
+                ${iOS_LIB_DIR}/libglslang-default-resource-limits.a
+                ${iOS_LIB_DIR}/libMachineIndependent.a
+                ${iOS_LIB_DIR}/libOSDependent.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools-diff.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools-link.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools-lint.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools-opt.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools-reduce.a
+                ${iOS_LIB_DIR}/libSPIRV-Tools.a
+                ${iOS_LIB_DIR}/libSPIRV.a
+                ${iOS_LIB_DIR}/libSPVRemapper.a
+                "-F${CMAKE_SOURCE_DIR}/external"
+                "-framework MetalANGLE"
+                "-framework Metal"
+                "-framework Foundation"
+                "-framework QuartzCore"
         )
-
-if (PROFILING)
-        find_package(Threads)
-        include_directories(${CMAKE_SOURCE_DIR}/3rdparty/perfetto/sdk)
-        add_library(perfetto STATIC ${CMAKE_SOURCE_DIR}/3rdparty/perfetto/sdk/perfetto.cc)
-        target_link_libraries(mobileglues perfetto ${CMAKE_THREAD_LIBS_INIT})
-        target_compile_definitions(mobileglues PUBLIC PROFILING=1)
-endif()
-
-if (MOBILEGLUES_TEST)
-        # Tests
-        find_package(googletest REQUIRED CONFIG)
-        find_package(junit-gtest REQUIRED CONFIG)
-
-        add_library(${CMAKE_PROJECT_NAME}_tests SHARED
-                        tests/sanitycheck_test.cpp
-                        tests/fpe/vertexpointer_test.cpp
-        )
-
-        target_include_directories(${CMAKE_PROJECT_NAME}_tests PUBLIC
-                ${CMAKE_SOURCE_DIR}/include
-        )
-
-        target_link_libraries(${CMAKE_PROJECT_NAME}_tests
-                PRIVATE
-                googletest::gtest
-                junit-gtest::junit-gtest
-                $<TARGET_OBJECTS:${CMAKE_PROJECT_NAME}>
-        )
-        target_link_libraries(${CMAKE_PROJECT_NAME}_tests PRIVATE
+else()
+        # Android
+        find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/)
+        target_link_libraries(${CMAKE_PROJECT_NAME}
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
-#                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.so
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.so
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libGenericCodeGen.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang-default-resource-limits.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libMachineIndependent.a
@@ -151,4 +126,12 @@ if (MOBILEGLUES_TEST)
                 log
                 EGL
         )
+endif()
+
+if (PROFILING)
+        find_package(Threads)
+        include_directories(${CMAKE_SOURCE_DIR}/3rdparty/perfetto/sdk)
+        add_library(perfetto STATIC ${CMAKE_SOURCE_DIR}/3rdparty/perfetto/sdk/perfetto.cc)
+        target_link_libraries(${CMAKE_PROJECT_NAME} perfetto ${CMAKE_THREAD_LIBS_INIT})
+        target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC PROFILING=1)
 endif()

@@ -3,9 +3,71 @@
 //
 
 #include "multidraw.h"
+#include "../config/settings.h"
 #include <vector>
 
 #define DEBUG 0
+
+typedef void (*glMultiDrawElements_t)(GLenum, const GLsizei*, GLenum, const void* const*, GLsizei);
+
+void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
+    static glMultiDrawElements_t func_ptr = nullptr;
+
+    if (func_ptr == nullptr) {
+        switch (global_settings.multidraw_mode) {
+            case multidraw_mode_t::PreferIndirect:
+                func_ptr = mg_glMultiDrawElements_indirect;
+                break;
+            case multidraw_mode_t::PreferBaseVertex:
+                func_ptr = mg_glMultiDrawElements_basevertex;
+                break;
+            case multidraw_mode_t::PreferMultidrawIndirect:
+                func_ptr = mg_glMultiDrawElements_multiindirect;
+                break;
+            case multidraw_mode_t::DrawElements:
+                func_ptr = mg_glMultiDrawElements_drawelements;
+                break;
+            case multidraw_mode_t::Compute:
+                func_ptr = mg_glMultiDrawElements_compute;
+                break;
+            default:
+                func_ptr = mg_glMultiDrawElements_drawelements;
+                break;
+        }
+    }
+    func_ptr(mode, count, type, indices, primcount);
+}
+
+typedef void (*glMultiDrawElementsBaseVertex_t)(GLenum, GLsizei*, GLenum, const void* const*, GLsizei, const GLint*);
+
+void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
+    static glMultiDrawElementsBaseVertex_t func_ptr = nullptr;
+
+    if (func_ptr == nullptr) {
+        switch (global_settings.multidraw_mode) {
+            case multidraw_mode_t::PreferIndirect:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_indirect;
+                break;
+            case multidraw_mode_t::PreferBaseVertex:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_basevertex;
+                break;
+            case multidraw_mode_t::PreferMultidrawIndirect:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_multiindirect;
+                break;
+            case multidraw_mode_t::DrawElements:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
+                break;
+            case multidraw_mode_t::Compute:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_compute;
+                break;
+            default:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
+                break;
+        }
+    }
+
+    func_ptr(mode, counts, type, indices, primcount, basevertex);
+}
 
 static bool g_indirect_cmds_inited = false;
 static GLsizei g_cmdbufsize = 0;
@@ -269,6 +331,19 @@ void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum t
 }
 
 void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
+    LOG()
+
+    for (GLsizei i = 0; i < primcount; ++i) {
+        const GLsizei c = count[i];
+        if (c > 0) {
+            GLES.glDrawElements(mode, c, type, indices[i]);
+        }
+    }
+
+    CHECK_GL_ERROR
+}
+
+void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
 
     for (GLsizei i = 0; i < primcount; ++i) {

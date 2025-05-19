@@ -68,14 +68,21 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = 0;
             break;
         case GL_MAX_TEXTURE_IMAGE_UNITS: {
-            if (g_gles_caps.maxtex <= 0) {
-                int es_params = 16;
-                GLES.glGetIntegerv(pname, &es_params);
-                CHECK_GL_ERROR
-                g_gles_caps.maxtex = (es_params < 32) ? 32 : es_params;
-            }
-            (*params) = g_gles_caps.maxtex;
+            int es_params = 16;
+            GLES.glGetIntegerv(pname, &es_params);
+            CHECK_GL_ERROR
+            (*params) = es_params * 2;
+            // Why is the real GL_MAX_TEXTURE_IMAGE_UNITS bigger than what GLES.glGetIntegerv returns?
             break;
+        }
+        case GL_CONTEXT_FLAGS: {
+            if(hardware->es_version < 320) {
+                (*params) = GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT;
+                return;
+            }
+            GLES.glGetIntegerv(pname, params);
+            LOG_D("  -> %d",*params)
+            CHECK_GL_ERROR
         }
         case GL_ARRAY_BUFFER_BINDING:
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
@@ -207,9 +214,23 @@ const char* getGpuName() {
         return "<unknown>";
     }
 
-    if (strncmp(gpuName, "ANGLE", 5) == 0) {
-        std::string gpuStr(gpuName);
+    std::string gpuStr(gpuName);
+    
+    // MetalANGLE, ANGLE (Metal Renderer: Apple * GPU)
+    if (gpuStr.find("Metal Renderer") != std::string::npos) {
+        if (gpuStr.length() < 25) {
+            return gpuName;
+        }
 
+        std::string gpu = gpuStr.substr(23, gpuStr.length() - 24);
+        std::string formattedGpuName = gpu + " | MetalANGLE | Metal";
+        char *result = new char[formattedGpuName.size() + 1];
+        std::strcpy(result, formattedGpuName.c_str());
+        return result;
+    }
+
+    // Vulkan ANGLE
+    if (strncmp(gpuName, "ANGLE", 5) == 0) {
         size_t firstParen = gpuStr.find('(');
         size_t secondParen = gpuStr.find('(', firstParen + 1);
         size_t lastParen = gpuStr.rfind('(');
@@ -312,7 +333,10 @@ const GLubyte * glGetString( GLenum name ) {
             return (const GLubyte *)rendererString.c_str();
         }
         case GL_SHADING_LANGUAGE_VERSION:
-            return (const GLubyte *) "4.50 MobileGlues with glslang and SPIRV-Cross";
+            if (hardware->es_version < 310)
+                return (const GLubyte *) "4.00 MobileGlues with glslang and SPIRV-Cross";
+            else
+                return (const GLubyte *) "4.50 MobileGlues with glslang and SPIRV-Cross";
         case GL_EXTENSIONS:
             return (const GLubyte *) GetExtensionsList();
         default:

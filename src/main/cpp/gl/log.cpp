@@ -10,6 +10,13 @@
 
 #include "GL/gl.h"
 
+#ifndef __ANDROID__
+// Define a stub for __android_log_print if not on Android
+int __android_log_print(int prio, const char *tag,  const char *fmt, ...) {
+    return 0; // Do nothing
+}
+#endif
+
 #define CASE(e) \
     case e: return #e;
 

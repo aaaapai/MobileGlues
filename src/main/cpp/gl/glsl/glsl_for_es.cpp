@@ -13,6 +13,7 @@
 #include <regex>
 #include <strstream>
 #include <algorithm>
+#include <sstream>
 #include "cache.h"
 #include "../../version.h"
 
@@ -20,7 +21,9 @@
 
 #define DEBUG 1
 
+#if !defined(__APPLE__)
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+#endif
 
 //void trim(char* str) {
 //    char* end;
@@ -1100,6 +1103,7 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 }
 
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
+#if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
     if (esversion < 320) esversion = 320;
     std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
@@ -1107,4 +1111,8 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 //    strcpy(ret, result);
     return_code = 0;
     return result;
+#else
+    LOG_W_FORCE("Cannot convert glsl with version %d in MacOS/iOS", esversion);
+    return std::string(glsl_code);
+#endif
 }

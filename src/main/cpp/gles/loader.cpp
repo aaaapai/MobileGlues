@@ -2,7 +2,6 @@
 // Created by Swung 0x48 on 2024/10/10.
 //
 
-#include <linux/limits.h>
 #include <cstring>
 #include <cstdio>
 #include "loader.h"
@@ -88,6 +87,7 @@ void *open_lib(const char **names, const char *override) {
 }
 
 void load_libs() {
+#ifndef __APPLE__
     static int first = 1;
     if (!first) return;
     first = 0;
@@ -95,6 +95,10 @@ void load_libs() {
     const char *egl_override = global_settings.angle ? EGL_ANGLE : nullptr;
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
+#else
+    gles = (void*)(~(uintptr_t)0);
+    egl = (void*)(~(uintptr_t)0);
+#endif
 }
 
 void *proc_address(void *lib, const char *name) {

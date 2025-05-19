@@ -14,13 +14,18 @@ FUNC_GL_STATE_SIZEI(proxy_width)
 FUNC_GL_STATE_SIZEI(proxy_height)
 FUNC_GL_STATE_ENUM(proxy_intformat)
 
+#ifndef __APPLE__
 FILE* file;
+#endif
 
 void start_log() {
+#ifndef __APPLE__
     file = fopen(log_file_path, "a");
+#endif
 }
 
 void write_log(const char* format, ...) {
+#ifndef __APPLE__
     if (file == nullptr) {
         return;
     }
@@ -34,9 +39,13 @@ void write_log(const char* format, ...) {
     int fd = fileno(file);
     fsync(fd);
 #endif
+    // Todo: close file
+    //fclose(file);
+#endif
 }
 
 void write_log_n(const char* format, ...) {
+#ifndef __APPLE__
     if (file == NULL) {
         return;
     }
@@ -46,14 +55,17 @@ void write_log_n(const char* format, ...) {
     va_end(args);
     // Todo: close file
     fflush(file);
+#endif
 }
 
 void clear_log() {
+#ifndef __APPLE__
     file = fopen(log_file_path, "w");
     if (file == nullptr) {
         return;
     }
     fclose(file);
+#endif
 }
 
 GLenum pname_convert(GLenum pname){
