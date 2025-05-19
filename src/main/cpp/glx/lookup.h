@@ -5,6 +5,7 @@
 #ifndef MOBILEGLUES_LOOKUP_H
 #define MOBILEGLUES_LOOKUP_H
 
+#include <GL/gl.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
