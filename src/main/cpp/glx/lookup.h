@@ -9,8 +9,6 @@
 extern "C" {
 #endif
 
-#include "../gl/gl.h"
-    
 GLAPI GLAPIENTRY void *glXGetProcAddress(const char *name);
 GLAPI GLAPIENTRY void *glXGetProcAddressARB(const char *name);
 
