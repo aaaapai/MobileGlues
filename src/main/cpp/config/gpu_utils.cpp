@@ -13,7 +13,7 @@
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
-        "libvgpu",
+        "libGLESv3",
         nullptr
 };
 static const char *vk_lib[] = {
