@@ -1,24 +1,28 @@
-name: Build MobileGlues for iOS
-on: [push, workflow_dispatch]
+name: Build
+
+on:
+  workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
 jobs:
-  build-ios:
-    runs-on: macos-latest
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Build MobileGlues
-        run: |
-          cd src/main/cpp 
-          wget https://github.com/leetal/ios-cmake/raw/master/ios.toolchain.cmake
-          cmake -B build \
-            -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake \
-            -DSTATICLIB=OFF \
-            -DMACOS=ON \
-            -DPLATFORM=OS64 \
-            -DCMAKE_C_FLAGS=-Wno-error=implicit-function-declaration
-          cmake --build build --config RelWithDebInfo --target mobileglues
-          codesign -s - build/libmobileglues.dylib
-      - name: Upload lib
-        uses: actions/upload-artifact@v4
-        with:
-          name: MobileGlues-iOS-dylib
-          path: /Users/runner/work/MobileGlues/MobileGlues/src/main/cpp/build
+    - uses: actions/checkout@main
+
+    - name: Configure CMake and Build
+      run: bash android_ci_build.bash
+
+    - name: Upload build output
+      uses: actions/upload-artifact@main
+      with:
+        name: MG
+        path: build/*.so
