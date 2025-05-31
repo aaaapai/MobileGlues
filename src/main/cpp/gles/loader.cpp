@@ -44,7 +44,7 @@ static const char *lib_ext[] = {
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
-        "libGLESv3",
+        "libvgpu",
         nullptr
 };
 
@@ -52,7 +52,7 @@ static const char *egl_lib[] = {
 #if defined(BCMHOST)
         "libbrcmEGL",
 #endif
-        "libEGL",
+        "libvgpu",
         nullptr
 };
 
