@@ -15,7 +15,7 @@
 
 #define DEBUG 0
 
-const char* handle_multidraw_func_name(const char* name) {
+std::string handle_multidraw_func_name(std::string name) {
     std::string namestr = name;
     if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements") {
         return name;
@@ -41,26 +41,25 @@ const char* handle_multidraw_func_name(const char* name) {
             break;
         default:
             LOG_W("get_multidraw_func() cannot determine multidraw emulation mode!")
-            return nullptr;
+            return {};
     }
 
-    return namestr.c_str();
+    return namestr;
 }
 
 void *glXGetProcAddress(const char *name) {
     LOG()
-    name = handle_multidraw_func_name(name);
+    std::string real_func_name = handle_multidraw_func_name(std::string(name));
 #ifdef __APPLE__
-    return dlsym((void*)(~(uintptr_t)0), name);
+    return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
 #else
     
     void* proc = nullptr;
 
-    proc = dlsym(RTLD_DEFAULT, (const char*)name);
+    proc = dlsym(RTLD_DEFAULT, real_func_name.c_str());
 
     if (!proc) {
-        fprintf(stderr, "Failed to get OpenGL function %s: %s\n", name, dlerror());
-        LOG_W("Failed to get OpenGL function: %s", (const char*)name)
+        LOG_W("Failed to get OpenGL function: %s", real_func_name.c_str())
         return nullptr;
     }
 
