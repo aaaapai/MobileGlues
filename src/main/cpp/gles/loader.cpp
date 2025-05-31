@@ -44,7 +44,7 @@ static const char *lib_ext[] = {
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
-        "libvgpu",
+        "libGLESv3",
         nullptr
 };
 
@@ -52,12 +52,12 @@ static const char *egl_lib[] = {
 #if defined(BCMHOST)
         "libbrcmEGL",
 #endif
-        "libvgpu",
+        "libEGL",
         nullptr
 };
 
-const char *GLES_ANGLE = "libGLESv2_angle.so";
-const char *EGL_ANGLE = "libEGL_angle.so";
+const char *GLES_ANGLE = "libvgpu.so";
+const char *EGL_ANGLE = "libvgpu.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
