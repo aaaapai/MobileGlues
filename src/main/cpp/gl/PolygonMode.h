@@ -42,14 +42,12 @@ public:
     static PolygonMode GetGlobalPolygonMode();
     static void SetGlobalPolygonMode(PolygonMode mode);
     
+    GLuint createShaderProgram(const char* vertexSrc, const char* fragmentSrc);
 private:
     PolygonMode currentMode;
     GLuint fillProgram;
     GLuint lineProgram;
     GLuint pointProgram;
-    
-    // 创建着色器程序
-    GLuint createShaderProgram(const char* vertexSrc, const char* fragmentSrc);
     
     // 几何着色器源
     const char* getLineGeometryShader();
