@@ -29,7 +29,8 @@ PolygonModeRenderer::PolygonModeRenderer() : currentMode(POLYGON_FILL) {
     )";
     
     // 创建填充模式着色器程序
-    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+    const char* fillGeometryShader = getfillGeometryShader();
+    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, fillGeometryShader);
     
     // 创建线框模式着色器程序（使用几何着色器）
     const char* lineGeometryShader = getLineGeometryShader();
@@ -37,7 +38,7 @@ PolygonModeRenderer::PolygonModeRenderer() : currentMode(POLYGON_FILL) {
     
     // 创建点模式着色器程序（使用几何着色器）
     const char* pointGeometryShader = getPointGeometryShader();
-    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
+    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, pointGeometryShader);
 }
 
 PolygonModeRenderer::~PolygonModeRenderer() {
@@ -141,6 +142,12 @@ GLuint PolygonModeRenderer::createShaderProgram(const char* vertexSrc,
     GLES.glDeleteShader(fragmentShader);
     
     return program;
+}
+
+const char* PolygonModeRenderer::getfillGeometryShader() {
+    return R"(
+        #version 320 es
+    )";
 }
 
 const char* PolygonModeRenderer::getLineGeometryShader() {
