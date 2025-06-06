@@ -17,9 +17,9 @@
 #include "cache.h"
 #include "../../version.h"
 
-//#define FEATURE_PRE_CONVERTED_GLSL
+// #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if !defined(__APPLE__)
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
@@ -359,7 +359,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     int return_code = -1;
-    std::string converted = glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = /*GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):*/GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code == 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -389,7 +389,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
+        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
             isLineDirective = true;
         }
 
@@ -550,6 +550,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
 
 std::string preprocess_glsl(const std::string& glsl) {
     std::string ret = glsl;
+
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
     // Act as if disable_GL_ARB_derivative_control is false
@@ -560,6 +561,22 @@ std::string preprocess_glsl(const std::string& glsl) {
     replace_all(ret,
                 "const mat3 rotInverse = transpose(rot);",
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
+
+    // Replace deprecated syntax
+    if (glsl_type == GL_VERTEX_SHADER) {
+        replace_all(ret, "attribute", "in");
+        replace_all(ret, "varying", "out");
+    } else if (glsl_type == GL_FRAGMENT_SHADER) {
+        replace_all(ret, "varying", "in");
+    }
+
+    replace_all(ret, "texture2D", "texture");
+    replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
+    replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
+    replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
+    
+    // replace gl_FragColor
+//    inject_fragcolor(ret);
 
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
@@ -578,8 +595,12 @@ std::string preprocess_glsl(const std::string& glsl) {
 int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
-        glsl_version = 140;
-        glsl.insert(0, "#version 140\n");
+        glsl_version = 330;
+        glsl.insert(0, "#version 330\n");
+    } else if (glsl_version < 330) {
+        // force upgrade glsl version
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
+        glsl_version = 330;
     }
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
@@ -625,7 +646,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
     if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
-        LOG_D("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+        LOG_E("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
         errc = -1;
         return {};
     }
@@ -635,7 +656,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     program.addShader(&shader);
 
     if (!program.link(EShMsgDefault)) {
-        LOG_D("Shader Linking ERROR: %s", program.getInfoLog())
+        LOG_E("Shader Linking ERROR: %s", program.getInfoLog())
         errc = -1;
         return {};
     }
@@ -668,7 +689,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 300 ? essl_version : 300);
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 320 ? essl_version : 320);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
@@ -702,6 +723,8 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
+    LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
+
     if (!glslang_inited) {
         glslang::InitializeProcess();
         glslang_inited = true;
@@ -734,7 +757,7 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
-    if (esversion < 300) esversion = 300;
+    if (esversion < 320) esversion = 320;
     std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
 
     return_code = 0;

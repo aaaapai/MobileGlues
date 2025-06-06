@@ -2,12 +2,15 @@
 // Created by BZLZHH on 2025/1/29.
 //
 #include "../includes.h"
-#include "gl.h"
-#include "glcorearb.h"
+#include "GL/gl.h"
+#include "GL/glext.h"
+#include "GL/glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
 #define DEBUG false
+
+bool trigger_stub_function = false;
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +21,7 @@ extern "C" {
 */
 STUB_FUNCTION_HEAD(void, glClearIndex, GLfloat c ) STUB_FUNCTION_END_NO_RETURN(void, glClearIndex,c)
 STUB_FUNCTION_HEAD(void, glIndexMask, GLuint mask ) STUB_FUNCTION_END_NO_RETURN(void, glIndexMask,mask)
-STUB_FUNCTION_HEAD(void, glAlphaFunc, GLenum func, GLclampf ref ) STUB_FUNCTION_END_NO_RETURN(void, glAlphaFunc,func,ref)
+//STUB_FUNCTION_HEAD(void, glAlphaFunc, GLenum func, GLclampf ref ) STUB_FUNCTION_END_NO_RETURN(void, glAlphaFunc,func,ref)
 STUB_FUNCTION_HEAD(void, glLogicOp, GLenum opcode ) STUB_FUNCTION_END_NO_RETURN(void, glLogicOp,opcode)
 STUB_FUNCTION_HEAD(void, glPointSize, GLfloat size ) STUB_FUNCTION_END_NO_RETURN(void, glPointSize,size)
 STUB_FUNCTION_HEAD(void, glLineStipple, GLint factor, GLushort pattern ) STUB_FUNCTION_END_NO_RETURN(void, glLineStipple,factor,pattern)
@@ -31,8 +34,8 @@ STUB_FUNCTION_HEAD(void, glClipPlane, GLenum plane, const GLdouble *equation ) S
 STUB_FUNCTION_HEAD(void, glGetClipPlane, GLenum plane, GLdouble *equation ) STUB_FUNCTION_END_NO_RETURN(void, glGetClipPlane,plane,equation)
 //STUB_FUNCTION_HEAD(void, glDrawBuffer, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glDrawBuffer,mode)
 
-STUB_FUNCTION_HEAD(void, glEnableClientState, GLenum cap ) STUB_FUNCTION_END_NO_RETURN(void, glEnableClientState,cap)
-STUB_FUNCTION_HEAD(void, glDisableClientState, GLenum cap ) STUB_FUNCTION_END_NO_RETURN(void, glDisableClientState,cap)
+//STUB_FUNCTION_HEAD(void, glEnableClientState, GLenum cap ) STUB_FUNCTION_END_NO_RETURN(void, glEnableClientState,cap)
+//STUB_FUNCTION_HEAD(void, glDisableClientState, GLenum cap ) STUB_FUNCTION_END_NO_RETURN(void, glDisableClientState,cap)
 STUB_FUNCTION_HEAD(void, glGetDoublev, GLenum pname, GLdouble *params ) STUB_FUNCTION_END_NO_RETURN(void, glGetDoublev,pname,params)
 
 STUB_FUNCTION_HEAD(void, glPushAttrib, GLbitfield mask ) STUB_FUNCTION_END_NO_RETURN(void, glPushAttrib,mask)
@@ -54,48 +57,48 @@ STUB_FUNCTION_HEAD(void, glAccum, GLenum op, GLfloat value ) STUB_FUNCTION_END_N
 /*
 * Transformation
 */
-STUB_FUNCTION_HEAD(void, glMatrixMode, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glMatrixMode,mode)
-STUB_FUNCTION_HEAD(void, glOrtho, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val ) STUB_FUNCTION_END_NO_RETURN(void, glOrtho,left,right,bottom,top,near_val,far_val)
+//STUB_FUNCTION_HEAD(void, glMatrixMode, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glMatrixMode,mode)
+//STUB_FUNCTION_HEAD(void, glOrtho, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val ) STUB_FUNCTION_END_NO_RETURN(void, glOrtho,left,right,bottom,top,near_val,far_val)
 STUB_FUNCTION_HEAD(void, glFrustum, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val ) STUB_FUNCTION_END_NO_RETURN(void, glFrustum,left,right,bottom,top,near_val,far_val)
-STUB_FUNCTION_HEAD(void, glPushMatrix) STUB_FUNCTION_END_NO_RETURN(void, glPushMatrix)
-STUB_FUNCTION_HEAD(void, glPopMatrix) STUB_FUNCTION_END_NO_RETURN(void, glPopMatrix)
-STUB_FUNCTION_HEAD(void, glLoadIdentity) STUB_FUNCTION_END_NO_RETURN(void, glLoadIdentity)
+//STUB_FUNCTION_HEAD(void, glPushMatrix) STUB_FUNCTION_END_NO_RETURN(void, glPushMatrix)
+//STUB_FUNCTION_HEAD(void, glPopMatrix) STUB_FUNCTION_END_NO_RETURN(void, glPopMatrix)
+//STUB_FUNCTION_HEAD(void, glLoadIdentity) STUB_FUNCTION_END_NO_RETURN(void, glLoadIdentity)
 STUB_FUNCTION_HEAD(void, glLoadMatrixd, const GLdouble *m ) STUB_FUNCTION_END_NO_RETURN(void, glLoadMatrixd,m)
 STUB_FUNCTION_HEAD(void, glLoadMatrixf, const GLfloat *m ) STUB_FUNCTION_END_NO_RETURN(void, glLoadMatrixf,m)
 STUB_FUNCTION_HEAD(void, glMultMatrixd, const GLdouble *m ) STUB_FUNCTION_END_NO_RETURN(void, glMultMatrixd,m)
-STUB_FUNCTION_HEAD(void, glMultMatrixf, const GLfloat *m ) STUB_FUNCTION_END_NO_RETURN(void, glMultMatrixf,m)
-STUB_FUNCTION_HEAD(void, glRotated, GLdouble angle, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glRotated,angle,x,y,z)
-STUB_FUNCTION_HEAD(void, glRotatef, GLfloat angle, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glRotatef,angle,x,y,z)
-STUB_FUNCTION_HEAD(void, glScaled, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glScaled,x,y,z)
-STUB_FUNCTION_HEAD(void, glScalef, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glScalef,x,y,z)
-STUB_FUNCTION_HEAD(void, glTranslated, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glTranslated,x,y,z)
-STUB_FUNCTION_HEAD(void, glTranslatef, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glTranslatef,x,y,z)
+//STUB_FUNCTION_HEAD(void, glMultMatrixf, const GLfloat *m ) STUB_FUNCTION_END_NO_RETURN(void, glMultMatrixf,m)
+//STUB_FUNCTION_HEAD(void, glRotated, GLdouble angle, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glRotated,angle,x,y,z)
+//STUB_FUNCTION_HEAD(void, glRotatef, GLfloat angle, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glRotatef,angle,x,y,z)
+//STUB_FUNCTION_HEAD(void, glScaled, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glScaled,x,y,z)
+//eSTUB_FUNCTION_HEAD(void, glScalef, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glScalef,x,y,z)
+//STUB_FUNCTION_HEAD(void, glTranslated, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glTranslated,x,y,z)
+//STUB_FUNCTION_HEAD(void, glTranslatef, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glTranslatef,x,y,z)
 /*
 * Display Lists
 */
-STUB_FUNCTION_HEAD(GLboolean, glIsList, GLuint list ); STUB_FUNCTION_END(GLboolean, glIsList,list)
-STUB_FUNCTION_HEAD(void, glDeleteLists, GLuint list, GLsizei range ) STUB_FUNCTION_END_NO_RETURN(void, glDeleteLists,list,range)
-STUB_FUNCTION_HEAD(GLuint, glGenLists, GLsizei range ) STUB_FUNCTION_END(GLuint, glGenLists,range)
-STUB_FUNCTION_HEAD(void, glNewList, GLuint list, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glNewList,list,mode)
-STUB_FUNCTION_HEAD(void, glEndList) STUB_FUNCTION_END_NO_RETURN(void, glEndList)
-STUB_FUNCTION_HEAD(void, glCallList, GLuint list ) STUB_FUNCTION_END_NO_RETURN(void, glCallList,list)
-STUB_FUNCTION_HEAD(void, glCallLists, GLsizei n, GLenum type,const GLvoid* lists ) STUB_FUNCTION_END_NO_RETURN(void, glCallLists,n,type,lists)
-STUB_FUNCTION_HEAD(void, glListBase, GLuint base ) STUB_FUNCTION_END_NO_RETURN(void, glListBase,base)
+//STUB_FUNCTION_HEAD(GLboolean, glIsList, GLuint list ); STUB_FUNCTION_END(GLboolean, glIsList,list)
+//STUB_FUNCTION_HEAD(void, glDeleteLists, GLuint list, GLsizei range ) STUB_FUNCTION_END_NO_RETURN(void, glDeleteLists,list,range)
+//STUB_FUNCTION_HEAD(GLuint, glGenLists, GLsizei range ) STUB_FUNCTION_END(GLuint, glGenLists,range)
+//STUB_FUNCTION_HEAD(void, glNewList, GLuint list, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glNewList,list,mode)
+//STUB_FUNCTION_HEAD(void, glEndList) STUB_FUNCTION_END_NO_RETURN(void, glEndList)
+//STUB_FUNCTION_HEAD(void, glCallList, GLuint list ) STUB_FUNCTION_END_NO_RETURN(void, glCallList,list)
+//STUB_FUNCTION_HEAD(void, glCallLists, GLsizei n, GLenum type,const GLvoid* lists ) STUB_FUNCTION_END_NO_RETURN(void, glCallLists,n,type,lists)
+//STUB_FUNCTION_HEAD(void, glListBase, GLuint base ) STUB_FUNCTION_END_NO_RETURN(void, glListBase,base)
 /*
 * Drawing Functions
 */
-STUB_FUNCTION_HEAD(void, glBegin, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glBegin,mode)
-STUB_FUNCTION_HEAD(void, glEnd) STUB_FUNCTION_END_NO_RETURN(void, glEnd)
+//STUB_FUNCTION_HEAD(void, glBegin, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glBegin,mode)
+//STUB_FUNCTION_HEAD(void, glEnd) STUB_FUNCTION_END_NO_RETURN(void, glEnd)
 STUB_FUNCTION_HEAD(void, glVertex2d, GLdouble x, GLdouble y ) STUB_FUNCTION_END_NO_RETURN(void, glVertex2d,x,y)
 STUB_FUNCTION_HEAD(void, glVertex2f, GLfloat x, GLfloat y ) STUB_FUNCTION_END_NO_RETURN(void, glVertex2f,x,y)
 STUB_FUNCTION_HEAD(void, glVertex2i, GLint x, GLint y ) STUB_FUNCTION_END_NO_RETURN(void, glVertex2i,x,y)
 STUB_FUNCTION_HEAD(void, glVertex2s, GLshort x, GLshort y ) STUB_FUNCTION_END_NO_RETURN(void, glVertex2s,x,y)
 STUB_FUNCTION_HEAD(void, glVertex3d, GLdouble x, GLdouble y, GLdouble z ) STUB_FUNCTION_END_NO_RETURN(void, glVertex3d,x,y,z)
-STUB_FUNCTION_HEAD(void, glVertex3f, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glVertex3f,x,y,z)
+//STUB_FUNCTION_HEAD(void, glVertex3f, GLfloat x, GLfloat y, GLfloat z ) STUB_FUNCTION_END_NO_RETURN(void, glVertex3f,x,y,z)
 STUB_FUNCTION_HEAD(void, glVertex3i, GLint x, GLint y, GLint z ) STUB_FUNCTION_END_NO_RETURN(void, glVertex3i,x,y,z)
 STUB_FUNCTION_HEAD(void, glVertex3s, GLshort x, GLshort y, GLshort z ) STUB_FUNCTION_END_NO_RETURN(void, glVertex3s,x,y,z)
 STUB_FUNCTION_HEAD(void, glVertex4d, GLdouble x, GLdouble y, GLdouble z, GLdouble w ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4d,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertex4f, GLfloat x, GLfloat y, GLfloat z, GLfloat w ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4f,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertex4f, GLfloat x, GLfloat y, GLfloat z, GLfloat w ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4f,x,y,z,w)
 STUB_FUNCTION_HEAD(void, glVertex4i, GLint x, GLint y, GLint z, GLint w ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4i,x,y,z,w)
 STUB_FUNCTION_HEAD(void, glVertex4s, GLshort x, GLshort y, GLshort z, GLshort w ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4s,x,y,z,w)
 STUB_FUNCTION_HEAD(void, glVertex2dv, const GLdouble *v ) STUB_FUNCTION_END_NO_RETURN(void, glVertex2dv,v)
@@ -112,7 +115,7 @@ STUB_FUNCTION_HEAD(void, glVertex4iv, const GLint *v ) STUB_FUNCTION_END_NO_RETU
 STUB_FUNCTION_HEAD(void, glVertex4sv, const GLshort *v ) STUB_FUNCTION_END_NO_RETURN(void, glVertex4sv,v)
 STUB_FUNCTION_HEAD(void, glNormal3b, GLbyte nx, GLbyte ny, GLbyte nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3b,nx,ny,nz)
 STUB_FUNCTION_HEAD(void, glNormal3d, GLdouble nx, GLdouble ny, GLdouble nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3d,nx,ny,nz)
-STUB_FUNCTION_HEAD(void, glNormal3f, GLfloat nx, GLfloat ny, GLfloat nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3f,nx,ny,nz)
+//STUB_FUNCTION_HEAD(void, glNormal3f, GLfloat nx, GLfloat ny, GLfloat nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3f,nx,ny,nz)
 STUB_FUNCTION_HEAD(void, glNormal3i, GLint nx, GLint ny, GLint nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3i,nx,ny,nz)
 STUB_FUNCTION_HEAD(void, glNormal3s, GLshort nx, GLshort ny, GLshort nz ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3s,nx,ny,nz)
 STUB_FUNCTION_HEAD(void, glNormal3bv, const GLbyte *v ) STUB_FUNCTION_END_NO_RETURN(void, glNormal3bv,v)
@@ -132,7 +135,7 @@ STUB_FUNCTION_HEAD(void, glIndexsv, const GLshort *c ) STUB_FUNCTION_END_NO_RETU
 STUB_FUNCTION_HEAD(void, glIndexubv, const GLubyte *c ) STUB_FUNCTION_END_NO_RETURN(void, glIndexubv,c)
 STUB_FUNCTION_HEAD(void, glColor3b, GLbyte red, GLbyte green, GLbyte blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3b,red,green,blue)
 STUB_FUNCTION_HEAD(void, glColor3d, GLdouble red, GLdouble green, GLdouble blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3d,red,green,blue)
-STUB_FUNCTION_HEAD(void, glColor3f, GLfloat red, GLfloat green, GLfloat blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3f,red,green,blue)
+//STUB_FUNCTION_HEAD(void, glColor3f, GLfloat red, GLfloat green, GLfloat blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3f,red,green,blue)
 STUB_FUNCTION_HEAD(void, glColor3i, GLint red, GLint green, GLint blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3i,red,green,blue)
 STUB_FUNCTION_HEAD(void, glColor3s, GLshort red, GLshort green, GLshort blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3s,red,green,blue)
 STUB_FUNCTION_HEAD(void, glColor3ub, GLubyte red, GLubyte green, GLubyte blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3ub,red,green,blue)
@@ -140,7 +143,7 @@ STUB_FUNCTION_HEAD(void, glColor3ui, GLuint red, GLuint green, GLuint blue ) STU
 STUB_FUNCTION_HEAD(void, glColor3us, GLushort red, GLushort green, GLushort blue ) STUB_FUNCTION_END_NO_RETURN(void, glColor3us,red,green,blue)
 STUB_FUNCTION_HEAD(void, glColor4b, GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4b,red,green,blue,alpha)
 STUB_FUNCTION_HEAD(void, glColor4d, GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4d,red,green,blue,alpha)
-STUB_FUNCTION_HEAD(void, glColor4f, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4f,red,green,blue,alpha)
+//STUB_FUNCTION_HEAD(void, glColor4f, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4f,red,green,blue,alpha)
 STUB_FUNCTION_HEAD(void, glColor4i, GLint red, GLint green, GLint blue, GLint alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4i,red,green,blue,alpha)
 STUB_FUNCTION_HEAD(void, glColor4s, GLshort red, GLshort green, GLshort blue, GLshort alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4s,red,green,blue,alpha)
 STUB_FUNCTION_HEAD(void, glColor4ub, GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha ) STUB_FUNCTION_END_NO_RETURN(void, glColor4ub,red,green,blue,alpha)
@@ -167,7 +170,7 @@ STUB_FUNCTION_HEAD(void, glTexCoord1f, GLfloat s ) STUB_FUNCTION_END_NO_RETURN(v
 STUB_FUNCTION_HEAD(void, glTexCoord1i, GLint s ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord1i,s)
 STUB_FUNCTION_HEAD(void, glTexCoord1s, GLshort s ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord1s,s)
 STUB_FUNCTION_HEAD(void, glTexCoord2d, GLdouble s, GLdouble t ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord2d,s,t)
-STUB_FUNCTION_HEAD(void, glTexCoord2f, GLfloat s, GLfloat t ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord2f,s,t)
+//STUB_FUNCTION_HEAD(void, glTexCoord2f, GLfloat s, GLfloat t ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord2f,s,t)
 STUB_FUNCTION_HEAD(void, glTexCoord2i, GLint s, GLint t ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord2i,s,t)
 STUB_FUNCTION_HEAD(void, glTexCoord2s, GLshort s, GLshort t ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord2s,s,t)
 STUB_FUNCTION_HEAD(void, glTexCoord3d, GLdouble s, GLdouble t, GLdouble r ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord3d,s,t,r)
@@ -175,7 +178,7 @@ STUB_FUNCTION_HEAD(void, glTexCoord3f, GLfloat s, GLfloat t, GLfloat r ) STUB_FU
 STUB_FUNCTION_HEAD(void, glTexCoord3i, GLint s, GLint t, GLint r ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord3i,s,t,r)
 STUB_FUNCTION_HEAD(void, glTexCoord3s, GLshort s, GLshort t, GLshort r ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord3s,s,t,r)
 STUB_FUNCTION_HEAD(void, glTexCoord4d, GLdouble s, GLdouble t, GLdouble r, GLdouble q ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord4d,s,t,r,q)
-STUB_FUNCTION_HEAD(void, glTexCoord4f, GLfloat s, GLfloat t, GLfloat r, GLfloat q ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord4f,s,t,r,q)
+//STUB_FUNCTION_HEAD(void, glTexCoord4f, GLfloat s, GLfloat t, GLfloat r, GLfloat q ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord4f,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glTexCoord4i, GLint s, GLint t, GLint r, GLint q ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord4i,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glTexCoord4s, GLshort s, GLshort t, GLshort r, GLshort q ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord4s,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glTexCoord1dv, const GLdouble *v ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoord1dv,v)
@@ -229,28 +232,28 @@ STUB_FUNCTION_HEAD(void, glRectsv, const GLshort *v1, const GLshort *v2 ) STUB_F
 /*
 * Vertex Arrays (1.1)
 */
-STUB_FUNCTION_HEAD(void, glVertexPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glVertexPointer,size,type,stride,ptr)
-STUB_FUNCTION_HEAD(void, glNormalPointer, GLenum type, GLsizei stride,const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glNormalPointer,type,stride,ptr)
-STUB_FUNCTION_HEAD(void, glColorPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glColorPointer,size,type,stride,ptr)
-STUB_FUNCTION_HEAD(void, glIndexPointer, GLenum type, GLsizei stride,const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glIndexPointer,type,stride,ptr)
-STUB_FUNCTION_HEAD(void, glTexCoordPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoordPointer,size,type,stride,ptr)
+//STUB_FUNCTION_HEAD(void, glVertexPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glVertexPointer,size,type,stride,ptr)
+//STUB_FUNCTION_HEAD(void, glNormalPointer, GLenum type, GLsizei stride,const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glNormalPointer,type,stride,ptr)
+//STUB_FUNCTION_HEAD(void, glColorPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glColorPointer,size,type,stride,ptr)
+//STUB_FUNCTION_HEAD(void, glIndexPointer, GLenum type, GLsizei stride,const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glIndexPointer,type,stride,ptr)
+//STUB_FUNCTION_HEAD(void, glTexCoordPointer, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glTexCoordPointer,size,type,stride,ptr)
 STUB_FUNCTION_HEAD(void, glEdgeFlagPointer, GLsizei stride, const GLvoid* ptr ) STUB_FUNCTION_END_NO_RETURN(void, glEdgeFlagPointer,stride,ptr)
 STUB_FUNCTION_HEAD(void, glArrayElement, GLint i ) STUB_FUNCTION_END_NO_RETURN(void, glArrayElement,i)
 STUB_FUNCTION_HEAD(void, glInterleavedArrays, GLenum format, GLsizei stride,const GLvoid* pointer ) STUB_FUNCTION_END_NO_RETURN(void, glInterleavedArrays,format,stride,pointer)
 /*
 * Lighting
 */
-STUB_FUNCTION_HEAD(void, glShadeModel, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glShadeModel,mode)
-STUB_FUNCTION_HEAD(void, glLightf, GLenum light, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glLightf,light,pname,param)
-STUB_FUNCTION_HEAD(void, glLighti, GLenum light, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glLighti,light,pname,param)
-STUB_FUNCTION_HEAD(void, glLightfv, GLenum light, GLenum pname,const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightfv,light,pname,params)
-STUB_FUNCTION_HEAD(void, glLightiv, GLenum light, GLenum pname,const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightiv,light,pname,params)
+//STUB_FUNCTION_HEAD(void, glShadeModel, GLenum mode ) STUB_FUNCTION_END_NO_RETURN(void, glShadeModel,mode)
+//STUB_FUNCTION_HEAD(void, glLightf, GLenum light, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glLightf,light,pname,param)
+//STUB_FUNCTION_HEAD(void, glLighti, GLenum light, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glLighti,light,pname,param)
+//STUB_FUNCTION_HEAD(void, glLightfv, GLenum light, GLenum pname,const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightfv,light,pname,params)
+//STUB_FUNCTION_HEAD(void, glLightiv, GLenum light, GLenum pname,const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightiv,light,pname,params)
 STUB_FUNCTION_HEAD(void, glGetLightfv, GLenum light, GLenum pname, GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glGetLightfv,light,pname,params)
 STUB_FUNCTION_HEAD(void, glGetLightiv, GLenum light, GLenum pname, GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glGetLightiv,light,pname,params)
-STUB_FUNCTION_HEAD(void, glLightModelf, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glLightModelf,pname,param)
-STUB_FUNCTION_HEAD(void, glLightModeli, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glLightModeli,pname,param)
-STUB_FUNCTION_HEAD(void, glLightModelfv, GLenum pname, const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightModelfv,pname,params)
-STUB_FUNCTION_HEAD(void, glLightModeliv, GLenum pname, const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightModeliv,pname,params)
+//STUB_FUNCTION_HEAD(void, glLightModelf, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glLightModelf,pname,param)
+//STUB_FUNCTION_HEAD(void, glLightModeli, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glLightModeli,pname,param)
+//STUB_FUNCTION_HEAD(void, glLightModelfv, GLenum pname, const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightModelfv,pname,params)
+//STUB_FUNCTION_HEAD(void, glLightModeliv, GLenum pname, const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glLightModeliv,pname,params)
 STUB_FUNCTION_HEAD(void, glMaterialf, GLenum face, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glMaterialf,face,pname,param)
 STUB_FUNCTION_HEAD(void, glMateriali, GLenum face, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glMateriali,face,pname,param)
 STUB_FUNCTION_HEAD(void, glMaterialfv, GLenum face, GLenum pname, const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glMaterialfv,face,pname,params)
@@ -339,10 +342,10 @@ STUB_FUNCTION_HEAD(void, glEvalMesh2, GLenum mode, GLint i1, GLint i2, GLint j1,
 /*
 * Fog
 */
-STUB_FUNCTION_HEAD(void, glFogf, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glFogf,pname,param)
-STUB_FUNCTION_HEAD(void, glFogi, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glFogi,pname,param)
-STUB_FUNCTION_HEAD(void, glFogfv, GLenum pname, const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glFogfv,pname,params)
-STUB_FUNCTION_HEAD(void, glFogiv, GLenum pname, const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glFogiv,pname,params)
+//STUB_FUNCTION_HEAD(void, glFogf, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glFogf,pname,param)
+//STUB_FUNCTION_HEAD(void, glFogi, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glFogi,pname,param)
+//STUB_FUNCTION_HEAD(void, glFogfv, GLenum pname, const GLfloat *params ) STUB_FUNCTION_END_NO_RETURN(void, glFogfv,pname,params)
+//STUB_FUNCTION_HEAD(void, glFogiv, GLenum pname, const GLint *params ) STUB_FUNCTION_END_NO_RETURN(void, glFogiv,pname,params)
 /*
 * Selection and Feedback
 */
@@ -385,7 +388,7 @@ STUB_FUNCTION_HEAD(void, glFramebufferTexture3D, GLenum target, GLenum attachmen
 STUB_FUNCTION_HEAD(void, glCompressedTexImage1D, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glCompressedTexImage1D,target,level,internalformat,width,border,imageSize,data)
 STUB_FUNCTION_HEAD(void, glCompressedTexSubImage1D, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glCompressedTexSubImage1D,target,level,xoffset,width,format,imageSize,data)
 STUB_FUNCTION_HEAD(void, glGetCompressedTexImage, GLenum target, GLint level, void* img); STUB_FUNCTION_END_NO_RETURN(void, glGetCompressedTexImage,target,level,img)
-STUB_FUNCTION_HEAD(void, glClientActiveTexture, GLenum texture); STUB_FUNCTION_END_NO_RETURN(void, glClientActiveTexture,texture)
+//STUB_FUNCTION_HEAD(void, glClientActiveTexture, GLenum texture); STUB_FUNCTION_END_NO_RETURN(void, glClientActiveTexture,texture)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1d, GLenum target, GLdouble s); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1d,target,s)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1dv, GLenum target, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1dv,target,v)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1f, GLenum target, GLfloat s); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1f,target,s)
@@ -396,7 +399,7 @@ STUB_FUNCTION_HEAD(void, glMultiTexCoord1s, GLenum target, GLshort s); STUB_FUNC
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1sv, GLenum target, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1sv,target,v)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord2d, GLenum target, GLdouble s, GLdouble t); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2d,target,s,t)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord2dv, GLenum target, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2dv,target,v)
-STUB_FUNCTION_HEAD(void, glMultiTexCoord2f, GLenum target, GLfloat s, GLfloat t); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2f,target,s,t)
+//STUB_FUNCTION_HEAD(void, glMultiTexCoord2f, GLenum target, GLfloat s, GLfloat t); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2f,target,s,t)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord2fv, GLenum target, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2fv,target,v)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord2i, GLenum target, GLint s, GLint t); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2i,target,s,t)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord2iv, GLenum target, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord2iv,target,v)
@@ -412,7 +415,7 @@ STUB_FUNCTION_HEAD(void, glMultiTexCoord3s, GLenum target, GLshort s, GLshort t,
 STUB_FUNCTION_HEAD(void, glMultiTexCoord3sv, GLenum target, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord3sv,target,v)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord4d, GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4d,target,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord4dv, GLenum target, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4dv,target,v)
-STUB_FUNCTION_HEAD(void, glMultiTexCoord4f, GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4f,target,s,t,r,q)
+//STUB_FUNCTION_HEAD(void, glMultiTexCoord4f, GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4f,target,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord4fv, GLenum target, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4fv,target,v)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord4i, GLenum target, GLint s, GLint t, GLint r, GLint q); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4i,target,s,t,r,q)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord4iv, GLenum target, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord4iv,target,v)
@@ -469,36 +472,36 @@ STUB_FUNCTION_HEAD(void, glWindowPos3sv,const GLshort* v); STUB_FUNCTION_END_NO_
 //STUB_FUNCTION_HEAD(void, glGetQueryObjectiv, GLuint id, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjectiv,id,pname,params)
 STUB_FUNCTION_HEAD(void, glGetBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetBufferSubData,target,offset,size,data)
 STUB_FUNCTION_HEAD(void, glGetVertexAttribdv, GLuint index, GLenum pname, GLdouble* params); STUB_FUNCTION_END_NO_RETURN(void, glGetVertexAttribdv,index,pname,params)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1d, GLuint index, GLdouble x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1d,index,x)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1s, GLuint index, GLshort x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1s,index,x)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1sv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2d, GLuint index, GLdouble x, GLdouble y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2d,index,x,y)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2s, GLuint index, GLshort x, GLshort y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2s,index,x,y)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2sv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3d, GLuint index, GLdouble x, GLdouble y, GLdouble z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3d,index,x,y,z)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3s, GLuint index, GLshort x, GLshort y, GLshort z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3s,index,x,y,z)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3sv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nbv, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nbv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Niv, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Niv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nsv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nsv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nub, GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nub,index,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nubv, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nubv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nuiv, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nuiv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4Nusv, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nusv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4bv, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4bv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4d, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4d,index,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4iv, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4iv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4s, GLuint index, GLshort x, GLshort y, GLshort z, GLshort w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4s,index,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4sv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4ubv, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ubv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4uiv, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4uiv,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4usv, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4usv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1d, GLuint index, GLdouble x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1d,index,x)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1s, GLuint index, GLshort x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1s,index,x)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1sv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2d, GLuint index, GLdouble x, GLdouble y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2d,index,x,y)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2s, GLuint index, GLshort x, GLshort y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2s,index,x,y)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2sv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3d, GLuint index, GLdouble x, GLdouble y, GLdouble z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3d,index,x,y,z)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3s, GLuint index, GLshort x, GLshort y, GLshort z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3s,index,x,y,z)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3sv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nbv, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nbv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Niv, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Niv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nsv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nsv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nub, GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nub,index,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nubv, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nubv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nuiv, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nuiv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4Nusv, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4Nusv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4bv, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4bv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4d, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4d,index,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4dv, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4iv, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4iv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4s, GLuint index, GLshort x, GLshort y, GLshort z, GLshort w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4s,index,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4sv, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4sv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4ubv, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ubv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4uiv, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4uiv,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4usv, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4usv,index,v)
 STUB_FUNCTION_HEAD(void, glPrimitiveRestartIndex, GLuint index); STUB_FUNCTION_END_NO_RETURN(void, glPrimitiveRestartIndex,index)
-STUB_FUNCTION_HEAD(void, glGetActiveUniformName, GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformName); STUB_FUNCTION_END_NO_RETURN(void, glGetActiveUniformName,program,uniformIndex,bufSize,length,uniformName)
+//STUB_FUNCTION_HEAD(void, glGetActiveUniformName, GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformName); STUB_FUNCTION_END_NO_RETURN(void, glGetActiveUniformName,program,uniformIndex,bufSize,length,uniformName)
 //STUB_FUNCTION_HEAD(void, glMultiDrawElementsBaseVertex, GLenum mode, const GLsizei* count, GLenum type, const void* const*indices, GLsizei drawcount, const GLint* basevertex); STUB_FUNCTION_END_NO_RETURN(void, glMultiDrawElementsBaseVertex,mode,count,type,indices,drawcount,basevertex)
 STUB_FUNCTION_HEAD(void, glProvokingVertex, GLenum mode); STUB_FUNCTION_END_NO_RETURN(void, glProvokingVertex,mode)
 STUB_FUNCTION_HEAD(void, glTexImage2DMultisample, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations); STUB_FUNCTION_END_NO_RETURN(void, glTexImage2DMultisample,target,samples,internalformat,width,height,fixedsamplelocations)
@@ -632,7 +635,7 @@ STUB_FUNCTION_HEAD(void, glInvalidateBufferSubData, GLuint buffer, GLintptr offs
 STUB_FUNCTION_HEAD(void, glInvalidateBufferData, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(void, glInvalidateBufferData,buffer)
 STUB_FUNCTION_HEAD(void, glMultiDrawArraysIndirect, GLenum mode, const void* indirect, GLsizei drawcount, GLsizei stride); STUB_FUNCTION_END_NO_RETURN(void, glMultiDrawArraysIndirect,mode,indirect,drawcount,stride)
 STUB_FUNCTION_HEAD(void, glMultiDrawElementsIndirect, GLenum mode, GLenum type, const void* indirect, GLsizei drawcount, GLsizei stride); STUB_FUNCTION_END_NO_RETURN(void, glMultiDrawElementsIndirect,mode,type,indirect,drawcount,stride)
-STUB_FUNCTION_HEAD(GLint, glGetProgramResourceLocationIndex, GLuint program, GLenum programInterface, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(GLint, glGetProgramResourceLocationIndex,program,programInterface,name)
+//STUB_FUNCTION_HEAD(GLint, glGetProgramResourceLocationIndex, GLuint program, GLenum programInterface, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(GLint, glGetProgramResourceLocationIndex,program,programInterface,name)
 STUB_FUNCTION_HEAD(void, glShaderStorageBlockBinding, GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding); STUB_FUNCTION_END_NO_RETURN(void, glShaderStorageBlockBinding,program,storageBlockIndex,storageBlockBinding)
 STUB_FUNCTION_HEAD(void, glTextureView, GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers); STUB_FUNCTION_END_NO_RETURN(void, glTextureView,texture,target,origtexture,internalformat,minlevel,numlevels,minlayer,numlayers)
 STUB_FUNCTION_HEAD(void, glVertexAttribLFormat, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttribLFormat,attribindex,size,type,relativeoffset)
@@ -653,20 +656,20 @@ STUB_FUNCTION_HEAD(void, glTransformFeedbackBufferRange, GLuint xfb, GLuint inde
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbackiv, GLuint xfb, GLenum pname, GLint* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbackiv,xfb,pname,param)
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki_v, GLuint xfb, GLenum pname, GLuint index, GLint* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki_v,xfb,pname,index,param)
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki64_v, GLuint xfb, GLenum pname, GLuint index, GLint64* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki64_v,xfb,pname,index,param)
-STUB_FUNCTION_HEAD(void, glCreateBuffers, GLsizei n, GLuint* buffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateBuffers,n,buffers)
+//STUB_FUNCTION_HEAD(void, glCreateBuffers, GLsizei n, GLuint* buffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateBuffers,n,buffers)
 STUB_FUNCTION_HEAD(void, glNamedBufferStorage, GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferStorage,buffer,size,data,flags)
 STUB_FUNCTION_HEAD(void, glNamedBufferData, GLuint buffer, GLsizeiptr size, const void* data, GLenum usage); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferData,buffer,size,data,usage)
-STUB_FUNCTION_HEAD(void, glNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubData,buffer,offset,size,data)
+//STUB_FUNCTION_HEAD(void, glNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubData,buffer,offset,size,data)
 STUB_FUNCTION_HEAD(void, glCopyNamedBufferSubData, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size); STUB_FUNCTION_END_NO_RETURN(void, glCopyNamedBufferSubData,readBuffer,writeBuffer,readOffset,writeOffset,size)
 STUB_FUNCTION_HEAD(void, glClearNamedBufferData, GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferData,buffer,internalformat,format,type,data)
 STUB_FUNCTION_HEAD(void, glClearNamedBufferSubData, GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferSubData,buffer,internalformat,offset,size,format,type,data)
 STUB_FUNCTION_HEAD(GLboolean, glUnmapNamedBuffer, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(GLboolean, glUnmapNamedBuffer,buffer)
-STUB_FUNCTION_HEAD(void, glFlushMappedNamedBufferRange, GLuint buffer, GLintptr offset, GLsizeiptr length); STUB_FUNCTION_END_NO_RETURN(void, glFlushMappedNamedBufferRange,buffer,offset,length)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteriv, GLuint buffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteriv,buffer,pname,params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteri64v, GLuint buffer, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteri64v,buffer,pname,params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferPointerv, GLuint buffer, GLenum pname, void* *params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferPointerv,buffer,pname,*params)
-STUB_FUNCTION_HEAD(void, glGetNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferSubData,buffer,offset,size,data)
-STUB_FUNCTION_HEAD(void, glCreateFramebuffers, GLsizei n, GLuint* framebuffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateFramebuffers,n,framebuffers)
+//STUB_FUNCTION_HEAD(void, glFlushMappedNamedBufferRange, GLuint buffer, GLintptr offset, GLsizeiptr length); STUB_FUNCTION_END_NO_RETURN(void, glFlushMappedNamedBufferRange,buffer,offset,length)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteriv, GLuint buffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteriv,buffer,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferParameteri64v, GLuint buffer, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameteri64v,buffer,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferPointerv, GLuint buffer, GLenum pname, void* *params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferPointerv,buffer,pname,*params)
+//STUB_FUNCTION_HEAD(void, glGetNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferSubData,buffer,offset,size,data)
+//STUB_FUNCTION_HEAD(void, glCreateFramebuffers, GLsizei n, GLuint* framebuffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateFramebuffers,n,framebuffers)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferRenderbuffer, GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferRenderbuffer,framebuffer,attachment,renderbuffertarget,renderbuffer)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferParameteri, GLuint framebuffer, GLenum pname, GLint param); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferParameteri,framebuffer,pname,param)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferTexture, GLuint framebuffer, GLenum attachment, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferTexture,framebuffer,attachment,texture,level)
@@ -933,17 +936,17 @@ STUB_FUNCTION_HEAD(void, glGetnMinmaxARB, GLenum target, GLboolean reset, GLenum
 STUB_FUNCTION_HEAD(void, glFramebufferSampleLocationsfvARB, GLenum target, GLuint start, GLsizei count, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glFramebufferSampleLocationsfvARB,target,start,count,v)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferSampleLocationsfvARB, GLuint framebuffer, GLuint start, GLsizei count, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferSampleLocationsfvARB,framebuffer,start,count,v)
 STUB_FUNCTION_HEAD(void, glEvaluateDepthValuesARB,void); STUB_FUNCTION_END_NO_RETURN(void, glEvaluateDepthValuesARB,)
-STUB_FUNCTION_HEAD(void, glDeleteObjectARB, GLhandleARB obj); STUB_FUNCTION_END_NO_RETURN(void, glDeleteObjectARB,obj)
-STUB_FUNCTION_HEAD(GLhandleARB, glGetHandleARB, GLenum pname); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glGetHandleARB,pname)
-STUB_FUNCTION_HEAD(void, glDetachObjectARB, GLhandleARB containerObj, GLhandleARB attachedObj); STUB_FUNCTION_END_NO_RETURN(void, glDetachObjectARB,containerObj,attachedObj)
-STUB_FUNCTION_HEAD(GLhandleARB, glCreateShaderObjectARB, GLenum shaderType); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glCreateShaderObjectARB,shaderType)
-STUB_FUNCTION_HEAD(GLhandleARB, glCreateProgramObjectARB,void); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glCreateProgramObjectARB,)
-STUB_FUNCTION_HEAD(void, glAttachObjectARB, GLhandleARB containerObj, GLhandleARB obj); STUB_FUNCTION_END_NO_RETURN(void, glAttachObjectARB,containerObj,obj)
-STUB_FUNCTION_HEAD(void, glUseProgramObjectARB, GLhandleARB programObj); STUB_FUNCTION_END_NO_RETURN(void, glUseProgramObjectARB,programObj)
-STUB_FUNCTION_HEAD(void, glGetObjectParameterfvARB, GLhandleARB obj, GLenum pname, GLfloat* params); STUB_FUNCTION_END_NO_RETURN(void, glGetObjectParameterfvARB,obj,pname,params)
-STUB_FUNCTION_HEAD(void, glGetObjectParameterivARB, GLhandleARB obj, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetObjectParameterivARB,obj,pname,params)
+//STUB_FUNCTION_HEAD(void, glDeleteObjectARB, GLhandleARB obj); STUB_FUNCTION_END_NO_RETURN(void, glDeleteObjectARB,obj)
+//STUB_FUNCTION_HEAD(GLhandleARB, glGetHandleARB, GLenum pname); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glGetHandleARB,pname)
+//STUB_FUNCTION_HEAD(void, glDetachObjectARB, GLhandleARB containerObj, GLhandleARB attachedObj); STUB_FUNCTION_END_NO_RETURN(void, glDetachObjectARB,containerObj,attachedObj)
+//STUB_FUNCTION_HEAD(GLhandleARB, glCreateShaderObjectARB, GLenum shaderType); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glCreateShaderObjectARB,shaderType)
+//STUB_FUNCTION_HEAD(GLhandleARB, glCreateProgramObjectARB,void); STUB_FUNCTION_END_NO_RETURN(GLhandleARB, glCreateProgramObjectARB,)
+//STUB_FUNCTION_HEAD(void, glAttachObjectARB, GLhandleARB containerObj, GLhandleARB obj); STUB_FUNCTION_END_NO_RETURN(void, glAttachObjectARB,containerObj,obj)
+//STUB_FUNCTION_HEAD(void, glUseProgramObjectARB, GLhandleARB programObj); STUB_FUNCTION_END_NO_RETURN(void, glUseProgramObjectARB,programObj)
+//STUB_FUNCTION_HEAD(void, glGetObjectParameterfvARB, GLhandleARB obj, GLenum pname, GLfloat* params); STUB_FUNCTION_END_NO_RETURN(void, glGetObjectParameterfvARB,obj,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetObjectParameterivARB, GLhandleARB obj, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetObjectParameterivARB,obj,pname,params)
 STUB_FUNCTION_HEAD(void, glGetInfoLogARB, GLhandleARB obj, GLsizei maxLength, GLsizei* length, GLcharARB* infoLog); STUB_FUNCTION_END_NO_RETURN(void, glGetInfoLogARB,obj,maxLength,length,infoLog)
-STUB_FUNCTION_HEAD(void, glGetAttachedObjectsARB, GLhandleARB containerObj, GLsizei maxCount, GLsizei* count, GLhandleARB* obj); STUB_FUNCTION_END_NO_RETURN(void, glGetAttachedObjectsARB,containerObj,maxCount,count,obj)
+//STUB_FUNCTION_HEAD(void, glGetAttachedObjectsARB, GLhandleARB containerObj, GLsizei maxCount, GLsizei* count, GLhandleARB* obj); STUB_FUNCTION_END_NO_RETURN(void, glGetAttachedObjectsARB,containerObj,maxCount,count,obj)
 STUB_FUNCTION_HEAD(void, glNamedStringARB, GLenum type, GLint namelen, const GLchar* name, GLint stringlen, const GLchar* string); STUB_FUNCTION_END_NO_RETURN(void, glNamedStringARB,type,namelen,name,stringlen,string)
 STUB_FUNCTION_HEAD(void, glDeleteNamedStringARB, GLint namelen, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(void, glDeleteNamedStringARB,namelen,name)
 STUB_FUNCTION_HEAD(void, glCompileShaderIncludeARB, GLuint shader, GLsizei count, const GLchar* const*path, const GLint* length); STUB_FUNCTION_END_NO_RETURN(void, glCompileShaderIncludeARB,shader,count,path,length)
@@ -972,18 +975,18 @@ STUB_FUNCTION_HEAD(void, glWeightuivARB, GLint size, const GLuint* weights); STU
 STUB_FUNCTION_HEAD(void, glWeightPointerARB, GLint size, GLenum type, GLsizei stride, const void* pointer); STUB_FUNCTION_END_NO_RETURN(void, glWeightPointerARB,size,type,stride,pointer)
 STUB_FUNCTION_HEAD(void, glVertexBlendARB, GLint count); STUB_FUNCTION_END_NO_RETURN(void, glVertexBlendARB,count)
 STUB_FUNCTION_HEAD(void, glGetBufferSubDataARB, GLenum target, GLintptrARB offset, GLsizeiptrARB size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetBufferSubDataARB,target,offset,size,data)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1dARB, GLuint index, GLdouble x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dARB,index,x)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1sARB, GLuint index, GLshort x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1sARB,index,x)
-STUB_FUNCTION_HEAD(void, glVertexAttrib1svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1svARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2dARB, GLuint index, GLdouble x, GLdouble y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dARB,index,x,y)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2sARB, GLuint index, GLshort x, GLshort y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2sARB,index,x,y)
-STUB_FUNCTION_HEAD(void, glVertexAttrib2svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2svARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3dARB, GLuint index, GLdouble x, GLdouble y, GLdouble z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dARB,index,x,y,z)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3sARB, GLuint index, GLshort x, GLshort y, GLshort z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3sARB,index,x,y,z)
-STUB_FUNCTION_HEAD(void, glVertexAttrib3svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3svARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1dARB, GLuint index, GLdouble x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dARB,index,x)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1dvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1sARB, GLuint index, GLshort x); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1sARB,index,x)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib1svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib1svARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2dARB, GLuint index, GLdouble x, GLdouble y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dARB,index,x,y)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2dvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2sARB, GLuint index, GLshort x, GLshort y); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2sARB,index,x,y)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib2svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib2svARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3dARB, GLuint index, GLdouble x, GLdouble y, GLdouble z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dARB,index,x,y,z)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3dvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3sARB, GLuint index, GLshort x, GLshort y, GLshort z); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3sARB,index,x,y,z)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib3svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib3svARB,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NbvARB, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NbvARB,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NivARB, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NivARB,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NsvARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NsvARB,index,v)
@@ -991,16 +994,16 @@ STUB_FUNCTION_HEAD(void, glVertexAttrib4NubARB, GLuint index, GLubyte x, GLubyte
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NubvARB, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NubvARB,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NuivARB, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NuivARB,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4NusvARB, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4NusvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4bvARB, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4bvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4dARB, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dARB,index,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4ivARB, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ivARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4sARB, GLuint index, GLshort x, GLshort y, GLshort z, GLshort w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4sARB,index,x,y,z,w)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4svARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4ubvARB, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ubvARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4uivARB, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4uivARB,index,v)
-STUB_FUNCTION_HEAD(void, glVertexAttrib4usvARB, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4usvARB,index,v)
-STUB_FUNCTION_HEAD(void, glGetVertexAttribdvARB, GLuint index, GLenum pname, GLdouble* params); STUB_FUNCTION_END_NO_RETURN(void, glGetVertexAttribdvARB,index,pname,params)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4bvARB, GLuint index, const GLbyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4bvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4dARB, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dARB,index,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4dvARB, GLuint index, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4dvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4ivARB, GLuint index, const GLint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ivARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4sARB, GLuint index, GLshort x, GLshort y, GLshort z, GLshort w); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4sARB,index,x,y,z,w)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4svARB, GLuint index, const GLshort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4svARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4ubvARB, GLuint index, const GLubyte* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4ubvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4uivARB, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4uivARB,index,v)
+//STUB_FUNCTION_HEAD(void, glVertexAttrib4usvARB, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4usvARB,index,v)
+//STUB_FUNCTION_HEAD(void, glGetVertexAttribdvARB, GLuint index, GLenum pname, GLdouble* params); STUB_FUNCTION_END_NO_RETURN(void, glGetVertexAttribdvARB,index,pname,params)
 STUB_FUNCTION_HEAD(void, glDepthRangeArraydvNV, GLuint first, GLsizei count, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glDepthRangeArraydvNV,first,count,v)
 STUB_FUNCTION_HEAD(void, glDepthRangeIndexeddNV, GLuint index, GLdouble n, GLdouble f); STUB_FUNCTION_END_NO_RETURN(void, glDepthRangeIndexeddNV,index,n,f)
 STUB_FUNCTION_HEAD(void, glWindowPos2dARB, GLdouble x, GLdouble y); STUB_FUNCTION_END_NO_RETURN(void, glWindowPos2dARB,x,y)
@@ -1627,8 +1630,8 @@ STUB_FUNCTION_HEAD(void, glFogCoordfvEXT,const GLfloat* coord); STUB_FUNCTION_EN
 STUB_FUNCTION_HEAD(void, glFogCoorddEXT, GLdouble coord); STUB_FUNCTION_END_NO_RETURN(void, glFogCoorddEXT,coord)
 STUB_FUNCTION_HEAD(void, glFogCoorddvEXT,const GLdouble* coord); STUB_FUNCTION_END_NO_RETURN(void, glFogCoorddvEXT,coord)
 STUB_FUNCTION_HEAD(void, glFogCoordPointerEXT, GLenum type, GLsizei stride, const void* pointer); STUB_FUNCTION_END_NO_RETURN(void, glFogCoordPointerEXT,type,stride,pointer)
-STUB_FUNCTION_HEAD(void, glFramebufferTexture1DEXT, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glFramebufferTexture1DEXT,target,attachment,textarget,texture,level)
-STUB_FUNCTION_HEAD(void, glFramebufferTexture3DEXT, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset); STUB_FUNCTION_END_NO_RETURN(void, glFramebufferTexture3DEXT,target,attachment,textarget,texture,level,zoffset)
+//STUB_FUNCTION_HEAD(void, glFramebufferTexture1DEXT, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glFramebufferTexture1DEXT,target,attachment,textarget,texture,level)
+//STUB_FUNCTION_HEAD(void, glFramebufferTexture3DEXT, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset); STUB_FUNCTION_END_NO_RETURN(void, glFramebufferTexture3DEXT,target,attachment,textarget,texture,level,zoffset)
 STUB_FUNCTION_HEAD(void, glProgramEnvParameters4fvEXT, GLenum target, GLuint index, GLsizei count, const GLfloat* params); STUB_FUNCTION_END_NO_RETURN(void, glProgramEnvParameters4fvEXT,target,index,count,params)
 STUB_FUNCTION_HEAD(void, glProgramLocalParameters4fvEXT, GLenum target, GLuint index, GLsizei count, const GLfloat* params); STUB_FUNCTION_END_NO_RETURN(void, glProgramLocalParameters4fvEXT,target,index,count,params)
 //STUB_FUNCTION_HEAD(void, glBindFragDataLocationEXT, GLuint program, GLuint color, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(void, glBindFragDataLocationEXT,program,color,name)
@@ -2486,6 +2489,307 @@ STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fSUN, GLuin
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN,const GLuint* rc, const GLfloat* tc, const GLfloat* n, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN,rc,tc,n,v)
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN, GLuint rc, GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN,rc,s,t,r,g,b,a,nx,ny,nz,x,y,z)
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,const GLuint* rc, const GLfloat* tc, const GLfloat* c, const GLfloat* n, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,rc,tc,c,n,v)
+
+
+GLAPI GLAPIENTRY void glVertexAttrib4sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4sv") }
+GLAPI GLAPIENTRY void glCompressedTexImage2DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexImage2DEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord3ui(GLenum target, GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glMultiTexCoord3ui") }
+//GLAPI GLAPIENTRY void glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near_val, GLfloat far_val) { LOG_W("Stub: glOrthof") }
+GLAPI GLAPIENTRY void glVertex2bv(const GLbyte *v) { LOG_W("Stub: glVertex2bv") }
+GLAPI GLAPIENTRY void glMultiTexCoord3ub(GLenum target, GLubyte s, GLubyte t, GLubyte r) { LOG_W("Stub: glMultiTexCoord3ub") }
+GLAPI GLAPIENTRY void glMultiTexCoord4uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord4uiv") }
+GLAPI GLAPIENTRY void glRasterPos2uiv(const GLuint *v) { LOG_W("Stub: glRasterPos2uiv") }
+GLAPI GLAPIENTRY void glMultiTexCoord2usv(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord2usv") }
+GLAPI GLAPIENTRY void glTexCoord4b(GLbyte s, GLbyte t, GLbyte r, GLbyte q) { LOG_W("Stub: glTexCoord4b") }
+GLAPI GLAPIENTRY void glDrawRangeElementsEXT(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices) { LOG_W("Stub: glDrawRangeElementsEXT") }
+GLAPI GLAPIENTRY void glProgramUniform3iEXT(GLuint program, GLint location, GLint v0, GLint v1, GLint v2) { LOG_W("Stub: glProgramUniform3iEXT") }
+GLAPI GLAPIENTRY void glFogxv(GLenum pname, const GLfixed *param) { LOG_W("Stub: glFogxv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord4bv") }
+GLAPI GLAPIENTRY void glMultiTexCoord1bARB(GLenum target, GLbyte s) { LOG_W("Stub: glMultiTexCoord1bARB") }
+GLAPI GLAPIENTRY void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) { LOG_W("Stub: glVertexAttrib3d") }
+GLAPI GLAPIENTRY void glTexCoord4bv(const GLbyte *v) { LOG_W("Stub: glTexCoord4bv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4ubARB(GLenum target, GLubyte s, GLubyte t, GLubyte r, GLubyte q) { LOG_W("Stub: glMultiTexCoord4ubARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord3b(GLenum target, GLbyte s, GLbyte t, GLbyte r) { LOG_W("Stub: glMultiTexCoord3b") }
+GLAPI GLAPIENTRY void glMultiTexCoord3ubARB(GLenum target, GLubyte s, GLubyte t, GLubyte r) { LOG_W("Stub: glMultiTexCoord3ubARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord1usARB(GLenum target, GLushort s) { LOG_W("Stub: glMultiTexCoord1usARB") }
+GLAPI GLAPIENTRY void glWindowPos2bv(const GLbyte *v) { LOG_W("Stub: glWindowPos2bv") }
+GLAPI GLAPIENTRY void glVertexAttrib4ubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4ubv") }
+GLAPI GLAPIENTRY void glMultiTexCoord1ubARB(GLenum target, GLubyte s) { LOG_W("Stub: glMultiTexCoord1ubARB") }
+GLAPI GLAPIENTRY void glWindowPos3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glWindowPos3us") }
+GLAPI GLAPIENTRY void glFogx(GLenum pname, GLfixed param) { LOG_W("Stub: glFogx") }
+GLAPI GLAPIENTRY void glMultiTexCoord4usv(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord4usv") }
+GLAPI GLAPIENTRY void glRasterPos2bv(const GLbyte *v) { LOG_W("Stub: glRasterPos2bv") }
+GLAPI GLAPIENTRY void glLightModelxv(GLenum pname, const GLfixed *param) { LOG_W("Stub: glLightModelxv") }
+GLAPI GLAPIENTRY void glColor4x(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha) { LOG_W("Stub: glColor4x") }
+GLAPI GLAPIENTRY void glDeleteBufferStorage(GLuint buffer) { LOG_W("Stub: glDeleteBufferStorage") }
+GLAPI GLAPIENTRY void glRasterPos3b(GLbyte x, GLbyte y, GLbyte z) { LOG_W("Stub: glRasterPos3b") }
+GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffersEXT(GLuint framebuffer, GLsizei n, const GLenum *bufs) { LOG_W("Stub: glNamedFramebufferDrawBuffersEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord4ui(GLenum target, GLuint s, GLuint t, GLuint r, GLuint q) { LOG_W("Stub: glMultiTexCoord4ui") }
+GLAPI GLAPIENTRY void glWindowPos3usv(const GLushort *v) { LOG_W("Stub: glWindowPos3usv") }
+GLAPI GLAPIENTRY void glFogfvEXT(GLenum pname, const GLfloat *params) { LOG_W("Stub: glFogfvEXT") }
+GLAPI GLAPIENTRY void glVertex4ubv(const GLubyte *v) { LOG_W("Stub: glVertex4ubv") }
+GLAPI GLAPIENTRY void glProgramUniform4fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) { LOG_W("Stub: glProgramUniform4fEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord2ui(GLenum target, GLuint s, GLuint t) { LOG_W("Stub: glMultiTexCoord2ui") }
+GLAPI GLAPIENTRY void glRasterPos4bv(const GLbyte *v) { LOG_W("Stub: glRasterPos4bv") }
+GLAPI GLAPIENTRY void glRasterPos3bv(const GLbyte *v) { LOG_W("Stub: glRasterPos3bv") }
+GLAPI GLAPIENTRY void glRasterPos3ui(GLuint x, GLuint y, GLuint z) { LOG_W("Stub: glRasterPos3ui") }
+GLAPI GLAPIENTRY void glTexCoord1usv(const GLushort *v) { LOG_W("Stub: glTexCoord1usv") }
+GLAPI GLAPIENTRY void glRasterPos4b(GLbyte x, GLbyte y, GLbyte z, GLbyte w) { LOG_W("Stub: glRasterPos4b") }
+GLAPI GLAPIENTRY int glXWaitX(void) { LOG_W("Stub: glXWaitX") }
+GLAPI GLAPIENTRY void glMultiTexCoord3bvARB(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord3bvARB") }
+GLAPI GLAPIENTRY void glTexCoord3b(GLbyte s, GLbyte t, GLbyte r) { LOG_W("Stub: glTexCoord3b") }
+GLAPI GLAPIENTRY void glMultiTexCoord4bARB(GLenum target, GLbyte s, GLbyte t, GLbyte r, GLbyte q) { LOG_W("Stub: glMultiTexCoord4bARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord2bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord2bv") }
+GLAPI GLAPIENTRY void glProgramUniformMatrix4fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) { LOG_W("Stub: glProgramUniformMatrix4fvEXT") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nuiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4Nuiv") }
+GLAPI GLAPIENTRY void glVertexAttrib4iv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4iv") }
+GLAPI GLAPIENTRY void glVertexAttrib2dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib2dv") }
+GLAPI GLAPIENTRY void glRasterPos3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glRasterPos3us") }
+GLAPI GLAPIENTRY void glMultiTexCoord2usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord2usvARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord1ub(GLenum target, GLubyte s) { LOG_W("Stub: glMultiTexCoord1ub") }
+GLAPI GLAPIENTRY void glTexCoord1ui(GLuint s) { LOG_W("Stub: glTexCoord1ui") }
+GLAPI GLAPIENTRY void glRasterPos4usv(const GLushort *v) { LOG_W("Stub: glRasterPos4usv") }
+GLAPI GLAPIENTRY void glMultiTexCoord1ubv(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord1ubv") }
+GLAPI GLAPIENTRY void glVertex3uiv(const GLuint *v) { LOG_W("Stub: glVertex3uiv") }
+GLAPI GLAPIENTRY void glNormal3us(GLushort nx, GLushort ny, GLushort nz) { LOG_W("Stub: glNormal3us") }
+GLAPI GLAPIENTRY void glRasterPos4us(GLushort x, GLushort y, GLushort z, GLushort w) { LOG_W("Stub: glRasterPos4us") }
+GLAPI GLAPIENTRY void glMultiTexCoord1uiARB(GLenum target, GLuint s) { LOG_W("Stub: glMultiTexCoord1uiARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord2usARB(GLenum target, GLushort s, GLushort t) { LOG_W("Stub: glMultiTexCoord2usARB") }
+GLAPI GLAPIENTRY void glTexCoord4ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord4ubv") }
+GLAPI GLAPIENTRY void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) { LOG_W("Stub: glVertexAttrib2d") }
+GLAPI GLAPIENTRY void glCopyTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) { LOG_W("Stub: glCopyTexSubImage3DEXT") }
+GLAPI GLAPIENTRY void glTexCoord2ui(GLuint s, GLuint t) { LOG_W("Stub: glTexCoord2ui") }
+GLAPI GLAPIENTRY void glMultiTexCoord3uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord3uiv") }
+GLAPI GLAPIENTRY void glMultiTexCoord3bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord3bv") }
+GLAPI GLAPIENTRY void glFrustumx(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f) { LOG_W("Stub: glFrustumx") }
+GLAPI GLAPIENTRY void glWindowPos3bv(const GLbyte *v) { LOG_W("Stub: glWindowPos3bv") }
+GLAPI GLAPIENTRY void glMultiTexCoord2ubARB(GLenum target, GLubyte s, GLubyte t) { LOG_W("Stub: glMultiTexCoord2ubARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord3uiARB(GLenum target, GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glMultiTexCoord3uiARB") }
+GLAPI GLAPIENTRY void glMaterialx(GLenum face, GLenum pname, GLfixed param) { LOG_W("Stub: glMaterialx") }
+GLAPI GLAPIENTRY void glRasterPos3uiv(const GLuint *v) { LOG_W("Stub: glRasterPos3uiv") }
+GLAPI GLAPIENTRY void glVertexAttrib1sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib1sv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord4ubvARB") }
+GLAPI GLAPIENTRY void glClearNamedFramebufferivEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value) { LOG_W("Stub: glClearNamedFramebufferivEXT") }
+GLAPI GLAPIENTRY void glTexCoord4ub(GLubyte s, GLubyte t, GLubyte r, GLubyte q) { LOG_W("Stub: glTexCoord4ub") }
+GLAPI GLAPIENTRY void glWindowPos2ubv(const GLubyte *v) { LOG_W("Stub: glWindowPos2ubv") }
+GLAPI GLAPIENTRY void glCompressedTexImage3DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexImage3DEXT") }
+GLAPI GLAPIENTRY void glVertex3ubv(const GLubyte *v) { LOG_W("Stub: glVertex3ubv") }
+GLAPI GLAPIENTRY void glPointSizex(GLfixed size) { LOG_W("Stub: glPointSizex") }
+GLAPI GLAPIENTRY void glWindowPos3uiv(const GLuint *v) { LOG_W("Stub: glWindowPos3uiv") }
+GLAPI GLAPIENTRY int glXWaitGL(void) { LOG_W("Stub: glXWaitGL") }
+GLAPI GLAPIENTRY void glTexEnvx(GLenum target, GLenum pname, GLfixed param) { LOG_W("Stub: glTexEnvx") }
+GLAPI GLAPIENTRY void glLightx(GLenum light, GLenum pname, GLfixed param) { LOG_W("Stub: glLightx") }
+GLAPI GLAPIENTRY void glMultiTexCoord4us(GLenum target, GLushort s, GLushort t, GLushort r, GLushort q) { LOG_W("Stub: glMultiTexCoord4us") }
+GLAPI GLAPIENTRY void glWindowPos2ui(GLuint x, GLuint y) { LOG_W("Stub: glWindowPos2ui") }
+GLAPI GLAPIENTRY void glTexCoord3usv(const GLushort *v) { LOG_W("Stub: glTexCoord3usv") }
+GLAPI GLAPIENTRY void glVertexAttrib1s(GLuint index, GLshort x) { LOG_W("Stub: glVertexAttrib1s") }
+GLAPI GLAPIENTRY void glBlendEquationSeparateEXT(GLenum modeRGB, GLenum modeAlpha) { LOG_W("Stub: glBlendEquationSeparateEXT") }
+GLAPI GLAPIENTRY void glVertex3ub(GLubyte x, GLubyte y, GLubyte z) { LOG_W("Stub: glVertex3ub") }
+GLAPI GLAPIENTRY int glXSwapIntervalSGI(int interval) { LOG_W("Stub: glXSwapIntervalSGI") }
+GLAPI GLAPIENTRY void glVertex2ui(GLuint x, GLuint y) { LOG_W("Stub: glVertex2ui") }
+GLAPI GLAPIENTRY void glMultiTexCoord4x(GLenum target, GLfixed s, GLfixed t, GLfixed r, GLfixed q) { LOG_W("Stub: glMultiTexCoord4x") }
+GLAPI GLAPIENTRY void glGetTexEnvxv(GLenum target, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetTexEnvxv") }
+GLAPI GLAPIENTRY void glMultiTexCoord2bvARB(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord2bvARB") }
+GLAPI GLAPIENTRY void glClearNamedFramebufferfiEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) { LOG_W("Stub: glClearNamedFramebufferfiEXT") }
+GLAPI GLAPIENTRY void glRasterPos4ui(GLuint x, GLuint y, GLuint z, GLuint w) { LOG_W("Stub: glRasterPos4ui") }
+GLAPI GLAPIENTRY void glVertexAttrib2sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib2sv") }
+GLAPI GLAPIENTRY void glVertexAttrib1dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib1dv") }
+GLAPI GLAPIENTRY void glRotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z) { LOG_W("Stub: glRotatex") }
+GLAPI GLAPIENTRY void glPointParameterx(GLenum pname, GLfixed param) { LOG_W("Stub: glPointParameterx") }
+GLAPI GLAPIENTRY void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) { LOG_W("Stub: glVertexAttrib4d") }
+GLAPI GLAPIENTRY void glMultiTexCoord3usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord3usvARB") }
+GLAPI GLAPIENTRY void glTexCoord2b(GLbyte s, GLbyte t) { LOG_W("Stub: glTexCoord2b") }
+GLAPI GLAPIENTRY void glMultiTexCoord1usv(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord1usv") }
+GLAPI GLAPIENTRY void glTexCoord1ub(GLubyte s) { LOG_W("Stub: glTexCoord1ub") }
+GLAPI GLAPIENTRY void glTexParameterx(GLenum target, GLenum pname, GLfixed param) { LOG_W("Stub: glTexParameterx") }
+GLAPI GLAPIENTRY void glMultiTexCoord2uiARB(GLenum target, GLuint s, GLuint t) { LOG_W("Stub: glMultiTexCoord2uiARB") }
+GLAPI GLAPIENTRY void glVertexAttrib3dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib3dv") }
+GLAPI GLAPIENTRY void glLightxv(GLenum light, GLenum pname, const GLfixed *params) { LOG_W("Stub: glLightxv") }
+GLAPI GLAPIENTRY void glVertex3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glVertex3us") }
+GLAPI GLAPIENTRY void glTexCoord3ub(GLubyte s, GLubyte t, GLubyte r) { LOG_W("Stub: glTexCoord3ub") }
+GLAPI GLAPIENTRY void glRasterPos2ubv(const GLubyte *v) { LOG_W("Stub: glRasterPos2ubv") }
+GLAPI GLAPIENTRY void glRasterPos2ui(GLuint x, GLuint y) { LOG_W("Stub: glRasterPos2ui") }
+GLAPI GLAPIENTRY void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) { LOG_W("Stub: glVertexAttrib4s") }
+GLAPI GLAPIENTRY void glLightModelx(GLenum pname, GLfixed param) { LOG_W("Stub: glLightModelx") }
+GLAPI GLAPIENTRY int glXSwapIntervalMESA(unsigned int interval) { LOG_W("Stub: glXSwapIntervalMESA") }
+GLAPI GLAPIENTRY void glMultiTexCoord2ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord2ubvARB") }
+GLAPI GLAPIENTRY void glTexCoord2us(GLushort s, GLushort t) { LOG_W("Stub: glTexCoord2us") }
+GLAPI GLAPIENTRY void glGetMaterialxv(GLenum face, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetMaterialxv") }
+GLAPI GLAPIENTRY void glVertex4usv(const GLushort *v) { LOG_W("Stub: glVertex4usv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4b(GLenum target, GLbyte s, GLbyte t, GLbyte r, GLbyte q) { LOG_W("Stub: glMultiTexCoord4b") }
+GLAPI GLAPIENTRY void glVertex3usv(const GLushort *v) { LOG_W("Stub: glVertex3usv") }
+GLAPI GLAPIENTRY void glProgramUniform4iEXT(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) { LOG_W("Stub: glProgramUniform4iEXT") }
+GLAPI GLAPIENTRY void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) { LOG_W("Stub: glVertexAttrib3s") }
+GLAPI GLAPIENTRY void glProgramUniformMatrix2fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) { LOG_W("Stub: glProgramUniformMatrix2fvEXT") }
+GLAPI GLAPIENTRY void glVertex4b(GLbyte x, GLbyte y, GLbyte z, GLbyte w) { LOG_W("Stub: glVertex4b") }
+GLAPI GLAPIENTRY void glMultiTexCoord2uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord2uiv") }
+GLAPI GLAPIENTRY void glTexCoord3ui(GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glTexCoord3ui") }
+GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBuffer") }
+GLAPI GLAPIENTRY void glProgramUniform3fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform3fvEXT") }
+GLAPI GLAPIENTRY void glVertex4uiv(const GLuint *v) { LOG_W("Stub: glVertex4uiv") }
+GLAPI GLAPIENTRY void glGetClipPlanex(GLenum plane, GLfixed *equation) { LOG_W("Stub: glGetClipPlanex") }
+GLAPI GLAPIENTRY void glMultiTexCoord4bvARB(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord4bvARB") }
+GLAPI GLAPIENTRY void glRasterPos4ub(GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glRasterPos4ub") }
+GLAPI GLAPIENTRY void glMultiTexCoord2ubv(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord2ubv") }
+GLAPI GLAPIENTRY void glMultiTexCoord2ub(GLenum target, GLubyte s, GLubyte t) { LOG_W("Stub: glMultiTexCoord2ub") }
+GLAPI GLAPIENTRY void glProgramUniformMatrix3fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) { LOG_W("Stub: glProgramUniformMatrix3fvEXT") }
+GLAPI GLAPIENTRY void glRasterPos3ubv(const GLubyte *v) { LOG_W("Stub: glRasterPos3ubv") }
+GLAPI GLAPIENTRY void glMultiTexCoord1bvARB(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord1bvARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord3us(GLenum target, GLushort s, GLushort t, GLushort r) { LOG_W("Stub: glMultiTexCoord3us") }
+GLAPI GLAPIENTRY void glBlendColorEXT(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) { LOG_W("Stub: glBlendColorEXT") }
+GLAPI GLAPIENTRY void glNormal3usv(const GLushort *v) { LOG_W("Stub: glNormal3usv") }
+GLAPI GLAPIENTRY void glProgramUniform3ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value) { LOG_W("Stub: glProgramUniform3ivEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord1us(GLenum target, GLushort s) { LOG_W("Stub: glMultiTexCoord1us") }
+GLAPI GLAPIENTRY void glRasterPos3usv(const GLushort *v) { LOG_W("Stub: glRasterPos3usv") }
+GLAPI GLAPIENTRY void glMultiTexCoord2us(GLenum target, GLushort s, GLushort t) { LOG_W("Stub: glMultiTexCoord2us") }
+GLAPI GLAPIENTRY void glMultiTexCoord1uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord1uiv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4uiARB(GLenum target, GLuint s, GLuint t, GLuint r, GLuint q) { LOG_W("Stub: glMultiTexCoord4uiARB") }
+GLAPI GLAPIENTRY void glCompressedTexSubImage1DEXT(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexSubImage1DEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord2uivARB(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord2uivARB") }
+GLAPI GLAPIENTRY void glMultiTexCoord2b(GLenum target, GLbyte s, GLbyte t) { LOG_W("Stub: glMultiTexCoord2b") }
+GLAPI GLAPIENTRY void glMultiTexCoord1ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord1ubvARB") }
+GLAPI GLAPIENTRY void glVertex4ui(GLuint x, GLuint y, GLuint z, GLuint w) { LOG_W("Stub: glVertex4ui") }
+GLAPI GLAPIENTRY void glMultiTexCoord1uivARB(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord1uivARB") }
+GLAPI GLAPIENTRY void glTexCoord4usv(const GLushort *v) { LOG_W("Stub: glTexCoord4usv") }
+GLAPI GLAPIENTRY void glPolygonOffsetx(GLfixed factor, GLfixed units) { LOG_W("Stub: glPolygonOffsetx") }
+GLAPI GLAPIENTRY void glClipPlanef(GLenum plane, const GLfloat *equation) { LOG_W("Stub: glClipPlanef") }
+GLAPI GLAPIENTRY void glVertex3b(GLbyte x, GLbyte y, GLbyte z) { LOG_W("Stub: glVertex3b") }
+GLAPI GLAPIENTRY void glMultMatrixx(const GLfixed *m) { LOG_W("Stub: glMultMatrixx") }
+GLAPI GLAPIENTRY void glMultiTexCoord2bARB(GLenum target, GLbyte s, GLbyte t) { LOG_W("Stub: glMultiTexCoord2bARB") }
+GLAPI GLAPIENTRY void glVertexAttrib4bv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4bv") }
+GLAPI GLAPIENTRY void glTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels) { LOG_W("Stub: glTexSubImage3DEXT") }
+GLAPI GLAPIENTRY void glClearNamedFramebufferuivEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value) { LOG_W("Stub: glClearNamedFramebufferuivEXT") }
+GLAPI GLAPIENTRY void glRasterPos2usv(const GLushort *v) { LOG_W("Stub: glRasterPos2usv") }
+GLAPI GLAPIENTRY void glVertex3bv(const GLbyte *v) { LOG_W("Stub: glVertex3bv") }
+GLAPI GLAPIENTRY void glFramebufferTextureLayerEXT(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) { LOG_W("Stub: glFramebufferTextureLayerEXT") }
+GLAPI GLAPIENTRY void glQueryCounterARB(GLuint id, GLenum target) { LOG_W("Stub: glQueryCounterARB") }
+//GLAPI GLAPIENTRY void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) { LOG_W("Stub: glVertexAttrib2s") }
+GLAPI GLAPIENTRY void glWindowPos2b(GLbyte x, GLbyte y) { LOG_W("Stub: glWindowPos2b") }
+GLAPI GLAPIENTRY void glTexCoord2usv(const GLushort *v) { LOG_W("Stub: glTexCoord2usv") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glVertexAttrib4Nub") }
+GLAPI GLAPIENTRY void glWindowPos2us(GLushort x, GLushort y) { LOG_W("Stub: glWindowPos2us") }
+GLAPI GLAPIENTRY void glProgramUniform1fEXT(GLuint program, GLint location, GLfloat v0) { LOG_W("Stub: glProgramUniform1fEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord3usARB(GLenum target, GLushort s, GLushort t, GLushort r) { LOG_W("Stub: glMultiTexCoord3usARB") }
+GLAPI GLAPIENTRY void glRasterPos3ub(GLubyte x, GLubyte y, GLubyte z) { LOG_W("Stub: glRasterPos3ub") }
+GLAPI GLAPIENTRY void glVertex2us(GLushort x, GLushort y) { LOG_W("Stub: glVertex2us") }
+GLAPI GLAPIENTRY void glVertexAttrib4dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib4dv") }
+GLAPI GLAPIENTRY void glMultiDrawElementsBaseVertexARB(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex) { LOG_W("Stub: glMultiDrawElementsBaseVertexARB") }
+GLAPI GLAPIENTRY void glDepthRangex(GLfixed n, GLfixed f) { LOG_W("Stub: glDepthRangex") }
+GLAPI GLAPIENTRY void glClearNamedFramebufferfvEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value) { LOG_W("Stub: glClearNamedFramebufferfvEXT") }
+GLAPI GLAPIENTRY void glClipPlanex(GLenum plane, const GLfixed *equation) { LOG_W("Stub: glClipPlanex") }
+GLAPI GLAPIENTRY void glWindowPos3ubv(const GLubyte *v) { LOG_W("Stub: glWindowPos3ubv") }
+GLAPI GLAPIENTRY void glGetTexParameterxv(GLenum target, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetTexParameterxv") }
+GLAPI GLAPIENTRY void glTexParameterxv(GLenum target, GLenum pname, const GLfixed *params) { LOG_W("Stub: glTexParameterxv") }
+GLAPI GLAPIENTRY void glVertexAttrib4usv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4usv") }
+GLAPI GLAPIENTRY void glProgramUniform4ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value) { LOG_W("Stub: glProgramUniform4ivEXT") }
+GLAPI GLAPIENTRY void glProgramUniform2iEXT(GLuint program, GLint location, GLint v0, GLint v1) { LOG_W("Stub: glProgramUniform2iEXT") }
+GLAPI GLAPIENTRY void glIndexui(GLuint c) { LOG_W("Stub: glIndexui") }
+GLAPI GLAPIENTRY void glMultiTexCoord3usv(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord3usv") }
+GLAPI GLAPIENTRY void glVertex4us(GLushort x, GLushort y, GLushort z, GLushort w) { LOG_W("Stub: glVertex4us") }
+GLAPI GLAPIENTRY void glCompressedTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexSubImage3DEXT") }
+GLAPI GLAPIENTRY void glTexCoord4us(GLushort s, GLushort t, GLushort r, GLushort q) { LOG_W("Stub: glTexCoord4us") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nbv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4Nbv") }
+GLAPI GLAPIENTRY void glVertexAttrib3sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib3sv") }
+GLAPI GLAPIENTRY void glBlendFuncSeparateEXT(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha) { LOG_W("Stub: glBlendFuncSeparateEXT") }
+GLAPI GLAPIENTRY void glVertex3ui(GLuint x, GLuint y, GLuint z) { LOG_W("Stub: glVertex3ui") }
+GLAPI GLAPIENTRY void glVertex2usv(const GLushort *v) { LOG_W("Stub: glVertex2usv") }
+GLAPI GLAPIENTRY void glVertex2ub(GLubyte x, GLubyte y) { LOG_W("Stub: glVertex2ub") }
+GLAPI GLAPIENTRY void glProgramUniform1iEXT(GLuint program, GLint location, GLint v0) { LOG_W("Stub: glProgramUniform1iEXT") }
+GLAPI GLAPIENTRY void glRasterPos4uiv(const GLuint *v) { LOG_W("Stub: glRasterPos4uiv") }
+GLAPI GLAPIENTRY void glProgramUniform1ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value) { LOG_W("Stub: glProgramUniform1ivEXT") }
+GLAPI GLAPIENTRY void glNormal3ubv(const GLubyte *v) { LOG_W("Stub: glNormal3ubv") }
+GLAPI GLAPIENTRY void glTexCoord4ui(GLuint s, GLuint t, GLuint r, GLuint q) { LOG_W("Stub: glTexCoord4ui") }
+GLAPI GLAPIENTRY void glTexImage3DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels) { LOG_W("Stub: glTexImage3DEXT") }
+GLAPI GLAPIENTRY void glProgramUniform2fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform2fvEXT") }
+GLAPI GLAPIENTRY void glNormal3uiv(const GLuint *v) { LOG_W("Stub: glNormal3uiv") }
+GLAPI GLAPIENTRY void glTexEnvxv(GLenum target, GLenum pname, const GLfixed *params) { LOG_W("Stub: glTexEnvxv") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nsv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4Nsv") }
+GLAPI GLAPIENTRY void glVertexAttrib1d(GLuint index, GLdouble x) { LOG_W("Stub: glVertexAttrib1d") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4Nubv") }
+GLAPI GLAPIENTRY void glIndexbv(const GLbyte *c) { LOG_W("Stub: glIndexbv") }
+GLAPI GLAPIENTRY void glMultiTexCoord3uivARB(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord3uivARB") }
+GLAPI GLAPIENTRY void glGetClipPlanef(GLenum plane, GLfloat *equation) { LOG_W("Stub: glGetClipPlanef") }
+GLAPI GLAPIENTRY void glWindowPos3ub(GLubyte x, GLubyte y, GLubyte z) { LOG_W("Stub: glWindowPos3ub") }
+GLAPI GLAPIENTRY void glDrawArraysEXT(GLenum mode, GLint first, GLsizei count) { LOG_W("Stub: glDrawArraysEXT") }
+GLAPI GLAPIENTRY void glOrthox(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed near_val, GLfixed far_val) { LOG_W("Stub: glOrthox") }
+GLAPI GLAPIENTRY void glTexCoord4uiv(const GLuint *v) { LOG_W("Stub: glTexCoord4uiv") }
+GLAPI GLAPIENTRY void glIndexuiv(const GLuint *c) { LOG_W("Stub: glIndexuiv") }
+GLAPI GLAPIENTRY void glRasterPos2ub(GLubyte x, GLubyte y) { LOG_W("Stub: glRasterPos2ub") }
+GLAPI GLAPIENTRY void glDrawTexi(GLint x, GLint y, GLint z, GLint width, GLint height) { LOG_W("Stub: glDrawTexi") }
+GLAPI GLAPIENTRY void glClearColorx(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha) { LOG_W("Stub: glClearColorx") }
+GLAPI GLAPIENTRY void glBlendEquationEXT(GLenum mode) { LOG_W("Stub: glBlendEquationEXT") }
+GLAPI GLAPIENTRY void glTexCoord3uiv(const GLuint *v) { LOG_W("Stub: glTexCoord3uiv") }
+GLAPI GLAPIENTRY void glLoadMatrixx(const GLfixed *m) { LOG_W("Stub: glLoadMatrixx") }
+GLAPI GLAPIENTRY void glWindowPos3b(GLbyte x, GLbyte y, GLbyte z) { LOG_W("Stub: glWindowPos3b") }
+GLAPI GLAPIENTRY void glLineWidthx(GLfixed width) { LOG_W("Stub: glLineWidthx") }
+GLAPI GLAPIENTRY void glTexCoord2ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord2ubv") }
+GLAPI GLAPIENTRY void glVertexAttrib4uiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4uiv") }
+GLAPI GLAPIENTRY void glIndexb(GLbyte c) { LOG_W("Stub: glIndexb") }
+GLAPI GLAPIENTRY void glWindowPos2usv(const GLushort *v) { LOG_W("Stub: glWindowPos2usv") }
+GLAPI GLAPIENTRY void glNormal3x(GLfixed nx, GLfixed ny, GLfixed nz) { LOG_W("Stub: glNormal3x") }
+GLAPI GLAPIENTRY void glMultiTexCoord4usARB(GLenum target, GLushort s, GLushort t, GLushort r, GLushort q) { LOG_W("Stub: glMultiTexCoord4usARB") }
+GLAPI GLAPIENTRY void* glMapNamedBufferEXT(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBufferEXT") return nullptr; }
+GLAPI GLAPIENTRY void glMultiTexCoord1ui(GLenum target, GLuint s) { LOG_W("Stub: glMultiTexCoord1ui") }
+GLAPI GLAPIENTRY void glMultiTexCoord1b(GLenum target, GLbyte s) { LOG_W("Stub: glMultiTexCoord1b") }
+GLAPI GLAPIENTRY void glTexCoord2ub(GLubyte s, GLubyte t) { LOG_W("Stub: glTexCoord2ub") }
+GLAPI GLAPIENTRY void glTexCoord2uiv(const GLuint *v) { LOG_W("Stub: glTexCoord2uiv") }
+GLAPI GLAPIENTRY void glTexCoord3bv(const GLbyte *v) { LOG_W("Stub: glTexCoord3bv") }
+GLAPI GLAPIENTRY void glUniform1iARB(GLint location, GLint v0) { glUniform1i(location, v0); }
+GLAPI GLAPIENTRY void glIndexus(GLushort c) { LOG_W("Stub: glIndexus") }
+GLAPI GLAPIENTRY void glPointSizePointerOES(GLenum type, GLsizei stride, const void *pointer) { LOG_W("Stub: glPointSizePointerOES") }
+GLAPI GLAPIENTRY void glCompressedTexSubImage2DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexSubImage2DEXT") }
+GLAPI GLAPIENTRY void glTexCoord1ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord1ubv") }
+GLAPI GLAPIENTRY void glCompressedTexImage1DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexImage1DEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord4ubv(const GLubyte *v) { LOG_W("Stub: glMultiTexCoord4ubv") }
+GLAPI GLAPIENTRY void glMultiTexCoord3ubv(const GLubyte *v) { LOG_W("Stub: glMultiTexCoord3ubv") }
+GLAPI GLAPIENTRY void glRasterPos4ubv(const GLubyte *v) { LOG_W("Stub: glRasterPos4ubv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4ub(GLenum target, GLubyte s, GLubyte t, GLubyte r, GLubyte q) { LOG_W("Stub: glMultiTexCoord4ub") }
+GLAPI GLAPIENTRY void glMultiTexCoord4uivARB(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord4uivARB") }
+GLAPI GLAPIENTRY void glVertex2ubv(const GLubyte *v) { LOG_W("Stub: glVertex2ubv") }
+GLAPI GLAPIENTRY void glTexCoord3ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord3ubv") }
+GLAPI GLAPIENTRY void glGetLightxv(GLenum light, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetLightxv") }
+GLAPI GLAPIENTRY void glVertexAttrib4Niv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4Niv") }
+GLAPI GLAPIENTRY void glDrawTexf(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height) { LOG_W("Stub: glDrawTexf") }
+GLAPI GLAPIENTRY void glMultiTexCoord1usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord1usvARB") }
+GLAPI GLAPIENTRY void glAlphaFuncx(GLenum func, GLfixed ref) { LOG_W("Stub: glAlphaFuncx") }
+GLAPI GLAPIENTRY void glTexCoord1uiv(const GLuint *v) { LOG_W("Stub: glTexCoord1uiv") }
+GLAPI GLAPIENTRY void glProgramUniform1fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform1fvEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord1bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord1bv") }
+GLAPI GLAPIENTRY void glNormal3ui(GLuint nx, GLuint ny, GLuint nz) { LOG_W("Stub: glNormal3ui") }
+GLAPI GLAPIENTRY void glIndexusv(const GLushort *c) { LOG_W("Stub: glIndexusv") }
+GLAPI GLAPIENTRY void glVertex4bv(const GLbyte *v) { LOG_W("Stub: glVertex4bv") }
+GLAPI GLAPIENTRY void glMultiTexCoord4usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord4usvARB") }
+GLAPI GLAPIENTRY void glTexCoord1bv(const GLbyte *v) { LOG_W("Stub: glTexCoord1bv") }
+GLAPI GLAPIENTRY void glTexCoord1b(GLbyte s) { LOG_W("Stub: glTexCoord1b") }
+GLAPI GLAPIENTRY void glNormal3ub(GLubyte nx, GLubyte ny, GLubyte nz) { LOG_W("Stub: glNormal3ub") }
+GLAPI GLAPIENTRY void glProgramUniform2fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1) { LOG_W("Stub: glProgramUniform2fEXT") }
+GLAPI GLAPIENTRY void glFogfEXT(GLenum pname, GLfloat param) { LOG_W("Stub: glFogfEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord3bARB(GLenum target, GLbyte s, GLbyte t, GLbyte r) { LOG_W("Stub: glMultiTexCoord3bARB") }
+GLAPI GLAPIENTRY void glGetFixedv(GLenum pname, GLfixed *params) { LOG_W("Stub: glGetFixedv") }
+GLAPI GLAPIENTRY void glVertex2uiv(const GLuint *v) { LOG_W("Stub: glVertex2uiv") }
+GLAPI GLAPIENTRY void glWindowPos3ui(GLuint x, GLuint y, GLuint z) { LOG_W("Stub: glWindowPos3ui") }
+GLAPI GLAPIENTRY void glWindowPos2uiv(const GLuint *v) { LOG_W("Stub: glWindowPos2uiv") }
+GLAPI GLAPIENTRY void glVertexAttrib4Nusv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4Nusv") }
+GLAPI GLAPIENTRY void glTexCoord1us(GLushort s) { LOG_W("Stub: glTexCoord1us") }
+GLAPI GLAPIENTRY void glVertex2b(GLbyte x, GLbyte y) { LOG_W("Stub: glVertex2b") }
+GLAPI GLAPIENTRY void glClearDepthx(GLfixed depth) { LOG_W("Stub: glClearDepthx") }
+GLAPI GLAPIENTRY void glWindowPos2ub(GLubyte x, GLubyte y) { LOG_W("Stub: glWindowPos2ub") }
+GLAPI GLAPIENTRY void glProgramUniform2ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value) { LOG_W("Stub: glProgramUniform2ivEXT") }
+GLAPI GLAPIENTRY void glGetProgramivARB(GLenum target, GLenum pname, GLint *params) { LOG_W("Stub: glGetProgramivARB") }
+GLAPI GLAPIENTRY void glVertex4ub(GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glVertex4ub") }
+GLAPI GLAPIENTRY void glTexCoord3us(GLushort s, GLushort t, GLushort r) { LOG_W("Stub: glTexCoord3us") }
+GLAPI GLAPIENTRY void glRasterPos2us(GLushort x, GLushort y) { LOG_W("Stub: glRasterPos2us") }
+GLAPI GLAPIENTRY void glPointParameterxv(GLenum pname, const GLfixed *params) { LOG_W("Stub: glPointParameterxv") }
+GLAPI GLAPIENTRY void glGetCompressedTexImageEXT(GLenum target, GLint lod, void *img) { LOG_W("Stub: glGetCompressedTexImageEXT") }
+GLAPI GLAPIENTRY void glMultiTexCoord3ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord3ubvARB") }
+GLAPI GLAPIENTRY void glFrustumf(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f) { LOG_W("Stub: glFrustumf") }
+GLAPI GLAPIENTRY void glMaterialxv(GLenum face, GLenum pname, const GLfixed *param) { LOG_W("Stub: glMaterialxv") }
+GLAPI GLAPIENTRY void glProgramUniform4fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform4fvEXT") }
+GLAPI GLAPIENTRY void glProgramUniform3fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2) { LOG_W("Stub: glProgramUniform3fEXT") }
+GLAPI GLAPIENTRY void glScalex(GLfixed x, GLfixed y, GLfixed z) { LOG_W("Stub: glScalex") }
+GLAPI GLAPIENTRY void glTexCoord2bv(const GLbyte *v) { LOG_W("Stub: glTexCoord2bv") }
+GLAPI GLAPIENTRY void glRasterPos2b(GLbyte x, GLbyte y) { LOG_W("Stub: glRasterPos2b") }
+GLAPI GLAPIENTRY void glTranslatex(GLfixed x, GLfixed y, GLfixed z) { LOG_W("Stub: glTranslatex") }
 
 #ifdef __cplusplus
 }

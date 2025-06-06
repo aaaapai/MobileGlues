@@ -526,7 +526,9 @@ GL_FUNC_TYPEDEF(void, glMultiDrawArraysIndirectEXT, GLenum mode, const void *ind
 GL_FUNC_TYPEDEF(void, glMultiDrawElementsIndirectEXT, GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
 GL_FUNC_TYPEDEF(void, glBruh)
 GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
-
+GL_FUNC_TYPEDEF(void, glFramebufferTexture3DOES, GLenum target, GLenum attachment, GLenum textarget,
+                GLuint texture, GLint level, GLint layer)
+                
 #define GL_FUNC_DECL(name) \
 name##_PTR name;
 
@@ -903,6 +905,7 @@ struct gles_func_t {
     GL_FUNC_DECL(glMultiDrawElementsBaseVertexEXT)
 
     GL_FUNC_DECL(glBruh)
+    GL_FUNC_DECL(glFramebufferTexture3DOES)
 };
 
 extern struct gles_func_t g_gles_func;
