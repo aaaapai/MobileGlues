@@ -112,7 +112,8 @@ void PolygonModeRenderer::drawIndexedGeometry(GLenum primitiveType,
 }
 
 GLuint PolygonModeRenderer::createShaderProgram(const char* vertexSrc, 
-                                              const char* fragmentSrc) {
+                                              const char* fragmentSrc,
+                                              const char* geometrySrc) {
     GLuint program = GLES.glCreateProgram();
     GLuint vertexShader = GLES.glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShader = GLES.glCreateShader(GL_FRAGMENT_SHADER);
