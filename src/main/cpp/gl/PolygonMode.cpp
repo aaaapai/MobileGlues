@@ -29,15 +29,15 @@ PolygonModeRenderer::PolygonModeRenderer() : currentMode(POLYGON_FILL) {
     )";
     
     // 创建填充模式着色器程序
-    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
     
     // 创建线框模式着色器程序（使用几何着色器）
     const char* lineGeometryShader = getLineGeometryShader();
-    lineProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+    lineProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
     
     // 创建点模式着色器程序（使用几何着色器）
     const char* pointGeometryShader = getPointGeometryShader();
-    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
 }
 
 PolygonModeRenderer::~PolygonModeRenderer() {
