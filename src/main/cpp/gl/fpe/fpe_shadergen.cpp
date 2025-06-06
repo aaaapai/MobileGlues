@@ -16,7 +16,7 @@ constexpr std::string_view mg_shader_header =
         "#version 320 es\n"
         "// MobileGlues FPE Shader\n"
         "precision highp float;\n"
-        "precision highp int;\n";
+        "precision highp int;\n"
         "in vec3 Position;\n";
 constexpr std::string_view mg_vs_header =
         "// ** Vertex Shader **\n";
