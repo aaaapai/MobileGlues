@@ -42,7 +42,7 @@ public:
     static PolygonMode GetGlobalPolygonMode();
     static void SetGlobalPolygonMode(PolygonMode mode);
     
-    GLuint createShaderProgram(const char* vertexSrc, const char* fragmentSrc);
+    GLuint createShaderProgram(const char* vertexSrc, const char* fragmentSrc, const char* geometrySrc);
 private:
     PolygonMode currentMode;
     GLuint fillProgram;
