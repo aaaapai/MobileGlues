@@ -50,6 +50,7 @@ private:
     GLuint pointProgram;
     
     // 几何着色器源
+    const char* getfillGeometryShader();
     const char* getLineGeometryShader();
     const char* getPointGeometryShader();
     
