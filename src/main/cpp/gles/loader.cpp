@@ -145,10 +145,6 @@ void InitGLESCapabilities() {
     GLES.glGetIntegerv(GL_MAJOR_VERSION, &g_gles_caps.major);
     GLES.glGetIntegerv(GL_MINOR_VERSION, &g_gles_caps.minor);
 
-//    int has_GL_EXT_buffer_storage = 0;
-//    int has_GL_ARB_timer_query = 0;
-//    int has_GL_QCOM_texture_lod_bias = 0;
-
     GLint num_es_extensions = 0;
     GLES.glGetIntegerv(GL_NUM_EXTENSIONS, &num_es_extensions);
     LOG_D("Detected %d OpenGL ES extensions.", num_es_extensions)
@@ -184,6 +180,8 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_texture_norm16 = 1;
             } else if (strcmp(extension, "GL_EXT_texture_rg") == 0) {
                 g_gles_caps.GL_EXT_texture_rg = 1;
+            } else if (strcmp(extension, "GL_EXT_texture_query_lod") == 0) {
+                g_gles_caps.GL_EXT_texture_query_lod = 1;
             }
         } else {
             LOG_D("(nullptr)")

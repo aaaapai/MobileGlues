@@ -211,7 +211,7 @@ std::string getGpuName() {
     }
 
     // MetalANGLE, ANGLE (Metal Renderer: Apple * GPU)
-    if (gpuName.find("Metal Renderer") != std::string::npos) {
+    if (gpuName.find("MetalANGLE, ANGLE") != std::string::npos) {
         if (gpuName.length() < 25) {
             return gpuName;
         }
@@ -222,7 +222,7 @@ std::string getGpuName() {
     }
 
     // Vulkan ANGLE
-    if (gpuName.rfind("ANGLE", 0) == 0) {
+    if (gpuName.rfind("ANGLE", 0) == 0 && gpuName.find("Vulkan") != std::string::npos) {
         size_t firstParen = gpuName.find('(');
         size_t secondParen = gpuName.find('(', firstParen + 1);
         size_t lastParen = gpuName.rfind('(');

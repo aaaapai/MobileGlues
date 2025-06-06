@@ -99,7 +99,8 @@ if(MACOS)
                 ${iOS_LIB_DIR}/libSPIRV.a
                 ${iOS_LIB_DIR}/libSPVRemapper.a
                 "-F${CMAKE_SOURCE_DIR}/external"
-                "-framework MetalANGLE"
+                "-framework libEGL"
+                "-framework libGLESv2"
                 "-framework Metal"
                 "-framework Foundation"
                 "-framework QuartzCore"
