@@ -33,11 +33,11 @@ PolygonModeRenderer::PolygonModeRenderer() : currentMode(POLYGON_FILL) {
     
     // 创建线框模式着色器程序（使用几何着色器）
     const char* lineGeometryShader = getLineGeometryShader();
-    lineProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
+    lineProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
     
     // 创建点模式着色器程序（使用几何着色器）
     const char* pointGeometryShader = getPointGeometryShader();
-    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, pointGeometryShader);
+    pointProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
 }
 
 PolygonModeRenderer::~PolygonModeRenderer() {
@@ -112,8 +112,7 @@ void PolygonModeRenderer::drawIndexedGeometry(GLenum primitiveType,
 }
 
 GLuint PolygonModeRenderer::createShaderProgram(const char* vertexSrc, 
-                                              const char* fragmentSrc,
-                                              const char* geometrySrc) {
+                                              const char* fragmentSrc) {
     GLuint program = GLES.glCreateProgram();
     GLuint vertexShader = GLES.glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShader = GLES.glCreateShader(GL_FRAGMENT_SHADER);
