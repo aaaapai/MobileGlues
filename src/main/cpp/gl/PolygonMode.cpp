@@ -29,7 +29,7 @@ PolygonModeRenderer::PolygonModeRenderer() : currentMode(POLYGON_FILL) {
     )";
     
     // 创建填充模式着色器程序
-    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc, lineGeometryShader);
+    fillProgram = createShaderProgram(vertexShaderSrc, fragmentShaderSrc);
     
     // 创建线框模式着色器程序（使用几何着色器）
     const char* lineGeometryShader = getLineGeometryShader();
