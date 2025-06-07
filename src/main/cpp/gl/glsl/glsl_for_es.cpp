@@ -548,7 +548,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
 }
 
 
-std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
+std::string preprocess_glsl(const std::string& glsl) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
@@ -560,14 +560,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     replace_all(ret,
                 "const mat3 rotInverse = transpose(rot);",
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
-
-    // Replace deprecated syntax
-    if (glsl_type == GL_VERTEX_SHADER) {
-        replace_all(ret, "attribute", "in");
-        replace_all(ret, "varying", "out");
-    } else if (glsl_type == GL_FRAGMENT_SHADER) {
-        replace_all(ret, "varying", "in");
-    }
 
     replace_all(ret, "texture2D", "texture");
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
