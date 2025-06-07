@@ -19,7 +19,7 @@
 
 // #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if !defined(__APPLE__)
 char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
@@ -359,7 +359,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     int return_code = -1;
-    std::string converted = /*GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):*/GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code == 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -389,7 +389,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
+        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
             isLineDirective = true;
         }
 
@@ -579,11 +579,7 @@ int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
         glsl_version = 150;
-        glsl.insert(0, "#version 150\n");
-    } else if (glsl_version < 150) {
-        // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 150 compatibility\n");
-        glsl_version = 150;
+        glsl.insert(0, "#version 150 compatibility\n");
     }
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
