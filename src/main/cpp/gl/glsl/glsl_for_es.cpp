@@ -359,7 +359,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     int return_code = -1;
-    std::string converted = glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = glsl_version<140? GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code == 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -548,7 +548,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
 }
 
 
-std::string preprocess_glsl(const std::string& glsl) {
+std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
@@ -565,6 +565,14 @@ std::string preprocess_glsl(const std::string& glsl) {
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
+
+    // Replace deprecated syntax
+    if (glsl_type == GL_VERTEX_SHADER) {
+        replace_all(ret, "attribute", "in");
+        replace_all(ret, "varying", "out");
+    } else if (glsl_type == GL_FRAGMENT_SHADER) {
+        replace_all(ret, "varying", "in");
+    }
 
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
@@ -589,6 +597,7 @@ int get_or_add_glsl_version(std::string& glsl) {
         // force upgrade glsl version
         glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
         glsl_version = 330;
+    }
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
 }
