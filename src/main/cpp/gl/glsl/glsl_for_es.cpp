@@ -22,7 +22,7 @@
 #define DEBUG 1
 
 #if !defined(__APPLE__)
-char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
 
 static TBuiltInResource InitResources()
