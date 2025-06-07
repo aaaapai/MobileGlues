@@ -573,13 +573,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     } else if (glsl_type == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
     }
-
-    int glsl_version = getGLSLVersion(glsl.c_str());
-    if (glsl_version < 150) {
-        // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
-        glsl_version = 330;
-    }
     
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
