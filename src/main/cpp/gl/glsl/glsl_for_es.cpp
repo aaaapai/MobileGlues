@@ -574,6 +574,13 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
         replace_all(ret, "varying", "in");
     }
 
+    int glsl_version = getGLSLVersion(glsl.c_str());
+    if (glsl_version < 150) {
+        // force upgrade glsl version
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
+        glsl_version = 330;
+    }
+    
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
@@ -593,7 +600,7 @@ int get_or_add_glsl_version(std::string& glsl) {
     if (glsl_version == -1) {
         glsl_version = 330;
         glsl.insert(0, "#version 330 core\n");
-    } else if (glsl_version < 150) {
+    } else if (glsl_version < 330) {
         // force upgrade glsl version
         glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
         glsl_version = 330;
