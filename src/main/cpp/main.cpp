@@ -23,7 +23,7 @@ __attribute__((used))
 const char* license = "GNU LGPL-2.1 License";
 
 #ifndef __APPLE__
-extern char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+extern char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 void init_libshaderconv() {
     const char *shaderconv_lib = "libshaderconv";
     const char *func_name = "MesaConvertShader";
