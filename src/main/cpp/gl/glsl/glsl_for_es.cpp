@@ -592,10 +592,10 @@ int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
         glsl_version = 330;
-        glsl.insert(0, "#version 330 core\n");
+        glsl.insert(0, "#version 330\n");
     } else if (glsl_version < 330) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 330 core\n");
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
         glsl_version = 330;
     }
     LOG_D("GLSL version: %d",glsl_version)
@@ -603,6 +603,7 @@ int get_or_add_glsl_version(std::string& glsl) {
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
+    
     EShLanguage shader_language;
     switch (shader_type) {
         case GL_VERTEX_SHADER:
@@ -679,7 +680,11 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     size_t word_count = spirv.size();
 
     LOG_D("spirv_code.size(): %d", spirv.size())
-    spvc_context_create(&context);
+    if(context == nullptr) {
+        spvc_context_create(&context);
+        if(context == nullptr) {
+            printf("SPVC Context could not be created!\n");
+    }
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
