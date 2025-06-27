@@ -81,6 +81,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             break;
         }
         case GL_ARRAY_BUFFER_BINDING:
+        case GL_QUERY_BUFFER_BINDING:
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
         case GL_COPY_READ_BUFFER_BINDING:
         case GL_COPY_WRITE_BUFFER_BINDING:
