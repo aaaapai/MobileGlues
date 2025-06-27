@@ -79,6 +79,8 @@ GLAPI GLAPIENTRY void glTexBuffer(GLenum target, GLenum internalformat, GLuint b
 
 GLAPI GLAPIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
 
+GLAPI GLAPIENTRY void glTexBufferRangeARB(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
 GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
 
 GLAPI GLAPIENTRY void *glMapBuffer(GLenum target, GLenum access);
