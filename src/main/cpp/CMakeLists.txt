@@ -124,14 +124,8 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-hlsl.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-cpp.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-glsl.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-util.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-core.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-reflect.a
-                
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
                 android
                 log
                 EGL
