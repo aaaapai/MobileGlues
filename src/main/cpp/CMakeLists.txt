@@ -125,7 +125,7 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
+                #${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
                 android
                 log
                 EGL
