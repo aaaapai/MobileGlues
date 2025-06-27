@@ -2491,7 +2491,7 @@ STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN
 STUB_FUNCTION_HEAD(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,const GLuint* rc, const GLfloat* tc, const GLfloat* c, const GLfloat* n, const GLfloat* v); STUB_FUNCTION_END_NO_RETURN(void, glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN,rc,tc,c,n,v)
 
 
-GLAPI GLAPIENTRY void glVertexAttrib4sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4sv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4sv") }
 GLAPI GLAPIENTRY void glCompressedTexImage2DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexImage2DEXT") }
 GLAPI GLAPIENTRY void glMultiTexCoord3ui(GLenum target, GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glMultiTexCoord3ui") }
 //GLAPI GLAPIENTRY void glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near_val, GLfloat far_val) { LOG_W("Stub: glOrthof") }
@@ -2506,14 +2506,14 @@ GLAPI GLAPIENTRY void glProgramUniform3iEXT(GLuint program, GLint location, GLin
 GLAPI GLAPIENTRY void glFogxv(GLenum pname, const GLfixed *param) { LOG_W("Stub: glFogxv") }
 GLAPI GLAPIENTRY void glMultiTexCoord4bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord4bv") }
 GLAPI GLAPIENTRY void glMultiTexCoord1bARB(GLenum target, GLbyte s) { LOG_W("Stub: glMultiTexCoord1bARB") }
-GLAPI GLAPIENTRY void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) { LOG_W("Stub: glVertexAttrib3d") }
+//GLAPI GLAPIENTRY void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) { LOG_W("Stub: glVertexAttrib3d") }
 GLAPI GLAPIENTRY void glTexCoord4bv(const GLbyte *v) { LOG_W("Stub: glTexCoord4bv") }
 GLAPI GLAPIENTRY void glMultiTexCoord4ubARB(GLenum target, GLubyte s, GLubyte t, GLubyte r, GLubyte q) { LOG_W("Stub: glMultiTexCoord4ubARB") }
 GLAPI GLAPIENTRY void glMultiTexCoord3b(GLenum target, GLbyte s, GLbyte t, GLbyte r) { LOG_W("Stub: glMultiTexCoord3b") }
 GLAPI GLAPIENTRY void glMultiTexCoord3ubARB(GLenum target, GLubyte s, GLubyte t, GLubyte r) { LOG_W("Stub: glMultiTexCoord3ubARB") }
 GLAPI GLAPIENTRY void glMultiTexCoord1usARB(GLenum target, GLushort s) { LOG_W("Stub: glMultiTexCoord1usARB") }
 GLAPI GLAPIENTRY void glWindowPos2bv(const GLbyte *v) { LOG_W("Stub: glWindowPos2bv") }
-GLAPI GLAPIENTRY void glVertexAttrib4ubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4ubv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4ubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4ubv") }
 GLAPI GLAPIENTRY void glMultiTexCoord1ubARB(GLenum target, GLubyte s) { LOG_W("Stub: glMultiTexCoord1ubARB") }
 GLAPI GLAPIENTRY void glWindowPos3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glWindowPos3us") }
 GLAPI GLAPIENTRY void glFogx(GLenum pname, GLfixed param) { LOG_W("Stub: glFogx") }
@@ -2541,9 +2541,9 @@ GLAPI GLAPIENTRY void glTexCoord3b(GLbyte s, GLbyte t, GLbyte r) { LOG_W("Stub: 
 GLAPI GLAPIENTRY void glMultiTexCoord4bARB(GLenum target, GLbyte s, GLbyte t, GLbyte r, GLbyte q) { LOG_W("Stub: glMultiTexCoord4bARB") }
 GLAPI GLAPIENTRY void glMultiTexCoord2bv(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord2bv") }
 GLAPI GLAPIENTRY void glProgramUniformMatrix4fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) { LOG_W("Stub: glProgramUniformMatrix4fvEXT") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nuiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4Nuiv") }
-GLAPI GLAPIENTRY void glVertexAttrib4iv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4iv") }
-GLAPI GLAPIENTRY void glVertexAttrib2dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib2dv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nuiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4Nuiv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4iv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4iv") }
+//GLAPI GLAPIENTRY void glVertexAttrib2dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib2dv") }
 GLAPI GLAPIENTRY void glRasterPos3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glRasterPos3us") }
 GLAPI GLAPIENTRY void glMultiTexCoord2usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord2usvARB") }
 GLAPI GLAPIENTRY void glMultiTexCoord1ub(GLenum target, GLubyte s) { LOG_W("Stub: glMultiTexCoord1ub") }
@@ -2556,7 +2556,7 @@ GLAPI GLAPIENTRY void glRasterPos4us(GLushort x, GLushort y, GLushort z, GLushor
 GLAPI GLAPIENTRY void glMultiTexCoord1uiARB(GLenum target, GLuint s) { LOG_W("Stub: glMultiTexCoord1uiARB") }
 GLAPI GLAPIENTRY void glMultiTexCoord2usARB(GLenum target, GLushort s, GLushort t) { LOG_W("Stub: glMultiTexCoord2usARB") }
 GLAPI GLAPIENTRY void glTexCoord4ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord4ubv") }
-GLAPI GLAPIENTRY void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) { LOG_W("Stub: glVertexAttrib2d") }
+//GLAPI GLAPIENTRY void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) { LOG_W("Stub: glVertexAttrib2d") }
 GLAPI GLAPIENTRY void glCopyTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) { LOG_W("Stub: glCopyTexSubImage3DEXT") }
 GLAPI GLAPIENTRY void glTexCoord2ui(GLuint s, GLuint t) { LOG_W("Stub: glTexCoord2ui") }
 GLAPI GLAPIENTRY void glMultiTexCoord3uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord3uiv") }
@@ -2567,7 +2567,7 @@ GLAPI GLAPIENTRY void glMultiTexCoord2ubARB(GLenum target, GLubyte s, GLubyte t)
 GLAPI GLAPIENTRY void glMultiTexCoord3uiARB(GLenum target, GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glMultiTexCoord3uiARB") }
 GLAPI GLAPIENTRY void glMaterialx(GLenum face, GLenum pname, GLfixed param) { LOG_W("Stub: glMaterialx") }
 GLAPI GLAPIENTRY void glRasterPos3uiv(const GLuint *v) { LOG_W("Stub: glRasterPos3uiv") }
-GLAPI GLAPIENTRY void glVertexAttrib1sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib1sv") }
+//GLAPI GLAPIENTRY void glVertexAttrib1sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib1sv") }
 GLAPI GLAPIENTRY void glMultiTexCoord4ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord4ubvARB") }
 GLAPI GLAPIENTRY void glClearNamedFramebufferivEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value) { LOG_W("Stub: glClearNamedFramebufferivEXT") }
 GLAPI GLAPIENTRY void glTexCoord4ub(GLubyte s, GLubyte t, GLubyte r, GLubyte q) { LOG_W("Stub: glTexCoord4ub") }
@@ -2582,7 +2582,7 @@ GLAPI GLAPIENTRY void glLightx(GLenum light, GLenum pname, GLfixed param) { LOG_
 GLAPI GLAPIENTRY void glMultiTexCoord4us(GLenum target, GLushort s, GLushort t, GLushort r, GLushort q) { LOG_W("Stub: glMultiTexCoord4us") }
 GLAPI GLAPIENTRY void glWindowPos2ui(GLuint x, GLuint y) { LOG_W("Stub: glWindowPos2ui") }
 GLAPI GLAPIENTRY void glTexCoord3usv(const GLushort *v) { LOG_W("Stub: glTexCoord3usv") }
-GLAPI GLAPIENTRY void glVertexAttrib1s(GLuint index, GLshort x) { LOG_W("Stub: glVertexAttrib1s") }
+//GLAPI GLAPIENTRY void glVertexAttrib1s(GLuint index, GLshort x) { LOG_W("Stub: glVertexAttrib1s") }
 GLAPI GLAPIENTRY void glBlendEquationSeparateEXT(GLenum modeRGB, GLenum modeAlpha) { LOG_W("Stub: glBlendEquationSeparateEXT") }
 GLAPI GLAPIENTRY void glVertex3ub(GLubyte x, GLubyte y, GLubyte z) { LOG_W("Stub: glVertex3ub") }
 GLAPI GLAPIENTRY int glXSwapIntervalSGI(int interval) { LOG_W("Stub: glXSwapIntervalSGI") }
@@ -2592,24 +2592,24 @@ GLAPI GLAPIENTRY void glGetTexEnvxv(GLenum target, GLenum pname, GLfixed *params
 GLAPI GLAPIENTRY void glMultiTexCoord2bvARB(GLenum target, const GLbyte *v) { LOG_W("Stub: glMultiTexCoord2bvARB") }
 GLAPI GLAPIENTRY void glClearNamedFramebufferfiEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) { LOG_W("Stub: glClearNamedFramebufferfiEXT") }
 GLAPI GLAPIENTRY void glRasterPos4ui(GLuint x, GLuint y, GLuint z, GLuint w) { LOG_W("Stub: glRasterPos4ui") }
-GLAPI GLAPIENTRY void glVertexAttrib2sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib2sv") }
-GLAPI GLAPIENTRY void glVertexAttrib1dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib1dv") }
+//GLAPI GLAPIENTRY void glVertexAttrib2sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib2sv") }
+//GLAPI GLAPIENTRY void glVertexAttrib1dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib1dv") }
 GLAPI GLAPIENTRY void glRotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z) { LOG_W("Stub: glRotatex") }
 GLAPI GLAPIENTRY void glPointParameterx(GLenum pname, GLfixed param) { LOG_W("Stub: glPointParameterx") }
-GLAPI GLAPIENTRY void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) { LOG_W("Stub: glVertexAttrib4d") }
+//GLAPI GLAPIENTRY void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) { LOG_W("Stub: glVertexAttrib4d") }
 GLAPI GLAPIENTRY void glMultiTexCoord3usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord3usvARB") }
 GLAPI GLAPIENTRY void glTexCoord2b(GLbyte s, GLbyte t) { LOG_W("Stub: glTexCoord2b") }
 GLAPI GLAPIENTRY void glMultiTexCoord1usv(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord1usv") }
 GLAPI GLAPIENTRY void glTexCoord1ub(GLubyte s) { LOG_W("Stub: glTexCoord1ub") }
 GLAPI GLAPIENTRY void glTexParameterx(GLenum target, GLenum pname, GLfixed param) { LOG_W("Stub: glTexParameterx") }
 GLAPI GLAPIENTRY void glMultiTexCoord2uiARB(GLenum target, GLuint s, GLuint t) { LOG_W("Stub: glMultiTexCoord2uiARB") }
-GLAPI GLAPIENTRY void glVertexAttrib3dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib3dv") }
+//GLAPI GLAPIENTRY void glVertexAttrib3dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib3dv") }
 GLAPI GLAPIENTRY void glLightxv(GLenum light, GLenum pname, const GLfixed *params) { LOG_W("Stub: glLightxv") }
 GLAPI GLAPIENTRY void glVertex3us(GLushort x, GLushort y, GLushort z) { LOG_W("Stub: glVertex3us") }
 GLAPI GLAPIENTRY void glTexCoord3ub(GLubyte s, GLubyte t, GLubyte r) { LOG_W("Stub: glTexCoord3ub") }
 GLAPI GLAPIENTRY void glRasterPos2ubv(const GLubyte *v) { LOG_W("Stub: glRasterPos2ubv") }
 GLAPI GLAPIENTRY void glRasterPos2ui(GLuint x, GLuint y) { LOG_W("Stub: glRasterPos2ui") }
-GLAPI GLAPIENTRY void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) { LOG_W("Stub: glVertexAttrib4s") }
+//GLAPI GLAPIENTRY void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) { LOG_W("Stub: glVertexAttrib4s") }
 GLAPI GLAPIENTRY void glLightModelx(GLenum pname, GLfixed param) { LOG_W("Stub: glLightModelx") }
 GLAPI GLAPIENTRY int glXSwapIntervalMESA(unsigned int interval) { LOG_W("Stub: glXSwapIntervalMESA") }
 GLAPI GLAPIENTRY void glMultiTexCoord2ubvARB(GLenum target, const GLubyte *v) { LOG_W("Stub: glMultiTexCoord2ubvARB") }
@@ -2619,7 +2619,7 @@ GLAPI GLAPIENTRY void glVertex4usv(const GLushort *v) { LOG_W("Stub: glVertex4us
 GLAPI GLAPIENTRY void glMultiTexCoord4b(GLenum target, GLbyte s, GLbyte t, GLbyte r, GLbyte q) { LOG_W("Stub: glMultiTexCoord4b") }
 GLAPI GLAPIENTRY void glVertex3usv(const GLushort *v) { LOG_W("Stub: glVertex3usv") }
 GLAPI GLAPIENTRY void glProgramUniform4iEXT(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) { LOG_W("Stub: glProgramUniform4iEXT") }
-GLAPI GLAPIENTRY void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) { LOG_W("Stub: glVertexAttrib3s") }
+//GLAPI GLAPIENTRY void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) { LOG_W("Stub: glVertexAttrib3s") }
 GLAPI GLAPIENTRY void glProgramUniformMatrix2fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) { LOG_W("Stub: glProgramUniformMatrix2fvEXT") }
 GLAPI GLAPIENTRY void glVertex4b(GLbyte x, GLbyte y, GLbyte z, GLbyte w) { LOG_W("Stub: glVertex4b") }
 GLAPI GLAPIENTRY void glMultiTexCoord2uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord2uiv") }
@@ -2656,7 +2656,7 @@ GLAPI GLAPIENTRY void glClipPlanef(GLenum plane, const GLfloat *equation) { LOG_
 GLAPI GLAPIENTRY void glVertex3b(GLbyte x, GLbyte y, GLbyte z) { LOG_W("Stub: glVertex3b") }
 GLAPI GLAPIENTRY void glMultMatrixx(const GLfixed *m) { LOG_W("Stub: glMultMatrixx") }
 GLAPI GLAPIENTRY void glMultiTexCoord2bARB(GLenum target, GLbyte s, GLbyte t) { LOG_W("Stub: glMultiTexCoord2bARB") }
-GLAPI GLAPIENTRY void glVertexAttrib4bv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4bv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4bv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4bv") }
 GLAPI GLAPIENTRY void glTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels) { LOG_W("Stub: glTexSubImage3DEXT") }
 GLAPI GLAPIENTRY void glClearNamedFramebufferuivEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value) { LOG_W("Stub: glClearNamedFramebufferuivEXT") }
 GLAPI GLAPIENTRY void glRasterPos2usv(const GLushort *v) { LOG_W("Stub: glRasterPos2usv") }
@@ -2666,13 +2666,13 @@ GLAPI GLAPIENTRY void glQueryCounterARB(GLuint id, GLenum target) { LOG_W("Stub:
 //GLAPI GLAPIENTRY void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) { LOG_W("Stub: glVertexAttrib2s") }
 GLAPI GLAPIENTRY void glWindowPos2b(GLbyte x, GLbyte y) { LOG_W("Stub: glWindowPos2b") }
 GLAPI GLAPIENTRY void glTexCoord2usv(const GLushort *v) { LOG_W("Stub: glTexCoord2usv") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glVertexAttrib4Nub") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) { LOG_W("Stub: glVertexAttrib4Nub") }
 GLAPI GLAPIENTRY void glWindowPos2us(GLushort x, GLushort y) { LOG_W("Stub: glWindowPos2us") }
 GLAPI GLAPIENTRY void glProgramUniform1fEXT(GLuint program, GLint location, GLfloat v0) { LOG_W("Stub: glProgramUniform1fEXT") }
 GLAPI GLAPIENTRY void glMultiTexCoord3usARB(GLenum target, GLushort s, GLushort t, GLushort r) { LOG_W("Stub: glMultiTexCoord3usARB") }
 GLAPI GLAPIENTRY void glRasterPos3ub(GLubyte x, GLubyte y, GLubyte z) { LOG_W("Stub: glRasterPos3ub") }
 GLAPI GLAPIENTRY void glVertex2us(GLushort x, GLushort y) { LOG_W("Stub: glVertex2us") }
-GLAPI GLAPIENTRY void glVertexAttrib4dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib4dv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4dv(GLuint index, const GLdouble *v) { LOG_W("Stub: glVertexAttrib4dv") }
 GLAPI GLAPIENTRY void glMultiDrawElementsBaseVertexARB(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex) { LOG_W("Stub: glMultiDrawElementsBaseVertexARB") }
 GLAPI GLAPIENTRY void glDepthRangex(GLfixed n, GLfixed f) { LOG_W("Stub: glDepthRangex") }
 GLAPI GLAPIENTRY void glClearNamedFramebufferfvEXT(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value) { LOG_W("Stub: glClearNamedFramebufferfvEXT") }
@@ -2680,7 +2680,7 @@ GLAPI GLAPIENTRY void glClipPlanex(GLenum plane, const GLfixed *equation) { LOG_
 GLAPI GLAPIENTRY void glWindowPos3ubv(const GLubyte *v) { LOG_W("Stub: glWindowPos3ubv") }
 GLAPI GLAPIENTRY void glGetTexParameterxv(GLenum target, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetTexParameterxv") }
 GLAPI GLAPIENTRY void glTexParameterxv(GLenum target, GLenum pname, const GLfixed *params) { LOG_W("Stub: glTexParameterxv") }
-GLAPI GLAPIENTRY void glVertexAttrib4usv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4usv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4usv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4usv") }
 GLAPI GLAPIENTRY void glProgramUniform4ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value) { LOG_W("Stub: glProgramUniform4ivEXT") }
 GLAPI GLAPIENTRY void glProgramUniform2iEXT(GLuint program, GLint location, GLint v0, GLint v1) { LOG_W("Stub: glProgramUniform2iEXT") }
 GLAPI GLAPIENTRY void glIndexui(GLuint c) { LOG_W("Stub: glIndexui") }
@@ -2688,8 +2688,8 @@ GLAPI GLAPIENTRY void glMultiTexCoord3usv(GLenum target, const GLushort *v) { LO
 GLAPI GLAPIENTRY void glVertex4us(GLushort x, GLushort y, GLushort z, GLushort w) { LOG_W("Stub: glVertex4us") }
 GLAPI GLAPIENTRY void glCompressedTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data) { LOG_W("Stub: glCompressedTexSubImage3DEXT") }
 GLAPI GLAPIENTRY void glTexCoord4us(GLushort s, GLushort t, GLushort r, GLushort q) { LOG_W("Stub: glTexCoord4us") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nbv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4Nbv") }
-GLAPI GLAPIENTRY void glVertexAttrib3sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib3sv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nbv(GLuint index, const GLbyte *v) { LOG_W("Stub: glVertexAttrib4Nbv") }
+//GLAPI GLAPIENTRY void glVertexAttrib3sv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib3sv") }
 GLAPI GLAPIENTRY void glBlendFuncSeparateEXT(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha) { LOG_W("Stub: glBlendFuncSeparateEXT") }
 GLAPI GLAPIENTRY void glVertex3ui(GLuint x, GLuint y, GLuint z) { LOG_W("Stub: glVertex3ui") }
 GLAPI GLAPIENTRY void glVertex2usv(const GLushort *v) { LOG_W("Stub: glVertex2usv") }
@@ -2703,9 +2703,9 @@ GLAPI GLAPIENTRY void glTexImage3DEXT(GLenum target, GLint level, GLenum interna
 GLAPI GLAPIENTRY void glProgramUniform2fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform2fvEXT") }
 GLAPI GLAPIENTRY void glNormal3uiv(const GLuint *v) { LOG_W("Stub: glNormal3uiv") }
 GLAPI GLAPIENTRY void glTexEnvxv(GLenum target, GLenum pname, const GLfixed *params) { LOG_W("Stub: glTexEnvxv") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nsv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4Nsv") }
-GLAPI GLAPIENTRY void glVertexAttrib1d(GLuint index, GLdouble x) { LOG_W("Stub: glVertexAttrib1d") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4Nubv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nsv(GLuint index, const GLshort *v) { LOG_W("Stub: glVertexAttrib4Nsv") }
+//GLAPI GLAPIENTRY void glVertexAttrib1d(GLuint index, GLdouble x) { LOG_W("Stub: glVertexAttrib1d") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nubv(GLuint index, const GLubyte *v) { LOG_W("Stub: glVertexAttrib4Nubv") }
 GLAPI GLAPIENTRY void glIndexbv(const GLbyte *c) { LOG_W("Stub: glIndexbv") }
 GLAPI GLAPIENTRY void glMultiTexCoord3uivARB(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord3uivARB") }
 GLAPI GLAPIENTRY void glGetClipPlanef(GLenum plane, GLfloat *equation) { LOG_W("Stub: glGetClipPlanef") }
@@ -2723,7 +2723,7 @@ GLAPI GLAPIENTRY void glLoadMatrixx(const GLfixed *m) { LOG_W("Stub: glLoadMatri
 GLAPI GLAPIENTRY void glWindowPos3b(GLbyte x, GLbyte y, GLbyte z) { LOG_W("Stub: glWindowPos3b") }
 GLAPI GLAPIENTRY void glLineWidthx(GLfixed width) { LOG_W("Stub: glLineWidthx") }
 GLAPI GLAPIENTRY void glTexCoord2ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord2ubv") }
-GLAPI GLAPIENTRY void glVertexAttrib4uiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4uiv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4uiv(GLuint index, const GLuint *v) { LOG_W("Stub: glVertexAttrib4uiv") }
 GLAPI GLAPIENTRY void glIndexb(GLbyte c) { LOG_W("Stub: glIndexb") }
 GLAPI GLAPIENTRY void glWindowPos2usv(const GLushort *v) { LOG_W("Stub: glWindowPos2usv") }
 GLAPI GLAPIENTRY void glNormal3x(GLfixed nx, GLfixed ny, GLfixed nz) { LOG_W("Stub: glNormal3x") }
@@ -2748,7 +2748,7 @@ GLAPI GLAPIENTRY void glMultiTexCoord4uivARB(GLenum target, const GLuint *v) { L
 GLAPI GLAPIENTRY void glVertex2ubv(const GLubyte *v) { LOG_W("Stub: glVertex2ubv") }
 GLAPI GLAPIENTRY void glTexCoord3ubv(const GLubyte *v) { LOG_W("Stub: glTexCoord3ubv") }
 GLAPI GLAPIENTRY void glGetLightxv(GLenum light, GLenum pname, GLfixed *params) { LOG_W("Stub: glGetLightxv") }
-GLAPI GLAPIENTRY void glVertexAttrib4Niv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4Niv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Niv(GLuint index, const GLint *v) { LOG_W("Stub: glVertexAttrib4Niv") }
 GLAPI GLAPIENTRY void glDrawTexf(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height) { LOG_W("Stub: glDrawTexf") }
 GLAPI GLAPIENTRY void glMultiTexCoord1usvARB(GLenum target, const GLushort *v) { LOG_W("Stub: glMultiTexCoord1usvARB") }
 GLAPI GLAPIENTRY void glAlphaFuncx(GLenum func, GLfixed ref) { LOG_W("Stub: glAlphaFuncx") }
@@ -2769,7 +2769,7 @@ GLAPI GLAPIENTRY void glGetFixedv(GLenum pname, GLfixed *params) { LOG_W("Stub: 
 GLAPI GLAPIENTRY void glVertex2uiv(const GLuint *v) { LOG_W("Stub: glVertex2uiv") }
 GLAPI GLAPIENTRY void glWindowPos3ui(GLuint x, GLuint y, GLuint z) { LOG_W("Stub: glWindowPos3ui") }
 GLAPI GLAPIENTRY void glWindowPos2uiv(const GLuint *v) { LOG_W("Stub: glWindowPos2uiv") }
-GLAPI GLAPIENTRY void glVertexAttrib4Nusv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4Nusv") }
+//GLAPI GLAPIENTRY void glVertexAttrib4Nusv(GLuint index, const GLushort *v) { LOG_W("Stub: glVertexAttrib4Nusv") }
 GLAPI GLAPIENTRY void glTexCoord1us(GLushort s) { LOG_W("Stub: glTexCoord1us") }
 GLAPI GLAPIENTRY void glVertex2b(GLbyte x, GLbyte y) { LOG_W("Stub: glVertex2b") }
 GLAPI GLAPIENTRY void glClearDepthx(GLfixed depth) { LOG_W("Stub: glClearDepthx") }
