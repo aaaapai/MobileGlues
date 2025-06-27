@@ -299,7 +299,7 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
     }
 
 //    LOAD_GLES_FUNC(glTexImage1D);
-//    gles_glTexImage1D(target, level, internalFormat, width, border, format, type, pixels);
+    GLES.glTexImage1D(target, level, internalFormat, width, border, format, type, pixels);
 
     CHECK_GL_ERROR
 }
@@ -473,7 +473,7 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x
           target, level, internalFormat, x, y, width, border)
     return;
 
-//    GLES.glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
+    GLES.glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
 
     CHECK_GL_ERROR
 }
@@ -493,6 +493,12 @@ static int is_depth_format(GLenum format) {
 static GLenum get_binding_for_target(GLenum target) {
     switch(target) {
         case GL_TEXTURE_2D: return GL_TEXTURE_BINDING_2D;
+        case GL_TEXTURE_2D_MULTISAMPLE: return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        case GL_TEXTURE_2D_ARRAY: return GL_TEXTURE_BINDING_2D_ARRAY;
+        case GL_TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
+        case GL_TEXTURE_BUFFER: return GL_TEXTURE_BUFFER_BINDING;
+        case GL_TEXTURE_CUBE_MAP:
         case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
         case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
         case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
