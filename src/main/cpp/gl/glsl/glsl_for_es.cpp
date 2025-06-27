@@ -684,6 +684,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
         spvc_context_create(&context);
         if(context == nullptr) {
             printf("SPVC Context could not be created!\n");
+        }
     }
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
