@@ -70,6 +70,9 @@ GLuint find_bound_buffer(GLenum key) {
         case GL_ARRAY_BUFFER_BINDING:
             target = GL_ARRAY_BUFFER;
             break;
+        case GL_QUERY_BUFFER_BINDING:
+            target = GL_QUERY_BUFFER;
+            break;
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
             target = GL_ATOMIC_COUNTER_BUFFER;
             break;
