@@ -314,6 +314,19 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
           glEnumToString(target), level, glEnumToString(internalFormat), glEnumToString(internalFormat),
           width, height, border, glEnumToString(format), glEnumToString(type), pixels)
     internal_convert(reinterpret_cast<GLenum *>(&internalFormat), &type, &format);
+
+    // TODO: Fix this jank
+    if (pixels == nullptr && format) {
+        if (internalFormat == GL_RED || internalFormat == GL_RED_INTEGER || internalFormat == GL_RG || internalFormat == GL_RG_INTEGER ||
+        internalFormat == GL_RG8 || internalFormat == GL_RG8_SNORM || internalFormat == GL_RG16 || internalFormat == GL_RG16_SNORM ||
+        internalFormat == GL_RG16F || internalFormat == GL_R32F || internalFormat == GL_RG32F || internalFormat == GL_R8I ||
+        internalFormat == GL_R8UI || internalFormat == GL_R16I || internalFormat == GL_R16UI || internalFormat == GL_R32I ||
+        internalFormat == GL_R32UI ||internalFormat == GL_RG8I || internalFormat == GL_RG8UI || internalFormat == GL_RG16I ||
+        internalFormat == GL_RG16UI || internalFormat == GL_RG32I || internalFormat == GL_RG32UI) {
+            format = internalFormat;
+        }
+    }
+
     LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
           width,height,border,glEnumToString(format),glEnumToString(type), pixels)

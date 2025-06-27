@@ -153,6 +153,14 @@ static GLenum get_binding_query(GLenum target) {
         case GL_ELEMENT_ARRAY_BUFFER:  return GL_ELEMENT_ARRAY_BUFFER_BINDING;
         case GL_PIXEL_PACK_BUFFER:     return GL_PIXEL_PACK_BUFFER_BINDING;
         case GL_PIXEL_UNPACK_BUFFER:   return GL_PIXEL_UNPACK_BUFFER_BINDING;
+        case GL_COPY_WRITE_BUFFER:     return GL_COPY_WRITE_BUFFER_BINDING;
+        case GL_COPY_READ_BUFFER:      return GL_COPY_READ_BUFFER_BINDING;
+        case GL_UNIFORM_BUFFER:        return GL_UNIFORM_BUFFER_BINDING;
+        case GL_SHADER_STORAGE_BUFFER: return GL_SHADER_STORAGE_BUFFER_BINDING;
+        case GL_TRANSFORM_FEEDBACK_BUFFER: return GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+        case GL_ATOMIC_COUNTER_BUFFER: return GL_ATOMIC_COUNTER_BUFFER_BINDING;
+        case GL_DRAW_INDIRECT_BUFFER:  return GL_DRAW_INDIRECT_BUFFER_BINDING;
+        case GL_DISPATCH_INDIRECT_BUFFER: return GL_DISPATCH_INDIRECT_BUFFER_BINDING;
         default:                       return 0;
     }
 }
@@ -387,6 +395,7 @@ void* glMapBuffer(GLenum target, GLenum access) {
 
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
+    LOG_D("%s(%s)", __func__, glEnumToString(target));
     if(g_gles_caps.GL_OES_mapbuffer)
         return GLES.glUnmapBuffer(target);
 
