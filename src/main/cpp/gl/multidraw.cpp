@@ -495,7 +495,7 @@ GLuint compile_compute_program(const std::string& src) {
     return program;
 }
 
-GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
+void mg_glMultiDrawElementsBaseVertex_compute(
         GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
     LOG()
 
@@ -622,4 +622,30 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     // Restore states
     GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     CHECK_GL_ERROR_NO_INIT
+}
+
+void ltw_glMultiDrawElements( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount )
+{
+    GLint elementbuffer;
+    GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, current_context->multidraw_element_buffer);
+    GLsizei total = 0, offset = 0, typebytes = type_bytes(type);
+    for (GLsizei i = 0; i < primcount; i++) {
+        total += count[i];
+    }
+    es3_functions.glBufferData(GL_COPY_WRITE_BUFFER, total*typebytes, NULL, GL_STREAM_DRAW);
+    for (GLsizei i = 0; i < primcount; i++) {
+        GLsizei icount = count[i];
+        if(icount == 0) continue;
+        icount *= typebytes;
+        if(elementbuffer != 0) {
+            GLES.glCopyBufferSubData(GL_ELEMENT_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr)indices[i], offset, icount);
+        }else {
+            GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, icount, indices[i]);
+        }
+        offset += icount;
+    }
+    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_context->multidraw_element_buffer);
+    GLES.glDrawElements(mode, total, type, 0);
+    if(elementbuffer != 0) GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 }
