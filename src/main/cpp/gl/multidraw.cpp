@@ -31,7 +31,7 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
                 func_ptr = mg_glMultiDrawElements_compute;
                 break;
             case multidraw_mode_t::artJoker:
-                func_ptr = mh_glMultiDrawElements_ltw;
+                func_ptr = mg_glMultiDrawElements_ltw;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
