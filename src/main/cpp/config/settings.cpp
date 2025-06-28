@@ -158,6 +158,9 @@ void init_settings() {
         case multidraw_mode_t::Compute:
             draw_mode_str = "Compute";
             break;
+        case multidraw_mode_t::artJoker:
+            draw_mode_str = "LTW";
+            break;
         case multidraw_mode_t::Auto:
             draw_mode_str = "Auto";
             break;
@@ -222,6 +225,11 @@ void init_settings_post() {
             LOG_V("multidrawMode = Compute")
             global_settings.multidraw_mode = multidraw_mode_t::Compute;
             LOG_V("    -> Compute (OK)")
+            break;
+        case multidraw_mode_t::artJoker:
+            LOG_V("multidrawMode = LTW")
+            global_settings.multidraw_mode = multidraw_mode_t::artJoker;
+            LOG_V("    -> LTW (s***)")
             break;
         case multidraw_mode_t::Auto:
         default:
