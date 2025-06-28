@@ -638,7 +638,7 @@ GLint type_bytes(GLenum type) {
 
 GLuint multidraw_element_buffer;
 
-GLAPI GLAPIENTRY void mg_glMultiDrawElements_ltw( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount ) {
+GLAPI GLAPIENTRY void mg_glMultiDrawElements_ltw(GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount) {
     LOG()
 
     
