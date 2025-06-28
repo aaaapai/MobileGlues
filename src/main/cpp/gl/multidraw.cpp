@@ -627,17 +627,18 @@ void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 }
 
-void mg_glMultiDrawElements_ltw(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
-    LOG()
-
-    GLint type_bytes(GLenum type) {
+GLint type_bytes(GLenum type) {
         switch (type) {
            case GL_UNSIGNED_BYTE: return 1;
            case GL_UNSIGNED_SHORT: return 2;
            case GL_UNSIGNED_INT: return 4;
            default: return -1;
         }
-    }
+}
+
+void mg_glMultiDrawElements_ltw(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
+    LOG()
+
     GLuint multidraw_element_buffer;
 
     GLint elementbuffer;
@@ -647,14 +648,14 @@ void mg_glMultiDrawElements_ltw(GLenum mode, const GLsizei *count, GLenum type, 
     for (GLsizei i = 0; i < primcount; i++) {
         total += count[i];
     }
-    GLES.glBufferData(GL_COPY_WRITE_BUFFER, total*typebytes, NULL, GL_STREAM_DRAW);
+    GLES.glBufferData(GL_COPY_WRITE_BUFFER, total*typebytes, nullptr, GL_STREAM_DRAW);
     for (GLsizei i = 0; i < primcount; i++) {
         GLsizei icount = count[i];
         if(icount == 0) continue;
         icount *= typebytes;
         if(elementbuffer != 0) {
             GLES.glCopyBufferSubData(GL_ELEMENT_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr)indices[i], offset, icount);
-        }else {
+        } else {
             GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, icount, indices[i]);
         }
         offset += icount;
