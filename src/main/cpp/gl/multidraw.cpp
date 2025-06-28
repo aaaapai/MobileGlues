@@ -30,6 +30,9 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
             case multidraw_mode_t::Compute:
                 func_ptr = mg_glMultiDrawElements_compute;
                 break;
+            case multidraw_mode_t::artJoker:
+                func_ptr = ltw_glMultiDrawElements;
+                break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
                 break;
@@ -624,16 +627,27 @@ void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 }
 
+static GLint type_bytes(GLenum type) {
+    switch (type) {
+        case GL_UNSIGNED_BYTE: return 1;
+        case GL_UNSIGNED_SHORT: return 2;
+        case GL_UNSIGNED_INT: return 4;
+        default: return -1;
+    }
+}
+
+static GLuint multidraw_element_buffer;
+
 void ltw_glMultiDrawElements( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount )
 {
     GLint elementbuffer;
     GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
-    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, current_context->multidraw_element_buffer);
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, multidraw_element_buffer);
     GLsizei total = 0, offset = 0, typebytes = type_bytes(type);
     for (GLsizei i = 0; i < primcount; i++) {
         total += count[i];
     }
-    es3_functions.glBufferData(GL_COPY_WRITE_BUFFER, total*typebytes, NULL, GL_STREAM_DRAW);
+    GLES.glBufferData(GL_COPY_WRITE_BUFFER, total*typebytes, NULL, GL_STREAM_DRAW);
     for (GLsizei i = 0; i < primcount; i++) {
         GLsizei icount = count[i];
         if(icount == 0) continue;
@@ -645,7 +659,7 @@ void ltw_glMultiDrawElements( GLenum mode, GLsizei *count, GLenum type, const vo
         }
         offset += icount;
     }
-    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_context->multidraw_element_buffer);
+    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, multidraw_element_buffer);
     GLES.glDrawElements(mode, total, type, 0);
     if(elementbuffer != 0) GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 }
