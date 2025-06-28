@@ -16,10 +16,6 @@
 #include "../gles/loader.h"
 #include "mg.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct draw_elements_indirect_command_t {
     GLuint  count;
     GLuint  instanceCount;
@@ -47,8 +43,5 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsiz
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_ltw(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
-#ifdef __cplusplus
-}
-#endif
 
 #endif //MOBILEGLUES_MULTIDRAW_H
