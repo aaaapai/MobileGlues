@@ -31,7 +31,7 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
                 func_ptr = mg_glMultiDrawElements_compute;
                 break;
             case multidraw_mode_t::artJoker:
-                func_ptr = ltw_glMultiDrawElements;
+                func_ptr = mh_glMultiDrawElements_ltw;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
@@ -638,7 +638,7 @@ static GLint type_bytes(GLenum type) {
 
 static GLuint multidraw_element_buffer;
 
-void ltw_glMultiDrawElements( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount )
+void mg_glMultiDrawElements_ltw( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount )
 {
     GLint elementbuffer;
     GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
