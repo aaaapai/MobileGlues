@@ -627,7 +627,7 @@ void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 }
 
-static GLint type_bytes(GLenum type) {
+GLint type_bytes(GLenum type) {
     switch (type) {
         case GL_UNSIGNED_BYTE: return 1;
         case GL_UNSIGNED_SHORT: return 2;
@@ -636,10 +636,12 @@ static GLint type_bytes(GLenum type) {
     }
 }
 
-static GLuint multidraw_element_buffer;
+GLuint multidraw_element_buffer;
 
-void mg_glMultiDrawElements_ltw( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount )
-{
+GLAPI GLAPIENTRY void mg_glMultiDrawElements_ltw( GLenum mode, GLsizei *count, GLenum type, const void * const *indices, GLsizei primcount ) {
+    LOG()
+
+    
     GLint elementbuffer;
     GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
     GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, multidraw_element_buffer);
