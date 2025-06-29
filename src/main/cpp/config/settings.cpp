@@ -185,6 +185,8 @@ void init_settings_post() {
             g_gles_caps.GL_OES_draw_elements_base_vertex ||
             (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || (g_gles_caps.major > 3);
     bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool drawelements = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool LTW = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
 
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
@@ -243,9 +245,12 @@ void init_settings_post() {
             } else if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
                 LOG_V("    -> BaseVertex (Auto detected)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Auto detected)")
+            } else if (LTW) {
+                global_settings.multidraw_mode = multidraw_mode_t::artJoker;
+                LOG_V(" -> LTW (Auto detected)")
             }
             break;
     }
