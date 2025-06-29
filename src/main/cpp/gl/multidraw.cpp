@@ -63,6 +63,9 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
             case multidraw_mode_t::Compute:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_compute;
                 break;
+            case multidraw_mode_t::artJoker:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_ltw;
+                break;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
                 break;
@@ -627,6 +630,60 @@ void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 }
 
+GLuint bound_buffers[MAX_BOUND_BUFFERS];
+static void restore_state(GLuint element_buffer) {
+    GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, bound_buffers[get_buffer_index(GL_DRAW_INDIRECT_BUFFER)]);
+}
+typedef struct {
+    bool ready;
+    GLuint indirectRenderBuffer;
+} ltw_basevertex_renderer_t;
+ltw_basevertex_renderer_t basevertex;
+typedef struct {
+    GLuint count;
+    GLuint instanceCount;
+    GLuint firstIndex;
+    GLint baseVertex;
+    GLuint reservedMustBeZero;
+} ltw_indirect_pass_t;
+
+void mg_glMultiDrawElementsBaseVertex_ltw
+        GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
+    for(GLsizei i = 0; i < drawcount; i++) {
+            GLES.glDrawElementsBaseVertex(mode, count[i], type, indices[i], basevertex[i]);
+    }
+    ltw_basevertex_renderer_t *renderer = basevertex;
+    if(!success) return;
+    GLint elementbuffer;
+    GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
+    if(elementbuffer == 0) {
+        // I am not bothered enough to implement this.
+        printf("LTW: Base vertex draws without element buffer are not supported\n");
+        return;
+    }
+    GLint typeBytes = type_bytes(type);
+    ltw_indirect_pass_t indirect_passes[drawcount];
+    for(GLsizei i = 0; i < drawcount; i++) {
+        uintptr_t indicesPointer = (uintptr_t)indices[i];
+        if(indicesPointer % typeBytes != 0) {
+            printf("LTW: misaligned base vertex draw not supported (draw %i)\n", i);
+            return;
+    }
+        ltw_indirect_pass_t* pass = &indirect_passes[i];
+        pass->count = count[i];
+        pass->firstIndex = indicesPointer / typeBytes;
+        pass->baseVertex = basevertex[i];
+        pass->instanceCount = 1;
+        pass->reservedMustBeZero = 0;
+    }
+    GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, renderer->indirectRenderBuffer);
+    GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, (long)sizeof(ltw_indirect_pass_t) * drawcount, indirect_passes, GL_STREAM_DRAW);
+    for(GLsizei i = 0; i < drawcount; i++) {
+        GLES.glDrawElementsIndirect(mode, type, (void*)(sizeof(ltw_indirect_pass_t) * i));
+    }
+    restore_state(elementbuffer);
+}
+
 GLint type_bytes(GLenum type) {
         switch (type) {
            case GL_UNSIGNED_BYTE: return 1;
@@ -636,10 +693,10 @@ GLint type_bytes(GLenum type) {
         }
 }
 
+GLuint multidraw_element_buffer;
+
 void mg_glMultiDrawElements_ltw(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-
-    GLuint multidraw_element_buffer;
 
     GLint elementbuffer;
     GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementbuffer);
