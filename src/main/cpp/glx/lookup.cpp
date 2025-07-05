@@ -39,9 +39,6 @@ std::string handle_multidraw_func_name(std::string name) {
         case multidraw_mode_t::Compute:
             namestr += "_compute";
             break;
-        case multidraw_mode_t::artJoker:
-            namestr += "_ltw";
-            break;
         default:
             LOG_W("get_multidraw_func() cannot determine multidraw emulation mode!")
             return {};
