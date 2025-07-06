@@ -8,6 +8,7 @@
 #include <fstream>
 #include "../log.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
+#include <shaderc/shaderc.h>
 #include "preConvertedGlsl.h"
 #include <string>
 #include <regex>
@@ -611,6 +612,45 @@ int get_or_add_glsl_version(std::string& glsl) {
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
     
+    static shaderc_compiler_t compiler = nullptr;
+    if(compiler == nullptr) {
+        compiler = shaderc_compiler_initialize();
+        if(compiler == nullptr) {
+            printf("Error: shaderc compiler cannot be created!\n");
+            errc = -1;
+            return {};
+        }
+    }
+
+    shaderc_compile_options_t opts = shaderc_compile_options_initialize();
+    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
+    shaderc_compile_options_set_auto_map_locations(opts, true);
+    shaderc_compile_options_set_auto_bind_uniforms(opts, true);
+    shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+     
+    shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_glsl(
+        compiler, 
+        *shader_src,
+        strlen(*shader_src),
+        shader_type == GL_VERTEX_SHADER ? shaderc_glsl_vertex_shader : 
+        shader_type == GL_FRAGMENT_SHADER ? shaderc_glsl_fragment_shader :
+        shader_type == GL_COMPUTE_SHADER ? shaderc_glsl_compute_shader :
+        shader_type == GL_GEOMETRY_SHADER ? shaderc_glsl_geometry_shader :
+        shader_type == GL_TESS_CONTROL_SHADER ? shaderc_glsl_tess_control_shader :
+        shader_type == GL_TESS_EVALUATION_SHADER ? shaderc_glsl_tess_evaluation_shader :
+        shaderc_glsl_infer_from_source,
+        "optimized_shader", "main", opts);
+
+    if(shaderc_result_get_compilation_status(optimized_glsl_res) != shaderc_compilation_status_success) {
+        printf("There is a problem with shaderc！\n%s\n", shaderc_result_get_error_message(optimized_glsl_res));
+        shaderc_result_release(optimized_glsl_res);
+        errc = -1;
+        return {};
+    }
+
+    const char* optimized_glsl = shaderc_result_get_bytes(optimized_glsl_res);
+    size_t optimized_glsl_length = shaderc_result_get_length(optimized_glsl_res);
+    
     EShLanguage shader_language;
     switch (shader_type) {
         case GL_VERTEX_SHADER:
@@ -633,12 +673,13 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
             break;
         default:
             LOG_D("GLSL type not supported!")
+            shaderc_result_release(optimized_glsl_res);
             errc = -1;
             return {};
     }
 
     glslang::TShader shader(shader_language);
-    shader.setStrings(shader_src, 1);
+    shader.setStrings(&optimized_glsl, 1);
 
     using namespace glslang;
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
@@ -651,6 +692,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
         LOG_E("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
         errc = -1;
         return {};
     }
@@ -661,6 +703,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     if (!program.link(EShMsgDefault)) {
         LOG_E("Shader Linking ERROR: %s", program.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
         errc = -1;
         return {};
     }
@@ -669,6 +712,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    shaderc_result_release(optimized_glsl_res);
     errc = 0;
     return spirv_code;
 }
