@@ -8,7 +8,7 @@
 #include <fstream>
 #include "../log.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
-#include <shaderc/shader.h>
+#include <shaderc/shaderc.h>
 #include "preConvertedGlsl.h"
 #include <string>
 #include <regex>
@@ -628,7 +628,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
      
-    shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_glsl(
+    shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_preprocessed_text(
         compiler, 
         *shader_src,
         strlen(*shader_src),
