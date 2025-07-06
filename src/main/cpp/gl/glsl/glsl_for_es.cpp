@@ -8,7 +8,7 @@
 #include <fstream>
 #include "../log.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
-#include <shaderc/shaderc.h>
+#include <shaderc/shader.h>
 #include "preConvertedGlsl.h"
 #include <string>
 #include <regex>
