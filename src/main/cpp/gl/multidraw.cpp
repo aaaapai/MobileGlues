@@ -381,7 +381,7 @@ void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum
 }
 
 const std::string multidraw_comp_shader =
-R"(#version 310 es
+R"(#version 320 es
 
 layout(local_size_x = 64) in;
 
