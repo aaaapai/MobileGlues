@@ -381,7 +381,7 @@ void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum
 }
 
 const std::string multidraw_comp_shader =
-R"(#version 320 es
+R"(#version 310 es
 
 layout(local_size_x = 64) in;
 
@@ -495,7 +495,7 @@ GLuint compile_compute_program(const std::string& src) {
     return program;
 }
 
-void mg_glMultiDrawElementsBaseVertex_compute(
+GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
         GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
     LOG()
 
