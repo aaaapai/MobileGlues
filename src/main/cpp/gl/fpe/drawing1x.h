@@ -10,9 +10,6 @@
 
 // a bit bad for perf, but keep this for now...
 template <typename Type, GLint N>
-#ifdef __cplusplus
-extern "C" {
-#endif
 void mglNormal(std::array<Type, N> normal) {
     auto& state = g_glstate.fpe_state.fpe_draw;
     auto& cur = state.current_data.normal;
@@ -22,9 +19,6 @@ void mglNormal(std::array<Type, N> normal) {
     }
     state.current_data.sizes.normal_size = N;
 }
-#ifdef __cplusplus
-}
-#endif
 
 template <typename Type, GLint N>
 void mglTexCoord(std::array<Type, N> uv, GLint texid) {
