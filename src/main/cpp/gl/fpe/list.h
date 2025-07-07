@@ -196,6 +196,10 @@ if (!disableRecording && DisplayListManager::shouldRecord()) {  \
         return;                                                 \
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 GLAPI GLAPIENTRY GLuint glGenLists(GLsizei range);
 GLAPI GLAPIENTRY void glDeleteLists(GLuint list, GLsizei range);
 GLAPI GLAPIENTRY GLboolean glIsList(GLuint list);
@@ -204,5 +208,9 @@ GLAPI GLAPIENTRY void glEndList();
 GLAPI GLAPIENTRY void glCallList(GLuint list);
 GLAPI GLAPIENTRY void glCallLists(GLsizei n, GLenum type, const GLvoid* lists);
 GLAPI GLAPIENTRY void glListBase(GLuint base);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //MOBILEGLUES_PLUGIN_LIST_H
