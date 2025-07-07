@@ -574,8 +574,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     replace_all(ret, "#version 140", "#version 330");
     replace_all(ret, "#version 150", "#version 330");
 
-    replace_all(ret, "noperspective ", "");//哥们的手机就是飞舞
-
     // Replace deprecated syntax
     if (glsl_type == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
@@ -626,10 +624,25 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     shaderc_compile_options_t opts = shaderc_compile_options_initialize();
-    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
+    shaderc_compile_options_set_forced_version_profile(opts, 320, shaderc_profile_es);
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
-    shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+    shaderc_compile_options_add_macro_definition(
+        opts, "ftransform", strlen("ftransform"), 
+        "(uMVPMatrix * gl_Position)", strlen("(uMVPMatrix * gl_Position)"));
+    
+    shaderc_compile_options_add_macro_definition(
+        opts,
+        "gl_MultiTexCoord0", strlen("gl_MultiTexCoord0"),
+        "vec2(float(gl_VertexID), 0.0)",
+        strlen("vec2(float(gl_VertexID), 0.0)")
+    );
+
+    shaderc_compile_options_add_macro_definition(
+        options, "noperspective", strlen("noperspective"), "highp", strlen("highp")
+    );
+
+    shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl_compat, shaderc_env_version_opengl_4_5);
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
 
