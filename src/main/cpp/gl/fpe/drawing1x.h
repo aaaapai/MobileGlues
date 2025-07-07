@@ -5,15 +5,14 @@
 #ifndef MOBILEGLUES_VERTEXDATA_H
 #define MOBILEGLUES_VERTEXDATA_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "types.h"
 #include "fpe.hpp"
 
 // a bit bad for perf, but keep this for now...
 template <typename Type, GLint N>
+#ifdef __cplusplus
+extern "C" {
+#endif
 void mglNormal(std::array<Type, N> normal) {
     auto& state = g_glstate.fpe_state.fpe_draw;
     auto& cur = state.current_data.normal;
@@ -23,6 +22,9 @@ void mglNormal(std::array<Type, N> normal) {
     }
     state.current_data.sizes.normal_size = N;
 }
+#ifdef __cplusplus
+}
+#endif
 
 template <typename Type, GLint N>
 void mglTexCoord(std::array<Type, N> uv, GLint texid) {
@@ -61,6 +63,10 @@ void mglVertex(std::array<Type, N> vertex) {
     // let's collect one vertex here!
     state.advance();
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 GLAPI void GLAPIENTRY glBegin( GLenum mode );
 
