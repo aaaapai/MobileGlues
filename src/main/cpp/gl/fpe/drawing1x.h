@@ -5,6 +5,10 @@
 #ifndef MOBILEGLUES_VERTEXDATA_H
 #define MOBILEGLUES_VERTEXDATA_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 #include "fpe.hpp"
 
@@ -289,5 +293,8 @@ GLAPI void GLAPIENTRY glRectfv( const GLfloat *v1, const GLfloat *v2 );
 GLAPI void GLAPIENTRY glRectiv( const GLint *v1, const GLint *v2 );
 GLAPI void GLAPIENTRY glRectsv( const GLshort *v1, const GLshort *v2 );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif //MOBILEGLUES_VERTEXDATA_H
