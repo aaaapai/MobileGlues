@@ -626,10 +626,12 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     shaderc_compile_options_t opts = shaderc_compile_options_initialize();
-    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
+    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_compatibility);
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+
+    shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
 
     shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_preprocessed_text(
         compiler, 
