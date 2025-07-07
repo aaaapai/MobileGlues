@@ -30,9 +30,6 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
             case multidraw_mode_t::Compute:
                 func_ptr = mg_glMultiDrawElements_compute;
                 break;
-            case multidraw_mode_t::ltw:
-                func_ptr = mg_glMultiDrawElements_ltw;
-                break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
                 break;
@@ -62,9 +59,6 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 break;
             case multidraw_mode_t::Compute:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_compute;
-                break;
-            case multidraw_mode_t::ltw:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_ltw;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
