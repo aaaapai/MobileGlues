@@ -574,6 +574,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     replace_all(ret, "#version 140", "#version 330");
     replace_all(ret, "#version 150", "#version 330");
 
+    replace_all(ret, "noperspective ", "");//哥们的手机就是飞舞
+
     // Replace deprecated syntax
     if (glsl_type == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
