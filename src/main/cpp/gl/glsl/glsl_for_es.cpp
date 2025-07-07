@@ -653,7 +653,6 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     const char* optimized_glsl = shaderc_result_get_bytes(optimized_glsl_res);
     size_t optimized_glsl_length = shaderc_result_get_length(optimized_glsl_res);
-    printf(optimized_glsl\n);
     
     EShLanguage shader_language;
     switch (shader_type) {
