@@ -624,19 +624,9 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     shaderc_compile_options_t opts = shaderc_compile_options_initialize();
-    shaderc_compile_options_set_forced_version_profile(opts, 320, shaderc_profile_es);
+    shaderc_compile_options_set_forced_version_profile(opts, 330, shaderc_profile_core);
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
-    shaderc_compile_options_add_macro_definition(
-        opts, "ftransform", strlen("ftransform"), 
-        "(uMVPMatrix * gl_Position)", strlen("(uMVPMatrix * gl_Position)"));
-    
-    shaderc_compile_options_add_macro_definition(
-        opts,
-        "gl_MultiTexCoord0", strlen("gl_MultiTexCoord0"),
-        "vec2(float(gl_VertexID), 0.0)",
-        strlen("vec2(float(gl_VertexID), 0.0)")
-    );
 
     shaderc_compile_options_add_macro_definition(
         opts, "noperspective", strlen("noperspective"), "highp", strlen("highp")
