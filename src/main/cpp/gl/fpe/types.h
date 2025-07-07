@@ -5,10 +5,6 @@
 #ifndef MOBILEGLUES_TYPES_H
 #define MOBILEGLUES_TYPES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "GL/gl.h"
 #include "../gles/loader.h"
 #include "../gl/log.h"
@@ -23,6 +19,10 @@ extern "C" {
 #include "vertexpointer_utils.h"
 #include "../version.h"
 #include "xxhash64.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 GLsizei type_size(GLenum type);
 
