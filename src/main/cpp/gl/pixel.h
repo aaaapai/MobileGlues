@@ -5,10 +5,6 @@
 #ifndef MOBILEGLUES_PIXEL_H
 #define MOBILEGLUES_PIXEL_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
@@ -32,6 +28,10 @@ typedef struct {
 } pixel_t;
 
 #define widthalign(width, align) ((((uintptr_t)(width))+((uintptr_t)(align)-1))&(~((uintptr_t)(align)-1)))
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 GLsizei gl_sizeof(GLenum type);
 
