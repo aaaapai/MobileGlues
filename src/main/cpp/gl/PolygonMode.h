@@ -1,11 +1,6 @@
 #ifndef POLYGON_MODE_H
 #define POLYGON_MODE_H
 
-//DeepSeek
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "../includes.h"
 #include "GL/gl.h"
 #include "GL/glcorearb.h"
@@ -62,6 +57,11 @@ private:
     static PolygonMode s_globalMode;
 
 };
+
+//DeepSeek
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 GLAPI GLAPIENTRY void glPolygonMode(GLenum face, GLenum mode);
 
