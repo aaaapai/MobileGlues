@@ -20,7 +20,7 @@
 
 #define VERSION_TYPE VERSION_DEVELOPMENT
 
-#define VERSION_SUFFIX "-fpe"
+#define VERSION_SUFFIX "-unofficial"
 
 #define MOBILEGLUES_VERSION_H
 
