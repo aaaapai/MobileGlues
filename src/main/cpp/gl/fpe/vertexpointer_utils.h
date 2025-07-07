@@ -5,19 +5,11 @@
 #ifndef MOBILEGLUES_VERTEXPOINTER_UTILS_H
 #define MOBILEGLUES_VERTEXPOINTER_UTILS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "GL/gl.h"
 #include "../gl/log.h"
 
 int vp2idx(GLenum vp);
 uint32_t vp_mask(GLenum vp);
 GLenum idx2vp(int idx);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //MOBILEGLUES_VERTEXPOINTER_UTILS_H
