@@ -20,15 +20,7 @@
 #include "../version.h"
 #include "xxhash64.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 GLsizei type_size(GLenum type);
-
-#ifdef __cplusplus
-}
-#endif
 
 struct transformation_t {
     glm::mat4 matrices[4];
