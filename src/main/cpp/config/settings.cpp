@@ -158,9 +158,6 @@ void init_settings() {
         case multidraw_mode_t::Compute:
             draw_mode_str = "Compute";
             break;
-        case multidraw_mode_t::ltw:
-            draw_mode_str = "ltw";
-            break;
         case multidraw_mode_t::Auto:
             draw_mode_str = "Auto";
             break;
@@ -200,9 +197,6 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            } else if (ltw) {
-                global_settings.multidraw_mode = multidraw_mode_t::ltw;
-                LOG_V("    -> ltw (Preferred not supported, falling back)")
             }
             break;
         case multidraw_mode_t::PreferBaseVertex:
@@ -219,9 +213,6 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            } else if (ltw) {
-                global_settings.multidraw_mode = multidraw_mode_t::ltw;
-                LOG_V("    -> ltw (Preferred not supported, falling back)")
             }
             break;
         case multidraw_mode_t::DrawElements:
@@ -233,11 +224,6 @@ void init_settings_post() {
             LOG_V("multidrawMode = Compute")
             global_settings.multidraw_mode = multidraw_mode_t::Compute;
             LOG_V("    -> Compute (OK)")
-            break;
-        case multidraw_mode_t::ltw:
-            LOG_V("multidrawMode = ltw")
-            global_settings.multidraw_mode = multidraw_mode_t::ltw;
-            LOG_V("    -> ltw (OK)")
             break;
         case multidraw_mode_t::Auto:
         default:
@@ -254,9 +240,6 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Auto detected)")
-            } else if (ltw) {
-                global_settings.multidraw_mode = multidraw_mode_t::ltw;
-                LOG_V("    -> ltw (Auto detected)")
             }
             break;
     }
