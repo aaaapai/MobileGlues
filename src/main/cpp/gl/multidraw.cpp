@@ -634,12 +634,12 @@ GLuint bound_buffers[MAX_BOUND_BUFFERS];
 static void restore_state(GLuint element_buffer) {
     GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, bound_buffers[get_buffer_index(GL_DRAW_INDIRECT_BUFFER)]);
 }
-typedef struct {
+struct {
     bool ready;
     GLuint indirectRenderBuffer;
 } ltw_basevertex_renderer_t;
 ltw_basevertex_renderer_t basevertex;
-typedef struct {
+struct {
     GLuint count;
     GLuint instanceCount;
     GLuint firstIndex;
@@ -647,7 +647,7 @@ typedef struct {
     GLuint reservedMustBeZero;
 } ltw_indirect_pass_t;
 
-void mg_glMultiDrawElementsBaseVertex_ltw
+void mg_glMultiDrawElementsBaseVertex_ltw(
         GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
     for(GLsizei i = 0; i < drawcount; i++) {
             GLES.glDrawElementsBaseVertex(mode, count[i], type, indices[i], basevertex[i]);
