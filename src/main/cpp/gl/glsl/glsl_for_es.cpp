@@ -639,7 +639,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     );
 
     shaderc_compile_options_add_macro_definition(
-        options, "noperspective", strlen("noperspective"), "highp", strlen("highp")
+        opts, "noperspective", strlen("noperspective"), "highp", strlen("highp")
     );
 
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl_compat, shaderc_env_version_opengl_4_5);
