@@ -33,21 +33,21 @@ struct drawcmd_compute_t {
     GLint   baseVertex;
 };
 
-typedef struct {
+struct {
     bool ready;
     GLuint indirectRenderBuffer;
 } ltw_basevertex_renderer_t;
-typedef struct {
+struct {
     GLuint count;
     GLuint instanceCount;
     GLuint firstIndex;
     GLint baseVertex;
     GLuint reservedMustBeZero;
 } indirect_pass_t;
-GLint type_bytes(GLenum type);
-GLuint multidraw_element_buffer;
+extern GLint type_bytes(GLenum type);
+extern GLuint multidraw_element_buffer;
 #define MAX_BOUND_BUFFERS 9
-GLuint bound_buffers[MAX_BOUND_BUFFERS];
+extern GLuint bound_buffers[MAX_BOUND_BUFFERS];
 
 GLAPI GLAPIENTRY void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
 GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_indirect(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
