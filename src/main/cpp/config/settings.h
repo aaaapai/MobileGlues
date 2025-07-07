@@ -22,7 +22,6 @@ enum class multidraw_mode_t: int {
     PreferMultidrawIndirect,
     DrawElements,
     Compute,
-    ltw,
     MaxValue
 };
 
