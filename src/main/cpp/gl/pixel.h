@@ -5,6 +5,10 @@
 #ifndef MOBILEGLUES_PIXEL_H
 #define MOBILEGLUES_PIXEL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
@@ -39,5 +43,9 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst,
                    GLuint width, GLuint height,
                    GLenum src_format, GLenum src_type,
                    GLenum dst_format, GLenum dst_type, GLuint stride, GLuint align);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //MOBILEGLUES_PIXEL_H
