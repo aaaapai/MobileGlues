@@ -616,6 +616,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     
     static shaderc_compiler_t compiler = nullptr;
     if(compiler == nullptr) {
+        printf("shaderc\n");
         compiler = shaderc_compiler_initialize();
         if(compiler == nullptr) {
             printf("Error: shaderc compiler cannot be created!\n");
@@ -629,7 +630,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-     
+
     shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_preprocessed_text(
         compiler, 
         *shader_src,
@@ -652,6 +653,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     const char* optimized_glsl = shaderc_result_get_bytes(optimized_glsl_res);
     size_t optimized_glsl_length = shaderc_result_get_length(optimized_glsl_res);
+    printf(optimized_glsl\n);
     
     EShLanguage shader_language;
     switch (shader_type) {
