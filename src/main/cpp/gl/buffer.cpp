@@ -9,7 +9,7 @@ template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
 //using unordered_map = std::unordered_map<K, V>;
 
-#define DEBUG 1
+#define DEBUG 0
 
 GLint maxBufferId = 0;
 GLint maxArrayId = 0;
