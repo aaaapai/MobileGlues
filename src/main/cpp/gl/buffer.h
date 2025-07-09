@@ -17,9 +17,7 @@ typedef struct {
     GLenum target;
     GLuint buffer_id;
     void *mapped_ptr;
-#if GLOBAL_DEBUG || DEBUG
     void *client_ptr;
-#endif
     GLsizeiptr size;
     GLbitfield flags;
     GLboolean is_dirty;
