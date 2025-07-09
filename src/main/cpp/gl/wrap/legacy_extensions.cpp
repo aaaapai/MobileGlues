@@ -7,7 +7,7 @@
 #include <GL/gl.h>
 #include "legacy_extensions.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 GLboolean glIsRenderbufferEXT(GLuint renderbuffer) {
      return GLES.glIsRenderbuffer(renderbuffer);
