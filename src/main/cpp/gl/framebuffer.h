@@ -11,17 +11,17 @@
 extern "C" {
 #endif
 
-typedef struct {
+struct attachment_t {
     GLenum textarget;
     GLuint texture;
     GLint level;
-} attachment_t;
+};
 
-typedef struct {
+struct framebuffer_t {
     GLenum current_target;
-    attachment_t* draw_attachment;
-    attachment_t* read_attachment;
-} framebuffer_t;
+    struct attachment_t* draw_attachment;
+    struct attachment_t* read_attachment;
+};
 
 GLint getMaxDrawBuffers();
 
