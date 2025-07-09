@@ -567,13 +567,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
 
-    replace_all(ret, "#version 100", "#version 330");
-    replace_all(ret, "#version 110", "#version 330");
-    replace_all(ret, "#version 120", "#version 330");
-    replace_all(ret, "#version 130", "#version 330");
-    replace_all(ret, "#version 140", "#version 330");
-    replace_all(ret, "#version 150", "#version 330");
-
     // Replace deprecated syntax
     if (glsl_type == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
@@ -634,7 +627,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
-    GLint max_draw_buffers = 2;
+    GLint max_draw_buffers = 4;
     shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
