@@ -620,15 +620,10 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
-
-    shaderc_compile_options_add_macro_definition(
-        opts, "noperspective", strlen("noperspective"), "", 0
-    );
-
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
-    GLint max_draw_buffers = 4;
-    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
+    //GLint max_draw_buffers = 4;
+    //shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
 
