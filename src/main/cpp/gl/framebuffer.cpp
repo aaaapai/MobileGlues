@@ -6,7 +6,7 @@
 #include "log.h"
 #include "../config/settings.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 framebuffer_t* bound_framebuffer;
 
