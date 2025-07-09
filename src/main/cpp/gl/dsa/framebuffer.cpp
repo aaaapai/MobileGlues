@@ -3,7 +3,7 @@
 //
 
 #include "framebuffer.h"
-#define DEBUG 0
+#define DEBUG 1
 
 void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
     LOG()
