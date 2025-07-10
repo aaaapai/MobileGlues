@@ -574,29 +574,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     } else if (glsl_type == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
     }
-  
-        // 添加draw buffers限制处理
-    if (glsl_type == GL_FRAGMENT_SHADER) {
-        // 替换layout(location = X) out为不超过4的location
-        std::regex layout_regex(R"(layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s*out)");
-        ret = std::regex_replace(ret, layout_regex, [](const std::smatch& m) {
-            int loc = std::stoi(m[1].str());
-            if (loc >= 4) {
-                return std::string("layout(location = 3) out"); // 限制到最大3
-            }
-            return m.str();
-        });
-        
-        // 替换gl_FragData[X]为不超过3的索引
-        std::regex fragdata_regex(R"(gl_FragData\s*\[\s*(\d+)\s*\])");
-        ret = std::regex_replace(ret, fragdata_regex, [](const std::smatch& m) {
-            int idx = std::stoi(m[1].str());
-            if (idx >= 4) {
-                return std::string("gl_FragData[3]"); // 限制到最大3
-            }
-            return m.str();
-        });
-    }
       
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
@@ -646,9 +623,11 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
-    shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "", 0);
+    shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
     
-    GLint max_draw_buffers = 4;
+    GLint max_draw_buffers;
+    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+    std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
     shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
