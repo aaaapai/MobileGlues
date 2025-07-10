@@ -574,7 +574,30 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     } else if (glsl_type == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
     }
-    
+  
+        // 添加draw buffers限制处理
+    if (glsl_type == GL_FRAGMENT_SHADER) {
+        // 替换layout(location = X) out为不超过4的location
+        std::regex layout_regex(R"(layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s*out)");
+        ret = std::regex_replace(ret, layout_regex, [](const std::smatch& m) {
+            int loc = std::stoi(m[1].str());
+            if (loc >= 4) {
+                return std::string("layout(location = 3) out"); // 限制到最大3
+            }
+            return m.str();
+        });
+        
+        // 替换gl_FragData[X]为不超过3的索引
+        std::regex fragdata_regex(R"(gl_FragData\s*\[\s*(\d+)\s*\])");
+        ret = std::regex_replace(ret, fragdata_regex, [](const std::smatch& m) {
+            int idx = std::stoi(m[1].str());
+            if (idx >= 4) {
+                return std::string("gl_FragData[3]"); // 限制到最大3
+            }
+            return m.str();
+        });
+    }
+      
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
@@ -586,50 +609,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
 
     // MobileGlues macros injection
     inject_mg_macro_definition(ret);
-
-    if (glsl_type == GL_FRAGMENT_SHADER) {
-        std::regex out_regex(R"(layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s*out\s+(\w+)\s+(\w+)\s*;)");
-        std::smatch matches;
-        std::vector<std::pair<int, std::string>> out_decls; // {location, declaration}
-        std::string::const_iterator search_start(ret.cbegin());
-
-        // 收集所有 out 变量声明
-        while (std::regex_search(search_start, ret.cend(), matches, out_regex)) {
-            // 定义成员函数指针
-            auto str_func = &std::sub_match::str;
-            // 通过指针调用
-            int loc = std::stoi((matches[1].*str_func)());
-            out_decls.emplace_back(loc, (matches[0].*str_func)());
-            search_start = matches[0].second;
-        }
-
-        // 如果超过 4 个，合并到 vec4 中
-        if (out_decls.size() > 4) {
-            std::string merged_decl = "layout(location=0) out vec4 mergedOutput;";
-            std::string replace_code;
-
-            // 替换多余的 out 变量为 mergedOutput 的分量
-            for (size_t i = 0; i < out_decls.size(); ++i) {
-                if (i < 4) {
-                    // 保留前 4 个
-                    replace_code += out_decls[i].second + "\n";
-                } else {
-                    // 将多余的变量赋值给 mergedOutput 的分量
-                    std::string var_name = matches[3].str();
-                    replace_code += "mergedOutput." + std::string("rgba").substr(i-4, 1) + " = " + var_name + ";\n";
-                }
-            }
-
-            // 替换原始代码
-            for (const auto& decl : out_decls) {
-                size_t pos = ret.find(decl.second);
-                if (pos != std::string::npos) {
-                    ret.erase(pos, decl.second.length());
-                }
-            }
-            ret.insert(ret.find("void main()"), merged_decl + "\n" + replace_code);
-        }
-    } //DeepSeek
 
     return ret;
 }
