@@ -595,8 +595,11 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
 
         // 收集所有 out 变量声明
         while (std::regex_search(search_start, ret.cend(), matches, out_regex)) {
-            int loc = std::stoi((matches[1]).str());
-            out_decls.emplace_back(loc, matches[0].str());
+            // 定义成员函数指针
+            auto str_func = &std::sub_match::str;
+            // 通过指针调用
+            int loc = std::stoi((matches[1].*str_func)());
+            out_decls.emplace_back(loc, (matches[0].*str_func)());
             search_start = matches[0].second;
         }
 
