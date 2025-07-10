@@ -595,7 +595,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
 
         // 收集所有 out 变量声明
         while (std::regex_search(search_start, ret.cend(), matches, out_regex)) {
-            int loc = std::stoi(matches[1].str());
+            int loc = std::stoi((matches[1]).str());
             out_decls.emplace_back(loc, matches[0].str());
             search_start = matches[0].second;
         }
