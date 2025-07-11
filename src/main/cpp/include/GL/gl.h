@@ -123,7 +123,7 @@ typedef float		GLfloat;	/* single precision float */
 typedef float		GLclampf;	/* single precision float in [0,1] */
 typedef double		GLdouble;	/* double precision float */
 typedef double		GLclampd;	/* double precision float in [0,1] */
-
+typedef khronos_ssize_t GLsizeiptr;
 
 
 /*
