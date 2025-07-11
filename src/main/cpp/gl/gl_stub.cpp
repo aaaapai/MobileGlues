@@ -2793,6 +2793,8 @@ GLAPI GLAPIENTRY void glTexCoord2bv(const GLbyte *v) { LOG_W("Stub: glTexCoord2b
 GLAPI GLAPIENTRY void glRasterPos2b(GLbyte x, GLbyte y) { LOG_W("Stub: glRasterPos2b") }
 GLAPI GLAPIENTRY void glTranslatex(GLfixed x, GLfixed y, GLfixed z) { LOG_W("Stub: glTranslatex") }
 
+GLAPI GLAPIENTRY void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data) { LOG_W("Stub: glClearBufferSubData") }
+GLAPI GLAPIENTRY void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) { LOG_W("Stub: "glClearNamedBufferSubData") }
 #ifdef __cplusplus
 }
 #endif
