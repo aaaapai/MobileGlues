@@ -66,6 +66,7 @@
 #include <windows.h>
 #endif
 
+#include <KHR/khrplatform.h>
 #ifndef GLAPI
 #define GLAPI extern
 #endif
