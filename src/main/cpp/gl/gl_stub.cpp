@@ -19,6 +19,8 @@ extern "C" {
 /*
 * Miscellaneous
 */
+STUB_FUNCTION_HEAD(void, glClearBufferSubData, GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data ) STUB_FUNCTION_END_NO_RETURN(void, glClearBufferSubData,target, internalformat, offset, size, format, type, data)
+STUB_FUNCTION_HEAD(void, glClearNamedBufferSubData, GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data ) STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferSubData,buffer, internalformat, offset, size, format, type, data)
 STUB_FUNCTION_HEAD(void, glClearIndex, GLfloat c ) STUB_FUNCTION_END_NO_RETURN(void, glClearIndex,c)
 STUB_FUNCTION_HEAD(void, glIndexMask, GLuint mask ) STUB_FUNCTION_END_NO_RETURN(void, glIndexMask,mask)
 //STUB_FUNCTION_HEAD(void, glAlphaFunc, GLenum func, GLclampf ref ) STUB_FUNCTION_END_NO_RETURN(void, glAlphaFunc,func,ref)
