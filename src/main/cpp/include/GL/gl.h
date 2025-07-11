@@ -911,6 +911,21 @@ GLAPI void GLAPIENTRY glCallLists( GLsizei n, GLenum type,
 
 GLAPI void GLAPIENTRY glListBase( GLuint base );
 
+GLAPI void GLAPIENTRY glClearBufferSubData(	GLenum target,
+ 	GLenum internalformat,
+ 	GLintptr offset,
+ 	GLsizeiptr size,
+ 	GLenum format,
+ 	GLenum type,
+ 	const void * data);
+ 
+GLAPI void GLAPIENTRY glClearNamedBufferSubData(	GLuint buffer,
+ 	GLenum internalformat,
+ 	GLintptr offset,
+ 	GLsizeiptr size,
+ 	GLenum format,
+ 	GLenum type,
+ 	const void *data);
 
 /*
  * Drawing Functions
