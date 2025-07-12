@@ -390,7 +390,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
+        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
             isLineDirective = true;
         }
 
@@ -625,12 +625,6 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
 
-    shaderc_compile_options_add_macro_definition(opts, "#version 100", strlen("#version 100"), "#version 330", strlen("#version 330"));
-    shaderc_compile_options_add_macro_definition(opts, "#version 110", strlen("#version 110"), "#version 330", strlen("#version 330"));
-    shaderc_compile_options_add_macro_definition(opts, "#version 120", strlen("#version 120"), "#version 330", strlen("#version 330"));
-    shaderc_compile_options_add_macro_definition(opts, "#version 130", strlen("#version 130"), "#version 330", strlen("#version 330"));
-    shaderc_compile_options_add_macro_definition(opts, "#version 140", strlen("#version 140"), "#version 330", strlen("#version 330"));
-    
     GLint max_draw_buffers;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
     std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
