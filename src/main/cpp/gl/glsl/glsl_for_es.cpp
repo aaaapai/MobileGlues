@@ -390,7 +390,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
+        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
             isLineDirective = true;
         }
 
