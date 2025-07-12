@@ -754,9 +754,12 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_compile(compiler_glsl, &result);
 
     if (!result) {
-        LOG_E("Error: unexpected error in spirv-cross.")
-        errc = -1;
-        return "";
+        const char* error_msg = spvc_context_get_last_error_string(context);
+        if (error_msg) {
+            LOG_E("SPIRV-Cross error: %s", error_msg);
+        } else {
+            LOG_E("SPIRV-Cross failed without error message");
+        }
     }
 
     std::string essl = result;
