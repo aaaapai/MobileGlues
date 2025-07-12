@@ -624,6 +624,12 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
     shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
+
+    shaderc_compile_options_add_macro_definition(opts, "#version 100", strlen("#version 100"), "#version 330", strlen("#version 330"));
+    shaderc_compile_options_add_macro_definition(opts, "#version 110", strlen("#version 110"), "#version 330", strlen("#version 330"));
+    shaderc_compile_options_add_macro_definition(opts, "#version 120", strlen("#version 120"), "#version 330", strlen("#version 330"));
+    shaderc_compile_options_add_macro_definition(opts, "#version 130", strlen("#version 130"), "#version 330", strlen("#version 330"));
+    shaderc_compile_options_add_macro_definition(opts, "#version 140", strlen("#version 140"), "#version 330", strlen("#version 330"));
     
     GLint max_draw_buffers;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
