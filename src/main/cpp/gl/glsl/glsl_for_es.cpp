@@ -568,7 +568,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     replace_all(ret, "#version 120", "#version 330");
     replace_all(ret, "#version 130", "#version 330");
     replace_all(ret, "#version 140", "#version 330");
-
+    replace_all(ret, "#version 150", "#version 330");
+    
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
@@ -599,12 +600,12 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
 int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
-        glsl_version = 150;
-        glsl.insert(0, "#version 150\n");
-    } else if (glsl_version < 150) {
+        glsl_version = 330;
+        glsl.insert(0, "#version 330\n");
+    } else if (glsl_version < 330) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 150\n");
-        glsl_version = 150;
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
+        glsl_version = 330;
     }
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
@@ -630,11 +631,6 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
     shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
-
-    GLint max_draw_buffers;
-    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
-    std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
-    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
 
