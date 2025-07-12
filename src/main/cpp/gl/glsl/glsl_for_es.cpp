@@ -688,7 +688,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shader.setStrings(&optimized_glsl, 1);
 
     using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
     shader.setAutoMapLocations(true);
@@ -760,6 +760,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
         } else {
             LOG_E("SPIRV-Cross failed without error message");
         }
+        return "";
     }
 
     std::string essl = result;
