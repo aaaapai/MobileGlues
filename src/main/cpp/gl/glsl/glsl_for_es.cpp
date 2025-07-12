@@ -563,6 +563,12 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
 
     replace_all(ret, "texture2D", "texture");
+    replace_all(ret, "#version 100", "#version 330");
+    replace_all(ret, "#version 110", "#version 330");
+    replace_all(ret, "#version 120", "#version 330");
+    replace_all(ret, "#version 130", "#version 330");
+    replace_all(ret, "#version 140", "#version 330");
+
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
