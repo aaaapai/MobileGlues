@@ -54,11 +54,11 @@ GLAPI GLAPIENTRY void glTextureParameterIuiv (GLuint texture, GLenum pname, cons
 
 GLAPI GLAPIENTRY void glBindTextureUnit (GLuint unit, GLuint texture);
 
-GLAPI void APIENTRY glBindSamplers (GLuint first, GLsizei count, const GLuint *samplers);
-GLAPI void APIENTRY glCopyTextureSubImage1D (GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-GLAPI void APIENTRY glCopyTextureSubImage2D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-GLAPI void APIENTRY glCopyTextureSubImage3D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-GLAPI void APIENTRY glTextureParameteriv (GLuint texture, GLenum pname, const GLint *param);
+GLAPI GLAPIENTRY void glBindSamplers (GLuint first, GLsizei count, const GLuint *samplers);
+GLAPI GLAPIENTRY void glCopyTextureSubImage1D (GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+GLAPI GLAPIENTRY void glCopyTextureSubImage2D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+GLAPI GLAPIENTRY void glCopyTextureSubImage3D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+GLAPI GLAPIENTRY void glTextureParameteriv (GLuint texture, GLenum pname, const GLint *param);
 #ifdef __cplusplus
 }
 #endif
