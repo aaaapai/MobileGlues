@@ -25,7 +25,7 @@
 #include "framebuffer.h"
 #include "pixel.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 int nlevel(int size, int level) {
     if(size) {
