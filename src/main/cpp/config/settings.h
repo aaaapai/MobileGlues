@@ -50,6 +50,12 @@ extern "C" {
         Level2 = 3
     };
 
+    enum class AngleDepthClearFixMode : int {
+        Disabled = 0,
+        Mode1 = 1,
+        MaxValue
+	};
+
     struct global_settings_t {
         AngleMode angle;
         IgnoreErrorLevel ignore_error;
@@ -57,6 +63,7 @@ extern "C" {
         bool ext_compute_shader;
         size_t max_glsl_cache_size;
         multidraw_mode_t multidraw_mode;
+        AngleDepthClearFixMode angle_depth_clear_fix_mode;
     };
 
     extern struct global_settings_t global_settings;

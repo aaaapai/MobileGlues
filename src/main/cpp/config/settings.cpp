@@ -20,6 +20,7 @@ void init_settings() {
     global_settings.ext_compute_shader = false;
     global_settings.max_glsl_cache_size = 30 * 1024 * 1024;
     global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
+    global_settings.angle_depth_clear_fix_mode = AngleDepthClearFixMode::Disabled;
 #else
     
     int success = initialized;
@@ -36,7 +37,8 @@ void init_settings() {
     bool enableExtComputeShader = success ? (config_get_int("enableExtComputeShader") != 0) : false;
     int enableCompatibleMode = success ? config_get_int("enableCompatibleMode") : 0;
     multidraw_mode_t multidrawMode = success ? static_cast<multidraw_mode_t>(config_get_int("multidrawMode")) : multidraw_mode_t::Auto;
-    
+    AngleDepthClearFixMode angleDepthClearFixMode = success ? static_cast<AngleDepthClearFixMode>(config_get_int("angleDepthClearFixMode")) : AngleDepthClearFixMode::Disabled;
+
     size_t maxGlslCacheSize = 0;
     if (config_get_int("maxGlslCacheSize") > 0) {
         maxGlslCacheSize = success ? config_get_int("maxGlslCacheSize") * 1024 * 1024 : 0;
@@ -50,6 +52,9 @@ void init_settings() {
     }
     if (static_cast<int>(multidrawMode) < 0 || static_cast<int>(multidrawMode) >= static_cast<int>(multidraw_mode_t::MaxValue)) {
         multidrawMode = multidraw_mode_t::Auto;
+    }
+    if (static_cast<int>(angleDepthClearFixMode) < 0 || static_cast<int>(angleDepthClearFixMode) >= static_cast<int>(AngleDepthClearFixMode::MaxValue)) {
+        angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
     if (enableCompatibleMode < 0 || enableCompatibleMode > 1) {
         enableCompatibleMode = 0;
@@ -72,6 +77,7 @@ void init_settings() {
         enableExtComputeShader = false;
         maxGlslCacheSize = 0;
         enableCompatibleMode = 0;
+        angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
 
     AngleMode finalAngleMode = AngleMode::Disabled;
@@ -146,6 +152,7 @@ void init_settings() {
     global_settings.ext_compute_shader = enableExtComputeShader;
     global_settings.max_glsl_cache_size = maxGlslCacheSize;
     global_settings.multidraw_mode = multidrawMode;
+    global_settings.angle_depth_clear_fix_mode = angleDepthClearFixMode;
 #endif
     
     std::string draw_mode_str;
@@ -173,6 +180,7 @@ void init_settings() {
     LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", 
           static_cast<int>(global_settings.max_glsl_cache_size / 1024 / 1024))
     LOG_V("[MobileGlues] Setting: multidrawMode          = %s", draw_mode_str.c_str())
+    LOG_V("[MobileGlues] Setting: angleDepthClearFixMode = %i", static_cast<int>(global_settings.angle_depth_clear_fix_mode))
 }
 
 void init_settings_post() {
