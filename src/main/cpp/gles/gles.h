@@ -44,7 +44,7 @@ GL_FUNC_TYPEDEF(void, glCompressedTexImage2D, GLenum target, GLint level, GLenum
 GL_FUNC_TYPEDEF(void, glCompressedTexSubImage2D, GLenum target, GLint level, GLint xoffset,
                 GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize,
                 const void *data)
-//GL_FUNC_TYPEDEF(void, glCopyTexImage1D, GLenum target, GLint level, GLenum internalFormat, GLint x, GLint y, GLsizei width, GLint border);
+GL_FUNC_TYPEDEF(void, glCopyTexImage1D, GLenum target, GLint level, GLenum internalFormat, GLint x, GLint y, GLsizei width, GLint border);
 GL_FUNC_TYPEDEF(void, glCopyTexImage2D, GLenum target, GLint level, GLenum internalformat, GLint x,
                 GLint y, GLsizei width, GLsizei height, GLint border)
 GL_FUNC_TYPEDEF(void, glCopyTexSubImage2D, GLenum target, GLint level, GLint xoffset, GLint yoffset,
@@ -144,10 +144,10 @@ GL_FUNC_TYPEDEF(void, glStencilMask, GLuint mask)
 GL_FUNC_TYPEDEF(void, glStencilMaskSeparate, GLenum face, GLuint mask)
 GL_FUNC_TYPEDEF(void, glStencilOp, GLenum fail, GLenum zfail, GLenum zpass)
 GL_FUNC_TYPEDEF(void, glStencilOpSeparate, GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
-//GL_FUNC_TYPEDEF(void, glTexImage1D, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
+GL_FUNC_TYPEDEF(void, glTexImage1D, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GL_FUNC_TYPEDEF(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width,
                 GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
-//GL_FUNC_TYPEDEF(void, glTexStorage1D, GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width);
+GL_FUNC_TYPEDEF(void, glTexStorage1D, GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width);
 GL_FUNC_TYPEDEF(void, glTexParameterf, GLenum target, GLenum pname, GLfloat param)
 GL_FUNC_TYPEDEF(void, glTexParameterfv, GLenum target, GLenum pname, const GLfloat *params)
 GL_FUNC_TYPEDEF(void, glTexParameteri, GLenum target, GLenum pname, GLint param)
@@ -526,7 +526,9 @@ GL_FUNC_TYPEDEF(void, glMultiDrawArraysIndirectEXT, GLenum mode, const void *ind
 GL_FUNC_TYPEDEF(void, glMultiDrawElementsIndirectEXT, GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
 GL_FUNC_TYPEDEF(void, glBruh)
 GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
-
+GL_FUNC_TYPEDEF(void, glFramebufferTexture3DOES, GLenum target, GLenum attachment, GLenum textarget,
+                GLuint texture, GLint level, GLint layer)
+                
 #define GL_FUNC_DECL(name) \
 name##_PTR name;
 
@@ -554,7 +556,7 @@ struct gles_func_t {
     GL_FUNC_DECL(glCompileShader)
     GL_FUNC_DECL(glCompressedTexImage2D)
     GL_FUNC_DECL(glCompressedTexSubImage2D)
-//    GL_FUNC_DECL(glCopyTexImage1D)
+    GL_FUNC_DECL(glCopyTexImage1D)
     GL_FUNC_DECL(glCopyTexImage2D)
     GL_FUNC_DECL(glCopyTexSubImage2D)
     GL_FUNC_DECL(glCreateProgram)
@@ -638,9 +640,9 @@ struct gles_func_t {
     GL_FUNC_DECL(glStencilMaskSeparate)
     GL_FUNC_DECL(glStencilOp)
     GL_FUNC_DECL(glStencilOpSeparate)
-//    GL_FUNC_DECL(glTexImage1D)
+    GL_FUNC_DECL(glTexImage1D)
     GL_FUNC_DECL(glTexImage2D)
-//    GL_FUNC_DECL(glTexStorage1D)
+    GL_FUNC_DECL(glTexStorage1D)
     GL_FUNC_DECL(glTexParameterf)
     GL_FUNC_DECL(glTexParameterfv)
     GL_FUNC_DECL(glTexParameteri)
@@ -903,6 +905,7 @@ struct gles_func_t {
     GL_FUNC_DECL(glMultiDrawElementsBaseVertexEXT)
 
     GL_FUNC_DECL(glBruh)
+    GL_FUNC_DECL(glFramebufferTexture3DOES)
 };
 
 extern struct gles_func_t g_gles_func;

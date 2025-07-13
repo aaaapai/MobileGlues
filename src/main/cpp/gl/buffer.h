@@ -5,8 +5,8 @@
 #ifndef MOBILEGLUES_BUFFER_H
 
 #include "../includes.h"
-#include "gl.h"
-#include "glcorearb.h"
+#include "GL/gl.h"
+#include "GL/glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
@@ -17,9 +17,7 @@ typedef struct {
     GLenum target;
     GLuint buffer_id;
     void *mapped_ptr;
-#if GLOBAL_DEBUG || DEBUG
     void *client_ptr;
-#endif
     GLsizeiptr size;
     GLbitfield flags;
     GLboolean is_dirty;
@@ -29,7 +27,7 @@ typedef struct {
 extern "C" {
 #endif
 
-GLuint gen_buffer();
+GLuint gen_buffer(GLuint realid = 0);
 
 GLboolean has_buffer(GLuint key);
 
@@ -57,9 +55,15 @@ static GLenum get_binding_query(GLenum target);
 
 GLAPI GLAPIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
 
+GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers); 
+
 GLAPI GLAPIENTRY void glDeleteBuffers(GLsizei n, const GLuint *buffers);
 
+GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers);
+
 GLAPI GLAPIENTRY GLboolean glIsBuffer(GLuint buffer);
+
+GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer);
 
 GLAPI GLAPIENTRY void glBindBuffer(GLenum target, GLuint buffer);
 
@@ -72,6 +76,8 @@ GLAPI GLAPIENTRY void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLi
 GLAPI GLAPIENTRY void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer);
 
 GLAPI GLAPIENTRY void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
+GLAPI GLAPIENTRY void glTexBufferRangeARB(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
 
 GLAPI GLAPIENTRY GLboolean glUnmapBuffer(GLenum target);
 

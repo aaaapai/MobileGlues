@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_FRAMEBUFFER_H
 #define MOBILEGLUES_FRAMEBUFFER_H
 
-#include "gl.h"
+#include "GL/gl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +36,10 @@ GLAPI GLAPIENTRY void glDrawBuffers(GLsizei n, const GLenum *bufs);
 GLAPI GLAPIENTRY void glReadBuffer(GLenum src);
 
 GLAPI GLAPIENTRY GLenum glCheckFramebufferStatus(GLenum target);
+
+GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);
+
+GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers);
 
 #ifdef __cplusplus
 }

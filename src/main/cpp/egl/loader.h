@@ -12,6 +12,11 @@ extern "C" {
 
 #include "egl.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef EGLBoolean (*eglBindAPI_PTR)(EGLenum api);
 
 typedef EGLBoolean (*eglBindTexImage_PTR)(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
@@ -174,6 +179,11 @@ EGLBoolean mglues_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface rea
 
 void init_target_egl();
 void destroy_temp_egl_ctx();
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #ifdef __cplusplus

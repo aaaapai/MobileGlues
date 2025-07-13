@@ -7,8 +7,8 @@
 #include "loader.h"
 #include "../includes.h"
 #include "loader.h"
-#include "../gl/gl.h"
-#include "../gl/glext.h"
+#include "GL/gl.h"
+#include "GL/glext.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -56,8 +56,8 @@ static const char *egl_lib[] = {
         nullptr
 };
 
-const char *GLES_ANGLE = "libGLESv2_angle.so";
-const char *EGL_ANGLE = "libEGL_angle.so";
+const char *GLES_ANGLE = "libvgpu.so";
+const char *EGL_ANGLE = "libvgpu.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
@@ -201,6 +201,10 @@ void InitGLESCapabilities() {
 
     if (global_settings.ext_gl43) {
         AppendExtension("OpenGL43");
+        AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
+
     }
 
     if (global_settings.ext_compute_shader) {
@@ -235,7 +239,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glCompileShader)
     INIT_GLES_FUNC(glCompressedTexImage2D)
     INIT_GLES_FUNC(glCompressedTexSubImage2D)
-//    INIT_GLES_FUNC(glCopyTexImage1D)
+    INIT_GLES_FUNC(glCopyTexImage1D)
     INIT_GLES_FUNC(glCopyTexImage2D)
     INIT_GLES_FUNC(glCopyTexSubImage2D)
     INIT_GLES_FUNC(glCreateProgram)
@@ -319,9 +323,9 @@ void init_target_gles() {
     INIT_GLES_FUNC(glStencilMaskSeparate)
     INIT_GLES_FUNC(glStencilOp)
     INIT_GLES_FUNC(glStencilOpSeparate)
-//    INIT_GLES_FUNC(glTexImage1D)
+    INIT_GLES_FUNC(glTexImage1D)
     INIT_GLES_FUNC(glTexImage2D)
-//    INIT_GLES_FUNC(glTexStorage1D)
+    INIT_GLES_FUNC(glTexStorage1D)
     INIT_GLES_FUNC(glTexParameterf)
     INIT_GLES_FUNC(glTexParameterfv)
     INIT_GLES_FUNC(glTexParameteri)
@@ -578,11 +582,12 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjecti64vEXT)
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
+    INIT_GLES_FUNC(glFramebufferTexture3DOES)
 
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
-//    INIT_GLES_FUNC(glBruh)
+    //INIT_GLES_FUNC(glBruh)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)

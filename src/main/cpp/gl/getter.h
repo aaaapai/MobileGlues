@@ -3,8 +3,8 @@
 //
 
 #include "../includes.h"
-#include "gl.h"
-#include "glcorearb.h"
+#include "GL/gl.h"
+#include "GL/glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
@@ -21,6 +21,7 @@ GLAPI GLAPIENTRY const GLubyte *glGetString(GLenum name);
 GLAPI GLAPIENTRY const GLubyte *glGetStringi(GLenum name, GLuint index);
 GLAPI GLAPIENTRY GLenum glGetError();
 GLAPI GLAPIENTRY void glGetIntegerv(GLenum pname, GLint *params);
+GLAPI GLAPIENTRY void glGetFloatv(GLenum pname, GLfloat *data);
 GLAPI GLAPIENTRY void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
 GLAPI GLAPIENTRY void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);
 
