@@ -9,7 +9,7 @@
 #include "../gles/loader.h"
 #include "../config/settings.h"
 #include "mg.h"
-#include "gl_mg.h"
+#include "gl.h"
 
 #define DEBUG 0
 
