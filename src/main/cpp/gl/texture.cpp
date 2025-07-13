@@ -1024,3 +1024,59 @@ void glPixelStorei(GLenum pname, GLint param) {
     GLES.glPixelStorei(pname, param);
     CHECK_GL_ERROR
 }
+
+void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
+    LOG()
+    
+    GLES.glGenTextures(n, textures);
+    
+    for (GLsizei i = 0; i < n; i++) {
+        GLES.glBindTexture(target, textures[i]);
+        // Set default texture parameters
+        GLES.glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        GLES.glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        GLES.glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        GLES.glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    
+    CHECK_GL_ERROR
+}
+
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
+    LOG()
+    
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glTexParameteri(GL_TEXTURE_2D, pname, param);
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTexture);
+    
+    CHECK_GL_ERROR
+}
+
+void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params) {
+    LOG()
+    
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glTexParameterIiv(GL_TEXTURE_2D, pname, params);
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTexture);
+    
+    CHECK_GL_ERROR
+}
+
+void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) {
+    LOG()
+    
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glTexParameterIuiv(GL_TEXTURE_2D, pname, params);
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTexture);
+    
+    CHECK_GL_ERROR
+}
