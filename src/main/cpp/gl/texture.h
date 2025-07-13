@@ -52,6 +52,8 @@ GLAPI GLAPIENTRY void glTextureParameteri (GLuint texture, GLenum pname, GLint p
 GLAPI GLAPIENTRY void glTextureParameterIiv (GLuint texture, GLenum pname, const GLint *params);
 GLAPI GLAPIENTRY void glTextureParameterIuiv (GLuint texture, GLenum pname, const GLuint *params);
 
+GLAPI GLAPIENTRY void glBindTextureUnit (GLuint unit, GLuint texture);
+
 #ifdef __cplusplus
 }
 #endif
