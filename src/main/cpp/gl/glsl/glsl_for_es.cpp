@@ -4,6 +4,7 @@
 #include <glslang/Include/Types.h>
 #include <glslang/Public/ShaderLang.h>
 #include <spirv_cross/spirv_cross_c.h>
+#include <spirv-tools/optimizer.hpp>
 #include <iostream>
 #include <fstream>
 #include "../log.h"
