@@ -1080,3 +1080,39 @@ void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) 
     
     CHECK_GL_ERROR
 }
+
+void glBindTextureUnit(GLuint unit, GLuint texture) {
+    LOG()
+    LOG_D("glBindTextureUnit, unit: %d, texture: %d", unit, texture)
+    INIT_CHECK_GL_ERROR
+    
+    // First bind the texture to the specified texture unit
+    GLES.glActiveTexture(GL_TEXTURE0 + unit);
+    CHECK_GL_ERROR_NO_INIT
+    
+    // Then bind the texture to the currently bound target
+    if (texture != 0) {
+        auto it = g_textures.find(texture);
+        if (it != g_textures.end()) {
+            GLES.glBindTexture(it->second.target, texture);
+            bound_texture = texture;
+        } else {
+            // If texture not found in our tracking, bind to GL_TEXTURE_2D by default
+            GLES.glBindTexture(GL_TEXTURE_2D, texture);
+            bound_texture = texture;
+            // Add to our texture tracking
+            g_textures[texture] = {
+                .target = GL_TEXTURE_2D,
+                .texture = texture,
+                .format = 0,
+                .swizzle_param = {0}
+            };
+        }
+    } else {
+        // If texture is 0, unbind current texture
+        GLES.glBindTexture(GL_TEXTURE_2D, 0);
+        bound_texture = 0;
+    }
+    
+    CHECK_GL_ERROR_NO_INIT
+}
