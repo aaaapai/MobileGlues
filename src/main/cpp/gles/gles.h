@@ -456,6 +456,7 @@ GL_FUNC_TYPEDEF(void, glDebugMessageCallback, GLDEBUGPROC callback, const void *
 GL_FUNC_TYPEDEF(GLuint, glGetDebugMessageLog, GLuint count, GLsizei bufSize, GLenum *sources,
                 GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths,
                 GLchar *messageLog)
+GL_FUNC_TYPEDEF(void, glPolygonModeNV, GLenum face, GLenum mode)
 GL_FUNC_TYPEDEF(void, glPushDebugGroup, GLenum source, GLuint id, GLsizei length,
                 const GLchar *message)
 GL_FUNC_TYPEDEF(void, glPopDebugGroup)
@@ -800,6 +801,7 @@ struct gles_func_t {
     GL_FUNC_DECL(glGenProgramPipelines)
     GL_FUNC_DECL(glIsProgramPipeline)
     GL_FUNC_DECL(glGetProgramPipelineiv)
+    GL_FUNC_DECL(glPolygonModeNV)
     GL_FUNC_DECL(glProgramUniform1i)
     GL_FUNC_DECL(glProgramUniform2i)
     GL_FUNC_DECL(glProgramUniform3i)
