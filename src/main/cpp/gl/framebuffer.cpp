@@ -6,7 +6,7 @@
 #include "log.h"
 #include "../config/settings.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 struct framebuffer_t* bound_framebuffer;
 
