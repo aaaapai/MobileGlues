@@ -134,3 +134,45 @@ void glHint(GLenum target, GLenum mode) {
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
     GLES.glHint(target, mode);
 }
+
+// 全局状态记录
+static struct {
+    GLenum front = GL_FILL;
+    GLenum back = GL_FILL;
+} s_polygonMode;
+
+void glPolygonMode(GLenum face, GLenum mode) {
+
+    LOG()
+
+    // 参数验证
+    if (face != GL_FRONT && face != GL_BACK && face != GL_FRONT_AND_BACK) {
+        LOG_E("Invalid face: 0x%04X", face);
+        return;
+    }
+    if (mode != GL_POINT && mode != GL_LINE && mode != GL_FILL) {
+        LOG_E("Invalid mode: 0x%04X", mode);
+        return;
+    }
+
+    // 更新状态
+    switch (face) {
+        case GL_FRONT: 
+            s_polygonMode.front = mode;
+            break;
+        case GL_BACK:
+            s_polygonMode.back = mode;
+            break;
+        case GL_FRONT_AND_BACK:
+            s_polygonMode.front = s_polygonMode.back = mode;
+            break;
+    }
+
+    if (s_polygonMode.front == s_polygonMode.back) {
+            GLES.glPolygonModeNV(GL_FRONT_AND_BACK, s_polygonMode.front);
+    } else {
+            GLES.glPolygonModeNV(GL_FRONT, s_polygonMode.front);
+            GLES.glPolygonModeNV(GL_BACK, s_polygonMode.back);
+    }
+
+}
