@@ -91,8 +91,8 @@ void load_libs() {
     static int first = 1;
     if (!first) return;
     first = 0;
-    const char *gles_override = global_settings.angle ? GLES_ANGLE : nullptr;
-    const char *egl_override = global_settings.angle ? EGL_ANGLE : nullptr;
+    const char *gles_override = global_settings.angle == AngleMode::Enabled ? GLES_ANGLE : nullptr;
+    const char *egl_override = global_settings.angle == AngleMode::Enabled ? EGL_ANGLE : nullptr;
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
 #else

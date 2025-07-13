@@ -113,7 +113,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
 void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
     LOG()
     GLES.glGetShaderiv(shader, pname, params);
-    if(global_settings.ignore_error >= 1 && pname == GL_COMPILE_STATUS && !*params) {
+    if(global_settings.ignore_error >= IgnoreErrorLevel::Partial && pname == GL_COMPILE_STATUS && !*params) {
         GLchar infoLog[512];
         GLES.glGetShaderInfoLog(shader, 512, nullptr, infoLog);
         LOG_W_FORCE("Shader %d compilation failed: \n%s", shader, infoLog)

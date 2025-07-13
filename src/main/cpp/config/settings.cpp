@@ -14,12 +14,11 @@ struct global_settings_t global_settings;
 
 void init_settings() {
 #if defined(__APPLE__)
-    global_settings.angle = 0;
-    global_settings.ignore_error = 1;
-    global_settings.ext_gl43 = 0;
-    global_settings.ext_compute_shader = 0;
+    global_settings.angle = AngleMode::Disabled;
+    global_settings.ignore_error = IgnoreErrorLevel::Partial;
+    global_settings.ext_gl43 = false;
+    global_settings.ext_compute_shader = false;
     global_settings.max_glsl_cache_size = 30 * 1024 * 1024;
-    global_settings.enable_compatible_mode = 0;
     global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
 #else
     
@@ -31,148 +30,148 @@ void init_settings() {
         }
     }
 
-    int enableANGLE = success ? config_get_int("enableANGLE") : 0;
-    int enableNoError = success ? config_get_int("enableNoError") : 0;
-    int enableExtGL43 = success ? config_get_int("enableExtGL43") : 0;
-    int enableExtComputeShader = success ? config_get_int("enableExtComputeShader") : 0;
+    AngleConfig angleConfig = success ? static_cast<AngleConfig>(config_get_int("enableANGLE")) : AngleConfig::DisableIfPossible;
+    NoErrorConfig noErrorConfig = success ? static_cast<NoErrorConfig>(config_get_int("enableNoError")) : NoErrorConfig::Auto;
+    bool enableExtGL43 = success ? (config_get_int("enableExtGL43") != 0) : false;
+    bool enableExtComputeShader = success ? (config_get_int("enableExtComputeShader") != 0) : false;
     int enableCompatibleMode = success ? config_get_int("enableCompatibleMode") : 0;
-    multidraw_mode_t multidrawMode = success ? (multidraw_mode_t)config_get_int("multidrawMode") : multidraw_mode_t::Auto;
-//    multidraw_mode_t multidrawMode = multidraw_mode_t::PreferUnroll;
+    multidraw_mode_t multidrawMode = success ? static_cast<multidraw_mode_t>(config_get_int("multidrawMode")) : multidraw_mode_t::Auto;
+    
     size_t maxGlslCacheSize = 0;
-    if (config_get_int("maxGlslCacheSize") > 0)
+    if (config_get_int("maxGlslCacheSize") > 0) {
         maxGlslCacheSize = success ? config_get_int("maxGlslCacheSize") * 1024 * 1024 : 0;
+    }
 
-    if (enableANGLE < 0 || enableANGLE > 3)
-        enableANGLE = 0;
-    if (enableNoError < 0 || enableNoError > 3)
-        enableNoError = 0;
-    if (enableExtGL43 < 0 || enableExtGL43 > 1)
-        enableExtGL43 = 0;
-    if (enableExtComputeShader < 0 || enableExtComputeShader > 1)
-        enableExtComputeShader = 0;
-    if (enableCompatibleMode < 0 || enableCompatibleMode > 1)
-        enableCompatibleMode = 0;
-    if ((int)multidrawMode < 0 || (int)multidrawMode >= (int)multidraw_mode_t::MaxValue)
+    if (static_cast<int>(angleConfig) < 0 || static_cast<int>(angleConfig) > 3) {
+        angleConfig = AngleConfig::DisableIfPossible;
+    }
+    if (static_cast<int>(noErrorConfig) < 0 || static_cast<int>(noErrorConfig) > 3) {
+        noErrorConfig = NoErrorConfig::Auto;
+    }
+    if (static_cast<int>(multidrawMode) < 0 || static_cast<int>(multidrawMode) >= static_cast<int>(multidraw_mode_t::MaxValue)) {
         multidrawMode = multidraw_mode_t::Auto;
+    }
+    if (enableCompatibleMode < 0 || enableCompatibleMode > 1) {
+        enableCompatibleMode = 0;
+    }
 
-    // 1205
     int fclVersion = 0;
     GetEnvVarInt("FCL_VERSION_CODE", &fclVersion, 0);
-    // 140000
     int zlVersion = 0;
     GetEnvVarInt("ZALITH_VERSION_CODE", &zlVersion, 0);
-    // unknown
     int pgwVersion = 0;
     GetEnvVarInt("PGW_VERSION_CODE", &pgwVersion, 0);
-
     char* var = getenv("MG_DIR_PATH");
-
     LOG_V("MG_DIR_PATH = %s", var ? var : "(null)")
 
     if (fclVersion == 0 && zlVersion == 0 && pgwVersion == 0 && !var) {
         LOG_V("Unsupported launcher detected, force using default config.")
-        enableANGLE = 0;
-        enableNoError = 0;
-        enableExtGL43 = 0;
-        enableExtComputeShader = 0;
+        angleConfig = AngleConfig::DisableIfPossible;
+        noErrorConfig = NoErrorConfig::Auto;
+        enableExtGL43 = false;
+        enableExtComputeShader = false;
         maxGlslCacheSize = 0;
         enableCompatibleMode = 0;
     }
 
-    // Determining actual ANGLE mode
+    AngleMode finalAngleMode = AngleMode::Disabled;
     std::string gpuString = getGPUInfo();
     const char* gpu_cstr = gpuString.c_str();
     LOG_D("GPU: %s", gpu_cstr ? gpu_cstr : "(unknown)")
 
-    if (enableANGLE == 2 || enableANGLE == 3) {
-        // Force enable / disable
-        global_settings.angle = enableANGLE - 2;
-    } else {
-        int isQcom = isAdreno(gpu_cstr);
-        int is740 = isAdreno740(gpu_cstr);
-        //int is830 = isAdreno830(gpu_cstr);
-        int hasVk13 = hasVulkan13();
+    int isQcom = isAdreno(gpu_cstr);
+    switch (angleConfig) {
+        case AngleConfig::ForceDisable:
+            finalAngleMode = AngleMode::Disabled;
+            LOG_D("ANGLE: Force disabled");
+            break;
+            
+        case AngleConfig::ForceEnable:
+            finalAngleMode = AngleMode::Enabled;
+            LOG_D("ANGLE: Force enabled");
+            break;
+            
+        case AngleConfig::EnableIfPossible: {
+            int is740 = isAdreno740(gpu_cstr);
 
-        LOG_D("Is Adreno? = %s", isQcom ? "true" : "false")
-        //LOG_D("Is Adreno 830? = %s", is830 ? "true" : "false")
-        LOG_D("Is Adreno 740? = %s", is740 ? "true" : "false")
-        LOG_D("Has Vulkan 1.3? = %s", hasVk13 ? "true" : "false")
+            LOG_D("Is Adreno? = %s", isQcom ? "true" : "false")
+            LOG_D("Is Adreno 740? = %s", is740 ? "true" : "false")
 
-        //if (is830)
-        //    global_settings.angle = 1;
-        if (is740)
-            global_settings.angle = 0;
-        else
-            global_settings.angle = hasVk13 && enableANGLE;
+            finalAngleMode = is740 ? AngleMode::Disabled : AngleMode::Enabled;
+            LOG_D("ANGLE: Conditionally %s", (finalAngleMode == AngleMode::Enabled) ? "enabled" : "disabled");
+            break;
+        }
+            
+        case AngleConfig::DisableIfPossible:
+        default:
+            if (isQcom && !isAdreno740(gpu_cstr)) {
+                finalAngleMode = AngleMode::Enabled;
+                LOG_D("ANGLE: Enabled by default for Adreno");
+            } else {
+                finalAngleMode = AngleMode::Disabled;
+                LOG_D("ANGLE: Disabled by default for non-Adreno or Adreno 740");
+			}
+
+            break;
     }
-    LOG_D("enableANGLE = %d", enableANGLE)
-    LOG_D("global_settings.angle = %d", global_settings.angle)
+    
+    global_settings.angle = finalAngleMode;
+    LOG_D("Final ANGLE setting: %d", static_cast<int>(global_settings.angle))
 
-//    if (enableANGLE == 1) {
-//        global_settings.angle = (isAdreno740(gpuString) || !hasVulkan13()) ? 0 : 1;
-//    } else if (enableANGLE == 2 || enableANGLE == 3) {
-//        global_settings.angle = enableANGLE - 2;
-//    } else {
-//        int is830 = isAdreno830(gpuString);
-//        LOG_D("Is Adreno 830? = %s", is830 ? "true" : "false")
-//        global_settings.angle = is830 ? 1 : 0;
-//    }
-
-
-    if (global_settings.angle) {
+    if (global_settings.angle == AngleMode::Enabled) {
         setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
         setenv("LIBGL_EGL", "libEGL_angle.so", 1);
     }
 
-    if (enableNoError == 1 || enableNoError == 2 || enableNoError == 3) {
-        global_settings.ignore_error = enableNoError - 1;
-    } else {
-        global_settings.ignore_error = 0;
+    switch (noErrorConfig) {
+        case NoErrorConfig::Level1:
+            global_settings.ignore_error = IgnoreErrorLevel::Partial;
+            LOG_D("Error ignoring: Level 1 (Partial)");
+            break;
+            
+        case NoErrorConfig::Level2:
+            global_settings.ignore_error = IgnoreErrorLevel::Full;
+            LOG_D("Error ignoring: Level 2 (Full)");
+            break;
+            
+        case NoErrorConfig::Auto:
+        case NoErrorConfig::Disable:
+        default:
+            global_settings.ignore_error = IgnoreErrorLevel::None;
+            LOG_D("Error ignoring: Disabled");
+            break;
     }
 
     global_settings.ext_gl43 = enableExtGL43;
-
     global_settings.ext_compute_shader = enableExtComputeShader;
-    
     global_settings.max_glsl_cache_size = maxGlslCacheSize;
-
-    global_settings.enable_compatible_mode = enableCompatibleMode;
-
     global_settings.multidraw_mode = multidrawMode;
 #endif
     
     std::string draw_mode_str;
     switch (global_settings.multidraw_mode) {
-        case multidraw_mode_t::PreferIndirect:
-            draw_mode_str = "Indirect";
-            break;
-        case multidraw_mode_t::PreferBaseVertex:
-            draw_mode_str = "Unroll";
-            break;
-        case multidraw_mode_t::PreferMultidrawIndirect:
-            draw_mode_str = "Multidraw indirect";
-            break;
-        case multidraw_mode_t::DrawElements:
-            draw_mode_str = "DrawElements";
-            break;
-        case multidraw_mode_t::Compute:
-            draw_mode_str = "Compute";
-            break;
-        case multidraw_mode_t::Auto:
-            draw_mode_str = "Auto";
-            break;
+        case multidraw_mode_t::PreferIndirect: draw_mode_str = "Indirect"; break;
+        case multidraw_mode_t::PreferBaseVertex: draw_mode_str = "Unroll"; break;
+        case multidraw_mode_t::PreferMultidrawIndirect: draw_mode_str = "Multidraw indirect"; break;
+        case multidraw_mode_t::DrawElements: draw_mode_str = "DrawElements"; break;
+        case multidraw_mode_t::Compute: draw_mode_str = "Compute"; break;
+        case multidraw_mode_t::Auto: draw_mode_str = "Auto"; break;
         default:
             draw_mode_str = "(Unknown)";
             global_settings.multidraw_mode = multidraw_mode_t::Auto;
             break;
     }
 
-    LOG_V("[MobileGlues] Setting: enableAngle            = %s", global_settings.angle ? "true" : "false")
-    LOG_V("[MobileGlues] Setting: ignoreError            = %i", global_settings.ignore_error)
-    LOG_V("[MobileGlues] Setting: enableExtComputeShader = %s", global_settings.ext_compute_shader ? "true" : "false")
-    LOG_V("[MobileGlues] Setting: enableExtGL43          = %s", global_settings.ext_gl43 ? "true" : "false")
-    LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", global_settings.max_glsl_cache_size / 1024 / 1024)
-    LOG_V("[MobileGlues] Setting: enableCompatibleMode   = %s", global_settings.enable_compatible_mode ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableAngle            = %s", 
+          global_settings.angle == AngleMode::Enabled ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: ignoreError            = %i", 
+          static_cast<int>(global_settings.ignore_error))
+    LOG_V("[MobileGlues] Setting: enableExtComputeShader = %s", 
+          global_settings.ext_compute_shader ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableExtGL43          = %s", 
+          global_settings.ext_gl43 ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", 
+          static_cast<int>(global_settings.max_glsl_cache_size / 1024 / 1024))
     LOG_V("[MobileGlues] Setting: multidrawMode          = %s", draw_mode_str.c_str())
 }
 

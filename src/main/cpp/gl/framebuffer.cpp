@@ -171,7 +171,7 @@ void glReadBuffer(GLenum src) {
 GLenum glCheckFramebufferStatus(GLenum target) {
     LOG()
     GLenum status = GLES.glCheckFramebufferStatus(target);
-    if(global_settings.ignore_error >= 2 && status != GL_FRAMEBUFFER_COMPLETE) {
+    if(global_settings.ignore_error == IgnoreErrorLevel::Full && status != GL_FRAMEBUFFER_COMPLETE) {
         LOG_W_FORCE("Framebuffer %d isn't GL_FRAMEBUFFER_COMPLETE: %d", target, status)
         LOG_W_FORCE("Now try to cheat.")
         return GL_FRAMEBUFFER_COMPLETE;

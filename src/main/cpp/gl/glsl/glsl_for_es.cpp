@@ -9,7 +9,6 @@
 #include "../log.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
 #include <shaderc/shader.h>
-#include "preConvertedGlsl.h"
 #include <string>
 #include <regex>
 #include <strstream>
@@ -17,7 +16,6 @@
 #include <sstream>
 #include "cache.h"
 #include "../../version.h"
-
 // #define FEATURE_PRE_CONVERTED_GLSL
 
 #define DEBUG 1
@@ -349,7 +347,6 @@ std::string getCachedESSL(const char* glsl_code, uint essl_version) {
     } else return "";
 }
 
-
 std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_version, uint glsl_version) {
     std::string sha256_string(glsl_code);
     sha256_string += "\n//" + std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION) + "|" + std::to_string(essl_version);
@@ -439,28 +436,73 @@ static inline void replace_all(std::string& str, const std::string& from, const 
     }
 }
 
-static inline void inject_textureQueryLod(std::string& glsl) {
-    const std::string textureQueryLodCall = "textureQueryLod(";
-    const std::string textureQueryLodDef = "vec2 mg_textureQueryLod(sampler2D tex, vec2 uv)";
-    const std::string mainStart = "void main()";
+static size_t find_insertion_point(const std::string& glsl) {
+    size_t pos = 0;
+    size_t insertion_point = 0;
 
-    // Already defined function
-    const auto def_loc = glsl.find(textureQueryLodDef);
-    if (def_loc != std::string::npos)
+    size_t version_pos = glsl.find("#version");
+    if (version_pos != std::string::npos) {
+        size_t version_end = glsl.find('\n', version_pos);
+        if (version_end == std::string::npos) {
+            version_end = glsl.length();
+        }
+        else {
+            version_end++;
+        }
+        insertion_point = version_end;
+        pos = version_end;
+    }
+    else {
+        insertion_point = 0;
+        pos = 0;
+    }
+
+    while (pos < glsl.length()) {
+        size_t line_begin = pos;
+        while (pos < glsl.length() && std::isspace(glsl[pos])) {
+            pos++;
+        }
+        if (pos >= glsl.length()) break;
+
+        if (glsl[pos] == '#') {
+            pos++;
+            while (pos < glsl.length() && std::isspace(glsl[pos])) {
+                pos++;
+            }
+            if (glsl.compare(pos, 9, "extension") == 0) {
+                size_t ext_end = glsl.find('\n', pos);
+                if (ext_end == std::string::npos) {
+                    ext_end = glsl.length();
+                } else {
+                    ext_end++;
+                }
+                insertion_point = ext_end;
+                pos = ext_end;
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return insertion_point;
+}
+
+
+static void inject_textureQueryLod(std::string& glsl) {
+    const std::regex defRegex(R"(vec2\s+mg_textureQueryLod\s*\()", std::regex::ECMAScript);
+
+    if (glsl.find("textureQueryLod") == std::string::npos) {
         return;
-
-    // Never called function
-    const auto call_loc = glsl.find(textureQueryLodCall);
-    if (call_loc == std::string::npos)
+    }
+    if (std::regex_search(glsl, defRegex)) {
         return;
-
-
-    const auto main_loc = glsl.find(mainStart);
-    // No main(), no inject
-    if (main_loc == std::string::npos)
-        return;
+    }
 
     const std::string textureQueryLodImpl = R"(
+#define textureQueryLod mg_textureQueryLod
+
 vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     vec2 texSizeF = vec2(textureSize(tex, 0));
     vec2 dFdx_uv = dFdx(uv * texSizeF);
@@ -470,35 +512,30 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     return vec2(lod);
 }
 )";
-    // Replace all calls to textureQueryLod()
-    replace_all(glsl, "textureQueryLod(", "mg_textureQueryLod(");
 
-    // Do injection here
-    glsl.insert(main_loc, "\n" + textureQueryLodImpl + "\n");
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
 static inline void inject_temporal_filter(std::string& glsl) {
-    const std::string temporalFilterCall = "deferredOutput2 = GI_TemporalFilter()";
-    const std::string temporalFilterDef = "vec4 GI_TemporalFilter()";
-    const std::string mainStart = "void main()";
+    const std::regex defRegex(R"(vec4\s+GI_TemporalFilter\s*\()", std::regex::ECMAScript);
 
-    // Already defined function
-    const auto def_loc = glsl.find(temporalFilterDef);
-    if (def_loc != std::string::npos)
+    if (glsl.find("GI_TemporalFilter") == std::string::npos) {
         return;
-
-    // Never called function
-    const auto call_loc = glsl.find(temporalFilterCall);
-    if (call_loc == std::string::npos)
+    }
+    if (std::regex_search(glsl, defRegex)) {
         return;
+    }
 
+    const std::regex uniformRegex(R"(^\s*(?:layout\s*\([^)]*\)\s*)?uniform\s+\w+(?:\s*\[\s*\d+\s*\])?\s+\w+(?:\s*\[\s*\d+\s*\])?\s*;.*$)", std::regex::ECMAScript | std::regex::multiline);
+    std::sregex_iterator it(glsl.begin(), glsl.end(), uniformRegex);
+    std::sregex_iterator end;
+    size_t insertPos = 0;
+    for (; it != end; ++it) {
+        insertPos = it->position() + it->length();
+    }
 
-    const auto main_loc = glsl.find(mainStart);
-    // No main(), no inject
-    if (main_loc == std::string::npos)
-        return;
-
-    const std::string GI_TemporalFilter = R"(
+    const std::string GI_TemporalFilterImpl = R"(
 vec4 GI_TemporalFilter() {
     vec2 uv = gl_FragCoord.xy / screenSize;
     uv += taaJitter * pixelSize;
@@ -522,10 +559,8 @@ vec4 GI_TemporalFilter() {
     return filteredGI;
 }
 )";
-    // Do injection here
-    glsl.insert(main_loc, "\n" + GI_TemporalFilter + "\n");
+    glsl.insert(insertPos, "\n" + GI_TemporalFilterImpl + "\n");
 }
-
 #define xstr(s) str(s)
 #define str(s) #s
 
@@ -767,16 +802,8 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
 
 static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
-#ifdef FEATURE_PRE_CONVERTED_GLSL
-    if (getGLSLVersion(glsl_code) == 430) {
-        char* converted = preConvertedGlsl(glsl_code);
-        if (converted) {
-            LOG_D("Find pre-converted glsl, now use it.")
-            return converted;
-        }
-    }
-#endif
     std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type);
+
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 

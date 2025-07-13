@@ -116,7 +116,7 @@ void glLinkProgram(GLuint program) {
 void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
     LOG()
     GLES.glGetProgramiv(program, pname, params);
-    if(global_settings.ignore_error >= 1 && (pname == GL_LINK_STATUS || pname == GL_VALIDATE_STATUS) && !*params) {
+    if(global_settings.ignore_error >= IgnoreErrorLevel::Partial && (pname == GL_LINK_STATUS || pname == GL_VALIDATE_STATUS) && !*params) {
         GLchar infoLog[512];
         GLES.glGetProgramInfoLog(program, 512, nullptr, infoLog);
 

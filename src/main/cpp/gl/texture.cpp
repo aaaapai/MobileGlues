@@ -64,10 +64,23 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
             break;
 
         case GL_DEPTH_COMPONENT:
-            // TODO: Add enable_compatible_mode option
-            LOG_D("Find GL_DEPTH_COMPONENT: internalFormat: %s, format: %s, type: %s", glEnumToString(*internal_format), glEnumToString(*format), glEnumToString(*type))
-            if(type) {
-                *type = GL_UNSIGNED_INT;
+            LOG_V("Find GL_DEPTH_COMPONENT: internalFormat: %s, format: %s, type: %s", glEnumToString(*internal_format), glEnumToString(*format), glEnumToString(*type))
+            if (type) {
+                switch (*type) {
+                    case GL_UNSIGNED_SHORT:
+                    case GL_UNSIGNED_INT:
+						*type = GL_UNSIGNED_INT;
+                        *internal_format = GL_DEPTH_COMPONENT;
+						break;
+                    case GL_FLOAT:
+                    case GL_DOUBLE:
+                    case GL_HALF_FLOAT:
+						*internal_format = GL_DEPTH_COMPONENT32F;
+						*type = GL_FLOAT;
+                    default:
+						*internal_format = GL_DEPTH_COMPONENT;
+						*type = GL_UNSIGNED_INT;
+                }
             }
             break;
 
