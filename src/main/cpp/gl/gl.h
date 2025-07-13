@@ -18,7 +18,7 @@ GLAPI GLAPIENTRY void glColorMask (GLboolean red, GLboolean green, GLboolean blu
 GLAPI GLAPIENTRY void glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
 GLAPI GLAPIENTRY void glClear (GLbitfield mask);
 GLAPI GLAPIENTRY void glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-
+GLAPI GLAPIENTRY void glPolygonMode(GLenum face, GLenum mode);
 #ifdef __cplusplus
 }
 #endif
