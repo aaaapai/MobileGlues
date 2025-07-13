@@ -483,6 +483,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGenProgramPipelines)
     INIT_GLES_FUNC(glIsProgramPipeline)
     INIT_GLES_FUNC(glGetProgramPipelineiv)
+    INIT_GLES_FUNC(glPolygonModeNV)
     INIT_GLES_FUNC(glProgramUniform1i)
     INIT_GLES_FUNC(glProgramUniform2i)
     INIT_GLES_FUNC(glProgramUniform3i)
