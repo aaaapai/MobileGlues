@@ -1268,3 +1268,50 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat,
     CHECK_GL_ERROR
 }
 
+void glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers) {
+    LOG();
+    LOG_D("glBindSamplers, first: %u, count: %d, samplers: %p", first, count, samplers);
+    
+    INIT_CHECK_GL_ERROR;
+    
+    // 参数验证
+    if (count < 0) {
+        LOG_E("Invalid count: %d", count);
+        return;
+    }
+    
+    // 获取最大纹理单元数
+    GLint maxUnits;
+    GLES.glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxUnits);
+    
+    // 检查范围是否有效
+    if (first + count > (GLuint)maxUnits) {
+        LOG_E("Texture unit range out of bounds (max: %d)", maxUnits);
+        return;
+    }
+    
+    // 逐个绑定采样器
+    for (GLsizei i = 0; i < count; ++i) {
+        GLuint unit = first + i;
+        GLuint sampler = samplers ? samplers[i] : 0;
+        
+        LOG_D("Binding sampler %u to unit %u", sampler, unit);
+        
+        // 先激活纹理单元
+        GLES.glActiveTexture(GL_TEXTURE0 + unit);
+        
+        // 绑定采样器
+        if (g_gles_caps.GL_ES_VERSION_3_1 || g_gles_caps.GL_ARB_sampler_objects) {
+            GLES.glBindSampler(unit, sampler);
+        } else {
+            // 如果不支持采样器对象，记录警告
+            LOG_W("Sampler objects not supported, binding ignored");
+            // 这里可以添加回退处理，比如修改绑定的纹理参数
+        }
+    }
+    
+    // 恢复之前的活跃纹理单元（可选，根据需求）
+    GLES.glActiveTexture(GL_TEXTURE0 + prevActiveUnit);
+    
+    CHECK_GL_ERROR;
+} //DeepSeek
