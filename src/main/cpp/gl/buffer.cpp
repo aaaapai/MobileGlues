@@ -502,21 +502,21 @@ void glBindVertexArray(GLuint array) {
 void glClearBufferData(GLenum target, GLenum internalformat,
                       GLenum format, GLenum type, const void *data) {
     LOG()
-    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+    LOG_W("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat),
           glEnumToString(format), glEnumToString(type), data);
 
     // Find the currently bound buffer for this target
     GLuint buffer = find_bound_buffer(get_binding_query(target));
     if (!buffer) {
-        LOG_E("No buffer bound to target %s", glEnumToString(target));
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target));
         return;
     }
 
     // Get the real buffer ID from our mapping
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
-        LOG_E("Buffer %d not found in mapping", buffer);
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer);
         return;
     }
 
@@ -524,7 +524,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     GLint size;
     GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
     if (size <= 0) {
-        LOG_E("Invalid buffer size: %d", size);
+        LOG_E("ERROR: Invalid buffer size: %d", size);
         return;
     }
 
@@ -532,7 +532,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     void *ptr = GLES.glMapBufferRange(target, 0, size, 
                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
     if (!ptr) {
-        LOG_E("Failed to map buffer");
+        LOG_E("ERROR: Failed to map buffer");
         return;
     }
 
@@ -553,7 +553,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
             elem_size = 4;
             break;
         default:
-            LOG_E("Unsupported type: %s", glEnumToString(type));
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type));
             GLES.glUnmapBuffer(target);
             return;
     }
@@ -575,12 +575,12 @@ void glClearBufferData(GLenum target, GLenum internalformat,
 void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
                           GLenum format, GLenum type, const void *data) {
     LOG()
-    LOG_D("glClearNamedBufferData(buffer=%d, internalformat=%s, format=%s, type=%s, data=%p)",
+    LOG_W("glClearNamedBufferData(buffer=%d, internalformat=%s, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
           glEnumToString(format), glEnumToString(type), data);
 
     if (!has_buffer(buffer)) {
-        LOG_E("Buffer %d does not exist", buffer);
+        LOG_E("ERROR: Buffer %d does not exist", buffer);
         return;
     }
 
@@ -618,7 +618,7 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
 
 void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
     LOG()
-    LOG_D("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+    LOG_W("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
 
     // Get the currently bound buffer for this target
@@ -655,7 +655,7 @@ void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintpt
 
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
     LOG()
-    LOG_D("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+    LOG_W("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
 
     // First find the real buffer ID from our mapping
