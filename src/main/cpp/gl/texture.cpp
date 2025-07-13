@@ -1116,3 +1116,155 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
     
     CHECK_GL_ERROR_NO_INIT
 }
+
+void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
+    LOG()
+    LOG_D("glTextureParameteriv, texture: %d, pname: %s, param: %d", 
+          texture, glEnumToString(pname), param ? *param : 0)
+    
+    GLint prevTexture;
+    GLenum target = GL_TEXTURE_2D; // 默认目标
+    
+    // 从纹理跟踪器中获取实际目标类型
+    auto it = g_textures.find(texture);
+    if (it != g_textures.end()) {
+        target = it->second.target;
+    }
+    
+    GLES.glGetIntegerv(get_binding_for_target(target), &prevTexture);
+    GLES.glBindTexture(target, texture);
+    
+    if (pname == GL_TEXTURE_SWIZZLE_RGBA) {
+        // 特殊处理swizzle参数
+        if (param) {
+            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_R, &param[0]);
+            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_G, &param[1]);
+            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_B, &param[2]);
+            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_A, &param[3]);
+            
+            // 更新纹理状态
+            g_textures[texture].swizzle_param[0] = param[0];
+            g_textures[texture].swizzle_param[1] = param[1];
+            g_textures[texture].swizzle_param[2] = param[2];
+            g_textures[texture].swizzle_param[3] = param[3];
+        }
+    } else {
+        GLES.glTexParameteriv(target, pname, param);
+    }
+    
+    GLES.glBindTexture(target, prevTexture);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, 
+                            GLint yoffset, GLint x, GLint y, 
+                            GLsizei width, GLsizei height) {
+    LOG()
+    LOG_D("glCopyTextureSubImage2D, tex: %d, level: %d, xoff: %d, yoff: %d", 
+          texture, level, xoffset, yoffset);
+    
+    GLint prevTexture;
+    GLenum target = GL_TEXTURE_2D;
+    
+    // 获取纹理实际目标类型
+    auto it = g_textures.find(texture);
+    if (it != g_textures.end()) {
+        target = it->second.target;
+    }
+    
+    GLES.glGetIntegerv(get_binding_for_target(target), &prevTexture);
+    GLES.glBindTexture(target, texture);
+    
+    // 直接使用GLES的拷贝函数
+    GLES.glCopyTexSubImage2D(target, level, xoffset, yoffset, 
+                            x, y, width, height);
+    
+    GLES.glBindTexture(target, prevTexture);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                            GLint yoffset, GLint zoffset, GLint x, GLint y,
+                            GLsizei width, GLsizei height) {
+    LOG()
+    LOG_D("glCopyTextureSubImage3D, tex: %d, level: %d, zoff: %d",
+          texture, level, zoffset);
+    
+    // 3D纹理需要检查扩展支持
+    if (!g_gles_caps.GL_EXT_texture3D) {
+        LOG_E("3D textures not supported!");
+        return;
+    }
+    
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
+    GLES.glBindTexture(GL_TEXTURE_3D, texture);
+    
+    // 使用GLES扩展函数
+    GLES.glCopyTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset,
+                            x, y, width, height);
+    
+    GLES.glBindTexture(GL_TEXTURE_3D, prevTexture);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width) {
+    LOG()
+    LOG_D("glTexStorage1D, target: %s, levels: %d, internalFormat: %s, width: %d",
+          glEnumToString(target), levels, glEnumToString(internalFormat), width);
+
+    internal_convert(&internalFormat, nullptr, nullptr);
+
+    GLES.glTexStorage1DEXT(target, levels, internalFormat, width);
+
+    CHECK_GL_ERROR
+}
+
+void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, 
+                            GLint x, GLint y, GLsizei width) {
+    LOG()
+    LOG_D("glCopyTextureSubImage1D, tex: %d, level: %d, xoff: %d, width: %d",
+          texture, level, xoffset, width);
+
+    GLint prevTexture;
+    GLenum target = GL_TEXTURE_1D;
+    
+    auto it = g_textures.find(texture);
+    if (it != g_textures.end()) {
+        target = it->second.target;
+    }
+
+    GLES.glGetIntegerv(get_binding_for_target(target), &prevTexture);
+    GLES.glBindTexture(target, texture);
+
+    GLES.glCopyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, x, y, width, 1);
+
+    GLES.glBindTexture(target, prevTexture);
+    CHECK_GL_ERROR
+}
+
+void glTexImage1D(GLenum target, GLint level, GLint internalFormat, 
+                 GLsizei width, GLint border, GLenum format, 
+                 GLenum type, const GLvoid* pixels) {
+    LOG()
+    LOG_D("glTexImage1D, target: %s, level: %d, format: %s, width: %d",
+          glEnumToString(target), level, glEnumToString(internalFormat), width);
+
+    internal_convert(reinterpret_cast<GLenum*>(&internalFormat), &type, &format);
+
+    GLES.glTexImage2D(GL_TEXTURE_2D, level, internalFormat, width, 1, border,
+                         format, type, pixels);
+
+    if (target != GL_PROXY_TEXTURE_1D) {
+        g_textures[bound_texture] = {
+            .target = has_texture_1D ? target : GL_TEXTURE_2D,
+            .texture = bound_texture,
+            .internal_format = internalFormat,
+            .format = format,
+            .swizzle_param = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}
+        };
+    }
+
+    CHECK_GL_ERROR
+}
+
