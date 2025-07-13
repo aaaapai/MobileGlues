@@ -244,3 +244,32 @@ void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
     
     CHECK_GL_ERROR
 }
+
+// 在 framebuffer.cpp 中添加
+
+void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, 
+                           GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
+                           GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                           GLbitfield mask, GLenum filter) {
+    LOG()
+    
+    // 保存当前绑定的帧缓冲
+    GLint prevReadFBO, prevDrawFBO;
+    GLES.glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFBO);
+    GLES.glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
+    
+    // 绑定指定的帧缓冲
+    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFramebuffer);
+    
+    // 执行实际的像素复制操作
+    GLES.glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
+                          dstX0, dstY0, dstX1, dstY1,
+                          mask, filter);
+    
+    // 恢复之前绑定的帧缓冲
+    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
+    
+    CHECK_GL_ERROR
+}
