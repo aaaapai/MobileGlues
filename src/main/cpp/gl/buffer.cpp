@@ -496,6 +496,126 @@ void glBindVertexArray(GLuint array) {
     CHECK_GL_ERROR
 }
 
+
+
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data);
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(get_binding_query(target));
+    if (!buffer) {
+        LOG_E("No buffer bound to target %s", glEnumToString(target));
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("Buffer %d not found in mapping", buffer);
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("Invalid buffer size: %d", size);
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("Failed to map buffer");
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("Unsupported type: %s", glEnumToString(type));
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < size; i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
+                          GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearNamedBufferData(buffer=%d, internalformat=%s, format=%s, type=%s, data=%p)",
+          buffer, glEnumToString(internalformat), 
+          glEnumToString(format), glEnumToString(type), data);
+
+    if (!has_buffer(buffer)) {
+        LOG_E("Buffer %d does not exist", buffer);
+        return;
+    }
+
+    // We need to determine the target type of the buffer
+    // This is tricky since OpenGL doesn't provide a direct query for it
+    // We'll try to find which binding point this buffer is bound to
+    
+    GLenum target = 0;
+    for (const auto& pair : g_bound_buffers) {
+        if (pair.second == buffer) {
+            target = pair.first;
+            break;
+        }
+    }
+    
+    // If not found in current bindings, default to ARRAY_BUFFER
+    if (target == 0) {
+        target = GL_ARRAY_BUFFER;
+        LOG_W("Could not determine buffer target for %d, defaulting to GL_ARRAY_BUFFER", buffer);
+    }
+
+    // Save current binding
+    GLint prev_buffer;
+    GLES.glGetIntegerv(get_binding_query(target), &prev_buffer);
+    
+    // Bind our buffer and delegate to glClearBufferData
+    GLuint real_buffer = find_real_buffer(buffer);
+    GLES.glBindBuffer(target, real_buffer);
+    glClearBufferData(target, internalformat, format, type, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(target, prev_buffer);
+    CHECK_GL_ERROR
+}  //DeepSeek
+
 extern "C" {
 GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
 GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
