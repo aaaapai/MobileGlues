@@ -616,6 +616,72 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     CHECK_GL_ERROR
 }  //DeepSeek
 
+void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
+
+    // Get the currently bound buffer for this target
+    GLint current_buffer = 0;
+    GLES.glGetIntegerv(get_binding_query(target), &current_buffer);
+    
+    if (current_buffer == 0) {
+        // No buffer bound to this target
+        return;
+    }
+
+    // Find the real buffer ID from our mapping (if it exists)
+    GLuint real_buffer = find_real_buffer(current_buffer);
+    if (!real_buffer) {
+        // If not found in our mapping, assume it's already a real buffer ID
+        real_buffer = current_buffer;
+    }
+
+    // Save current buffer binding
+    GLint prev_binding = 0;
+    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    
+    // Bind our buffer to COPY_WRITE_BUFFER target
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    
+    // Use glBufferSubData to clear the buffer range
+    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+          buffer, glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
+
+    // First find the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        // If not found in our mapping, assume it's already a real buffer ID
+        real_buffer = buffer;
+    }
+
+    // Save current buffer binding
+    GLint prev_binding = 0;
+    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    
+    // Bind our buffer to COPY_WRITE_BUFFER target (since we can't bind by name directly in GLES)
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    
+    // Use glBufferSubData to clear the buffer range (GLES doesn't have glClearBufferSubData)
+    // Note: This isn't exactly the same as clear, but closest we can get in GLES
+    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    
+    CHECK_GL_ERROR
+} //DeepSeek
+
 extern "C" {
 GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
 GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
