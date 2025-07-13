@@ -639,6 +639,14 @@ int get_or_add_glsl_version(std::string& glsl) {
     return glsl_version;
 }
 
+std::vector<uint32_t> optimizeSpirV(const std::vector<uint32_t>& spirv) {
+         spvtools::Optimizer optimizer(SPV_ENV_OPENGL_4_5);
+         optimizer.RegisterPerformancePasses();
+         std::vector<uint32_t> optimizedSpirV;
+         optimizer.Run(spirv.data(), spirv.size(), &optimizedSpirV);
+         return optimizedSpirV;
+}
+
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
     
     static shaderc_compiler_t compiler = nullptr;
@@ -721,7 +729,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shader.setStrings(&optimized_glsl, 1);
 
     using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
     shader.setAutoMapLocations(true);
@@ -750,10 +758,12 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     std::vector<unsigned int> spirv_code;
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
+    spvOptions.optimizeSize = true;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    auto optimizedSpirV = optimizeSpirV(spirv_code);
     shaderc_result_release(optimized_glsl_res);
     errc = 0;
-    return spirv_code;
+    return optimizedSpirV;
 }
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
@@ -783,12 +793,27 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 320 ? essl_version : 320);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
 
     if (!result) {
-        LOG_E("Error: unexpected error in spirv-cross.")
+        const char* error_msg = spvc_context_get_last_error_string(context);
+        if (error_msg) {
+            LOG_E("SPIRV-Cross error: %s", error_msg);
+        } else {
+            LOG_E("SPIRV-Cross failed without error message");
+        }
+        
+        // 检查常见原因
+        if (essl_version < 300) {
+            LOG_E("Hint: ESSL version %u may be too low", essl_version);
+        }
+        
+        spvc_compiler_get_current_id_bound(compiler_glsl);
+        
         errc = -1;
+        spvc_context_destroy(context);
         return "";
     }
 
