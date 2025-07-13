@@ -179,3 +179,68 @@ GLenum glCheckFramebufferStatus(GLenum target) {
     return status;
     CHECK_GL_ERROR
 }
+
+void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
+    LOG()
+    
+    GLint prevFBO;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glDrawBuffer(buf);
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
+    
+    CHECK_GL_ERROR
+}
+
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs) {
+    LOG()
+    
+    GLint prevFBO;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glDrawBuffers(n, bufs);
+    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
+    
+    CHECK_GL_ERROR
+}
+
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
+    LOG()
+    
+    GLint prevFBO;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    
+    CHECK_GL_ERROR
+}
+
+void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
+    LOG()
+    
+    GLint prevFBO;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    GLES.glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, level, layer);
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    
+    CHECK_GL_ERROR
+}
+
+void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
+    LOG()
+    
+    GLint prevFBO;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glReadBuffer(src);
+    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, prevFBO);
+    
+    CHECK_GL_ERROR
+}
