@@ -245,8 +245,6 @@ void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
     CHECK_GL_ERROR
 }
 
-// 在 framebuffer.cpp 中添加
-
 void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, 
                            GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                            GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
@@ -272,4 +270,4 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
     GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
     
     CHECK_GL_ERROR
-}
+} //DeepSeek
