@@ -760,11 +760,11 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
     spvOptions.optimizeSize = true;
+    spvOptions.stripDebugInfo = true;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
-    auto optimizedSpirV = optimizeSpirV(spirv_code);
     shaderc_result_release(optimized_glsl_res);
     errc = 0;
-    return optimizedSpirV;
+    return spirv_code;
 }
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
