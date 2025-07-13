@@ -1190,12 +1190,6 @@ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
     LOG_D("glCopyTextureSubImage3D, tex: %d, level: %d, zoff: %d",
           texture, level, zoffset);
     
-    // 3D纹理需要检查扩展支持
-    if (!g_gles_caps.GL_EXT_texture3D) {
-        LOG_E("3D textures not supported!");
-        return;
-    }
-    
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
     GLES.glBindTexture(GL_TEXTURE_3D, texture);
@@ -1231,50 +1225,46 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
     CHECK_GL_ERROR
 }
 
-void glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers) {
-    LOG();
-    LOG_D("glBindSamplers, first: %u, count: %d, samplers: %p", first, count, samplers);
-    
-    INIT_CHECK_GL_ERROR;
-    
-    // 参数验证
+// 全局状态缓存
+static struct {
+    GLuint activeUnit = 0;
+    GLuint boundSamplers[32] = {0}; // 假设最大32个纹理单元
+} s_samplerState;
+
+void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
+    // 参数检查
     if (count < 0) {
         LOG_E("Invalid count: %d", count);
         return;
     }
-    
-    // 获取最大纹理单元数
-    GLint maxUnits;
-    GLES.glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxUnits);
-    
-    // 检查范围是否有效
-    if (first + count > (GLuint)maxUnits) {
-        LOG_E("Texture unit range out of bounds (max: %d)", maxUnits);
-        return;
-    }
-    
-    // 逐个绑定采样器
+
+    // 保存当前活跃纹理单元
+    GLint prevActiveUnit;
+    GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveUnit);
+    prevActiveUnit -= GL_TEXTURE0; // 转换为索引值
+
+    // 绑定采样器
     for (GLsizei i = 0; i < count; ++i) {
-        GLuint unit = first + i;
-        GLuint sampler = samplers ? samplers[i] : 0;
-        
-        LOG_D("Binding sampler %u to unit %u", sampler, unit);
-        
-        // 先激活纹理单元
-        GLES.glActiveTexture(GL_TEXTURE0 + unit);
-        
-        // 绑定采样器
-        if (g_gles_caps.GL_ES_VERSION_3_1 || g_gles_caps.GL_ARB_sampler_objects) {
+        const GLuint unit = first + i;
+        const GLuint sampler = samplers ? samplers[i] : 0;
+
+        // 只有状态变化时才执行绑定
+        if (s_samplerState.boundSamplers[unit] != sampler) {
+            if (s_samplerState.activeUnit != unit) {
+                GLES.glActiveTexture(GL_TEXTURE0 + unit);
+                s_samplerState.activeUnit = unit;
+            }
+            
             GLES.glBindSampler(unit, sampler);
-        } else {
-            // 如果不支持采样器对象，记录警告
-            LOG_W("Sampler objects not supported, binding ignored");
-            // 这里可以添加回退处理，比如修改绑定的纹理参数
+            s_samplerState.boundSamplers[unit] = sampler;
         }
     }
-    
-    // 恢复之前的活跃纹理单元（可选，根据需求）
-    GLES.glActiveTexture(GL_TEXTURE0 + prevActiveUnit);
-    
+
+    // 恢复之前活跃的纹理单元
+    if (s_samplerState.activeUnit != prevActiveUnit) {
+        GLES.glActiveTexture(GL_TEXTURE0 + prevActiveUnit);
+        s_samplerState.activeUnit = prevActiveUnit;
+    }
+
     CHECK_GL_ERROR;
 } //DeepSeek
