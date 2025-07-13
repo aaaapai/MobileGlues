@@ -41,6 +41,16 @@ GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);
 
 GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers);
 
+GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffer (GLuint framebuffer, GLenum buf);
+
+GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffers (GLuint framebuffer, GLsizei n, const GLenum *bufs);
+
+GLAPI GLAPIENTRY void glNamedFramebufferTexture (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+
+GLAPI GLAPIENTRY void glNamedFramebufferTextureLayer (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+
+GLAPI GLAPIENTRY void glNamedFramebufferReadBuffer (GLuint framebuffer, GLenum src);
+
 #ifdef __cplusplus
 }
 #endif
