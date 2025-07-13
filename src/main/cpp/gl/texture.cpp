@@ -1208,18 +1208,6 @@ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
     CHECK_GL_ERROR
 } //DeepSeek
 
-void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width) {
-    LOG()
-    LOG_D("glTexStorage1D, target: %s, levels: %d, internalFormat: %s, width: %d",
-          glEnumToString(target), levels, glEnumToString(internalFormat), width);
-
-    internal_convert(&internalFormat, nullptr, nullptr);
-
-    GLES.glTexStorage1DEXT(target, levels, internalFormat, width);
-
-    CHECK_GL_ERROR
-}
-
 void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, 
                             GLint x, GLint y, GLsizei width) {
     LOG()
@@ -1240,31 +1228,6 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
     GLES.glCopyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, x, y, width, 1);
 
     GLES.glBindTexture(target, prevTexture);
-    CHECK_GL_ERROR
-}
-
-void glTexImage1D(GLenum target, GLint level, GLint internalFormat, 
-                 GLsizei width, GLint border, GLenum format, 
-                 GLenum type, const GLvoid* pixels) {
-    LOG()
-    LOG_D("glTexImage1D, target: %s, level: %d, format: %s, width: %d",
-          glEnumToString(target), level, glEnumToString(internalFormat), width);
-
-    internal_convert(reinterpret_cast<GLenum*>(&internalFormat), &type, &format);
-
-    GLES.glTexImage2D(GL_TEXTURE_2D, level, internalFormat, width, 1, border,
-                         format, type, pixels);
-
-    if (target != GL_PROXY_TEXTURE_1D) {
-        g_textures[bound_texture] = {
-            .target = has_texture_1D ? target : GL_TEXTURE_2D,
-            .texture = bound_texture,
-            .internal_format = internalFormat,
-            .format = format,
-            .swizzle_param = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}
-        };
-    }
-
     CHECK_GL_ERROR
 }
 
