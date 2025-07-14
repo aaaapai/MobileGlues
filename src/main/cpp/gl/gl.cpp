@@ -114,44 +114,49 @@ void glHint(GLenum target, GLenum mode) {
     GLES.glHint(target, mode);
 }
 
-// 全局状态记录
+// 状态结构
 static struct {
     GLenum front = GL_FILL;
     GLenum back = GL_FILL;
-} s_polygonMode;
+    GLuint currentProgram = 0;
+    GLuint wireframeProgram = 0;
+} s_polyState;
+
+// 内部立即应用函数
+static void applyPolygonMode() {
+    if (s_polyState.front == GL_LINE || s_polyState.back == GL_LINE) {
+        if (s_polyState.wireframeProgram == 0) {
+            // 惰性初始化线框着色器
+            const char* vs = "#version 300 es\nlayout(location=0) in vec4 aPos; void main() { gl_Position = aPos; }";
+            const char* fs = "#version 300 es\nout vec4 FragColor; void main() { FragColor = vec4(1.0); }";
+            s_polyState.wireframeProgram = createProgram(vs, fs);
+        }
+        GLES.glUseProgram(s_polyState.wireframeProgram);
+    } else {
+        // 恢复原始程序
+        GLES.glUseProgram(s_polyState.currentProgram);
+    }
+}
 
 void glPolygonMode(GLenum face, GLenum mode) {
-
-    LOG()
-
     // 参数验证
-    if (face != GL_FRONT && face != GL_BACK && face != GL_FRONT_AND_BACK) {
-        LOG_E("Invalid face: 0x%04X", face);
-        return;
-    }
-    if (mode != GL_POINT && mode != GL_LINE && mode != GL_FILL) {
-        LOG_E("Invalid mode: 0x%04X", mode);
-        return;
+    if ((face != GL_FRONT) && (face != GL_BACK) && (face != GL_FRONT_AND_BACK)) return;
+    if ((mode != GL_POINT) && (mode != GL_LINE) && (mode != GL_FILL)) return;
+
+    // 保存当前程序（首次调用时）
+    if (s_polyState.currentProgram == 0) {
+        GLES.glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&s_polyState.currentProgram);
     }
 
     // 更新状态
     switch (face) {
-        case GL_FRONT: 
-            s_polygonMode.front = mode;
-            break;
-        case GL_BACK:
-            s_polygonMode.back = mode;
-            break;
-        case GL_FRONT_AND_BACK:
-            s_polygonMode.front = s_polygonMode.back = mode;
+        case GL_FRONT:  s_polyState.front = mode; break;
+        case GL_BACK:   s_polyState.back = mode; break;
+        case GL_FRONT_AND_BACK: 
+            s_polyState.front = s_polyState.back = mode; 
             break;
     }
 
-    if (s_polygonMode.front == s_polygonMode.back) {
-            GLES.glPolygonModeNV(GL_FRONT_AND_BACK, s_polygonMode.front);
-    } else {
-            GLES.glPolygonModeNV(GL_FRONT, s_polygonMode.front);
-            GLES.glPolygonModeNV(GL_BACK, s_polygonMode.back);
-    }
-
-}
+    // 立即应用改变
+    applyPolygonMode();
+} //DeepSeek
