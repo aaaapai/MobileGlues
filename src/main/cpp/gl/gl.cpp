@@ -11,7 +11,7 @@
 #include "mg.h"
 #include "gl.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 static GLclampd currentDepthValue;
 
@@ -213,6 +213,8 @@ static void applyPolygonMode() {
 }
 
 void glPolygonMode(GLenum face, GLenum mode) {
+
+    LOG()
     // 参数验证
     if ((face != GL_FRONT) && (face != GL_BACK) && (face != GL_FRONT_AND_BACK)) return;
     if ((mode != GL_POINT) && (mode != GL_LINE) && (mode != GL_FILL)) return;
