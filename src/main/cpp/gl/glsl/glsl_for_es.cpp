@@ -640,14 +640,6 @@ int get_or_add_glsl_version(std::string& glsl) {
     return glsl_version;
 }
 
-std::vector<uint32_t> optimizeSpirV(const std::vector<uint32_t>& spirv) {
-         spvtools::Optimizer optimizer(SPV_ENV_OPENGL_4_5);
-         optimizer.RegisterPerformancePasses();
-         std::vector<uint32_t> optimizedSpirV;
-         optimizer.Run(spirv.data(), spirv.size(), &optimizedSpirV);
-         return optimizedSpirV;
-}
-
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
     
     static shaderc_compiler_t compiler = nullptr;
@@ -759,6 +751,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     std::vector<unsigned int> spirv_code;
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
+    spvOptions.stripDebugInfo = true;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
     shaderc_result_release(optimized_glsl_res);
     errc = 0;
