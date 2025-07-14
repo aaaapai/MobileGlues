@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+static void applyPolygonMode();
+
 GLAPI GLAPIENTRY void glClearDepth( GLclampd depth );
 GLAPI GLAPIENTRY void glHint( GLenum target, GLenum mode );
 GLAPI GLAPIENTRY void glDepthMask (GLboolean flag);
