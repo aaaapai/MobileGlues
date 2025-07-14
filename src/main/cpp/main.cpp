@@ -225,25 +225,23 @@ void proc_init() {
     init_settings();
 
     load_libs();
-    // init_target_egl();
+    init_target_egl();
     init_target_gles();
 
     init_settings_post();
 
 #ifndef __APPLE__
     init_libshaderconv();
-    // init_watermark_res();
+    init_watermark_res();
 #endif
     
 #if PROFILING
     init_perfetto();
 #endif
 
-/*
 // Cleanup
 #ifndef __APPLE__
     destroy_temp_egl_ctx();
 #endif
-*/
     g_initialized = 1;
 }
