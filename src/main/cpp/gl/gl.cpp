@@ -114,26 +114,100 @@ void glHint(GLenum target, GLenum mode) {
     GLES.glHint(target, mode);
 }
 
+
 // 状态结构
 static struct {
     GLenum front = GL_FILL;
     GLenum back = GL_FILL;
     GLuint currentProgram = 0;
     GLuint wireframeProgram = 0;
+    GLuint pointProgram = 0;
 } s_polyState;
+
+// 内部着色器创建函数
+static GLuint createShader(GLenum type, const char* source) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+    
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        LOG_E("Shader compilation failed: %s", infoLog);
+    }
+    return shader;
+}
+
+// 内部程序创建函数
+static GLuint createProgram(const char* vsSource, const char* fsSource) {
+    GLuint program = glCreateProgram();
+    GLuint vs = createShader(GL_VERTEX_SHADER, vsSource);
+    GLuint fs = createShader(GL_FRAGMENT_SHADER, fsSource);
+    
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
+    
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        LOG_E("Program linking failed: %s", infoLog);
+    }
+    
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return program;
+}
 
 // 内部立即应用函数
 static void applyPolygonMode() {
+    if (s_polyState.currentProgram == 0) {
+        GLES.glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&s_polyState.currentProgram);
+    }
+
     if (s_polyState.front == GL_LINE || s_polyState.back == GL_LINE) {
         if (s_polyState.wireframeProgram == 0) {
-            // 惰性初始化线框着色器
-            const char* vs = "#version 300 es\nlayout(location=0) in vec4 aPos; void main() { gl_Position = aPos; }";
-            const char* fs = "#version 300 es\nout vec4 FragColor; void main() { FragColor = vec4(1.0); }";
+            const char* vs = R"glsl(
+                #version 300 es
+                layout(location=0) in vec4 aPos;
+                void main() { gl_Position = aPos; }
+            )glsl";
+            const char* fs = R"glsl(
+                #version 300 es
+                precision highp float;
+                out vec4 FragColor;
+                void main() { FragColor = vec4(1.0); }
+            )glsl";
             s_polyState.wireframeProgram = createProgram(vs, fs);
         }
         GLES.glUseProgram(s_polyState.wireframeProgram);
-    } else {
-        // 恢复原始程序
+    }
+    else if (s_polyState.front == GL_POINT || s_polyState.back == GL_POINT) {
+        if (s_polyState.pointProgram == 0) {
+            const char* vs = R"glsl(
+                #version 300 es
+                layout(location=0) in vec4 aPos;
+                void main() { 
+                    gl_Position = aPos; 
+                    gl_PointSize = 4.0;
+                }
+            )glsl";
+            const char* fs = R"glsl(
+                #version 300 es
+                precision highp float;
+                out vec4 FragColor;
+                void main() { FragColor = vec4(1.0); }
+            )glsl";
+            s_polyState.pointProgram = createProgram(vs, fs);
+        }
+        GLES.glEnable(GL_PROGRAM_POINT_SIZE);
+        GLES.glUseProgram(s_polyState.pointProgram);
+    }
+    else {
         GLES.glUseProgram(s_polyState.currentProgram);
     }
 }
@@ -142,11 +216,6 @@ void glPolygonMode(GLenum face, GLenum mode) {
     // 参数验证
     if ((face != GL_FRONT) && (face != GL_BACK) && (face != GL_FRONT_AND_BACK)) return;
     if ((mode != GL_POINT) && (mode != GL_LINE) && (mode != GL_FILL)) return;
-
-    // 保存当前程序（首次调用时）
-    if (s_polyState.currentProgram == 0) {
-        GLES.glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&s_polyState.currentProgram);
-    }
 
     // 更新状态
     switch (face) {
