@@ -232,7 +232,7 @@ void proc_init() {
 
 #ifndef __APPLE__
     init_libshaderconv();
-    init_watermark_res();
+    // init_watermark_res();
 #endif
     
 #if PROFILING
