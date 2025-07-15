@@ -194,7 +194,7 @@ void InitGLESCapabilities() {
         AppendExtension("GL_ARB_buffer_storage");
     }
 
-    if (g_gles_caps.GL_EXT_disjoint_timer_query) {
+    if (g_gles_caps.GL_EXT_disjoint_timer_query && global_settings.ext_timer_query) {
         AppendExtension("GL_ARB_timer_query");
         AppendExtension("GL_EXT_timer_query");
     }

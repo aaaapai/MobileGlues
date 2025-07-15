@@ -64,7 +64,7 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
             break;
 
         case GL_DEPTH_COMPONENT:
-            LOG_V("Find GL_DEPTH_COMPONENT: internalFormat: %s, format: %s, type: %s", glEnumToString(*internal_format), glEnumToString(*format), glEnumToString(*type))
+            LOG_D("Find GL_DEPTH_COMPONENT: internalFormat: %s, format: %s, type: %s", glEnumToString(*internal_format), glEnumToString(*format), glEnumToString(*type))
             if (type) {
                 switch (*type) {
                     case GL_UNSIGNED_SHORT:
