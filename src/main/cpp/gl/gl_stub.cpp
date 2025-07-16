@@ -510,7 +510,7 @@ STUB_FUNCTION_HEAD(void, glBindFragDataLocationIndexed, GLuint program, GLuint c
 STUB_FUNCTION_HEAD(GLint, glGetFragDataIndex, GLuint program, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(GLint, glGetFragDataIndex,program,name)
 //STUB_FUNCTION_HEAD(void, glQueryCounter, GLuint id, GLenum target); STUB_FUNCTION_END_NO_RETURN(void, glQueryCounter,id,target)
 //STUB_FUNCTION_HEAD(void, glGetQueryObjecti64v, GLuint id, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjecti64v,id,pname,params)
-STUB_FUNCTION_HEAD(void, glGetQueryObjectui64v, GLuint id, GLenum pname, GLuint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjectui64v,id,pname,params)
+//STUB_FUNCTION_HEAD(void, glGetQueryObjectui64v, GLuint id, GLenum pname, GLuint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjectui64v,id,pname,params)
 STUB_FUNCTION_HEAD(void, glVertexAttribP1ui, GLuint index, GLenum type, GLboolean normalized, GLuint value); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttribP1ui,index,type,normalized,value)
 STUB_FUNCTION_HEAD(void, glVertexAttribP1uiv, GLuint index, GLenum type, GLboolean normalized, const GLuint* value); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttribP1uiv,index,type,normalized,value)
 STUB_FUNCTION_HEAD(void, glVertexAttribP2ui, GLuint index, GLenum type, GLboolean normalized, GLuint value); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttribP2ui,index,type,normalized,value)
