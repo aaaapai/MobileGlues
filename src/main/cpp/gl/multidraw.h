@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <mutex>
 #include <cmath>
-#include <internal>
 #include <GLES3/gl3.h>
 #include "../includes.h"
 #include <GL/gl.h>
