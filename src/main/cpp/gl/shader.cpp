@@ -5,7 +5,7 @@
 #include <cctype>
 #include "shader.h"
 
-#include "gl.h"
+#include "GL/gl.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "../includes.h"

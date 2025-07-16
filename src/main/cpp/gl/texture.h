@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "gl.h"
+#include "GL/gl.h"
 
 struct texture_t {
     GLenum target;
@@ -19,7 +19,9 @@ struct texture_t {
     GLint swizzle_param[4];
 };
 
+GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
+GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
 GLAPI GLAPIENTRY void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI GLAPIENTRY void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI GLAPIENTRY void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
@@ -44,6 +46,19 @@ GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
 GLAPI GLAPIENTRY void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
 GLAPI GLAPIENTRY void glPixelStorei(GLenum pname, GLint param);
 
+GLAPI GLAPIENTRY void glCreateTextures (GLenum target, GLsizei n, GLuint *textures);
+
+GLAPI GLAPIENTRY void glTextureParameteri (GLuint texture, GLenum pname, GLint param);
+GLAPI GLAPIENTRY void glTextureParameterIiv (GLuint texture, GLenum pname, const GLint *params);
+GLAPI GLAPIENTRY void glTextureParameterIuiv (GLuint texture, GLenum pname, const GLuint *params);
+
+GLAPI GLAPIENTRY void glBindTextureUnit (GLuint unit, GLuint texture);
+
+GLAPI GLAPIENTRY void glBindSamplers (GLuint first, GLsizei count, const GLuint *samplers);
+GLAPI GLAPIENTRY void glCopyTextureSubImage1D (GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+GLAPI GLAPIENTRY void glCopyTextureSubImage2D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+GLAPI GLAPIENTRY void glCopyTextureSubImage3D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+GLAPI GLAPIENTRY void glTextureParameteriv (GLuint texture, GLenum pname, const GLint *param);
 #ifdef __cplusplus
 }
 #endif

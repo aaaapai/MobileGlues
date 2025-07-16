@@ -24,9 +24,9 @@ unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
 
 unordered_map<GLuint, BufferMapping> g_active_mappings;
 
-GLuint gen_buffer() {
+GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
-    g_gen_buffers[maxBufferId] = 0;
+    g_gen_buffers[maxBufferId] = realid;
     return maxBufferId;
 }
 
@@ -69,6 +69,9 @@ GLuint find_bound_buffer(GLenum key) {
     switch (key) {
         case GL_ARRAY_BUFFER_BINDING:
             target = GL_ARRAY_BUFFER;
+            break;
+        case GL_QUERY_BUFFER_BINDING:
+            target = GL_QUERY_BUFFER;
             break;
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
             target = GL_ATOMIC_COUNTER_BUFFER;
@@ -168,8 +171,10 @@ static GLenum get_binding_query(GLenum target) {
 void glGenBuffers(GLsizei n, GLuint *buffers) {
     LOG()
     LOG_D("glGenBuffers(%i, %p)", n, buffers)
+
+    GLuint realid = 0;
     for (int i = 0; i < n; ++i) {
-        buffers[i] = gen_buffer();
+        buffers[i] = gen_buffer(realid);
     }
 }
 
@@ -321,6 +326,10 @@ void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLint
     CHECK_GL_ERROR
 }
 
+void glTexBufferRangeARB(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
+    glTexBufferRange(target, internalformat, buffer, offset, size);
+}
+
 void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) {
     LOG()
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
@@ -391,15 +400,6 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #define BIN_FILE_PREFIX "/sdcard/MG/buf/"
 #endif
 
-#if !defined(__APPLE__)
-extern "C" {
-    GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
-    GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
-    GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
-    GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
-    GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
-}
-#endif
 
 void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     LOG()
@@ -512,4 +512,203 @@ void glBindVertexArray(GLuint array) {
     LOG_D("glBindVertexArray: %d -> %d", array, real_array)
     GLES.glBindVertexArray(real_array);
     CHECK_GL_ERROR
+}
+
+
+
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_W("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data);
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(get_binding_query(target));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target));
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer);
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size);
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer");
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type));
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < size; i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
+                          GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_W("glClearNamedBufferData(buffer=%d, internalformat=%s, format=%s, type=%s, data=%p)",
+          buffer, glEnumToString(internalformat), 
+          glEnumToString(format), glEnumToString(type), data);
+
+    if (!has_buffer(buffer)) {
+        LOG_E("ERROR: Buffer %d does not exist", buffer);
+        return;
+    }
+
+    // We need to determine the target type of the buffer
+    // This is tricky since OpenGL doesn't provide a direct query for it
+    // We'll try to find which binding point this buffer is bound to
+    
+    GLenum target = 0;
+    for (const auto& pair : g_bound_buffers) {
+        if (pair.second == buffer) {
+            target = pair.first;
+            break;
+        }
+    }
+    
+    // If not found in current bindings, default to ARRAY_BUFFER
+    if (target == 0) {
+        target = GL_ARRAY_BUFFER;
+        LOG_W("Could not determine buffer target for %d, defaulting to GL_ARRAY_BUFFER", buffer);
+    }
+
+    // Save current binding
+    GLint prev_buffer;
+    GLES.glGetIntegerv(get_binding_query(target), &prev_buffer);
+    
+    // Bind our buffer and delegate to glClearBufferData
+    GLuint real_buffer = find_real_buffer(buffer);
+    GLES.glBindBuffer(target, real_buffer);
+    glClearBufferData(target, internalformat, format, type, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(target, prev_buffer);
+    CHECK_GL_ERROR
+}  //DeepSeek
+
+void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_W("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
+
+    // Get the currently bound buffer for this target
+    GLint current_buffer = 0;
+    GLES.glGetIntegerv(get_binding_query(target), &current_buffer);
+    
+    if (current_buffer == 0) {
+        // No buffer bound to this target
+        return;
+    }
+
+    // Find the real buffer ID from our mapping (if it exists)
+    GLuint real_buffer = find_real_buffer(current_buffer);
+    if (!real_buffer) {
+        // If not found in our mapping, assume it's already a real buffer ID
+        real_buffer = current_buffer;
+    }
+
+    // Save current buffer binding
+    GLint prev_binding = 0;
+    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    
+    // Bind our buffer to COPY_WRITE_BUFFER target
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    
+    // Use glBufferSubData to clear the buffer range
+    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_W("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+          buffer, glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
+
+    // First find the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        // If not found in our mapping, assume it's already a real buffer ID
+        real_buffer = buffer;
+    }
+
+    // Save current buffer binding
+    GLint prev_binding = 0;
+    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    
+    // Bind our buffer to COPY_WRITE_BUFFER target (since we can't bind by name directly in GLES)
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    
+    // Use glBufferSubData to clear the buffer range (GLES doesn't have glClearBufferSubData)
+    // Note: This isn't exactly the same as clear, but closest we can get in GLES
+    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    
+    // Restore previous binding
+    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    
+    CHECK_GL_ERROR
+} //DeepSeek
+
+extern "C" {
+GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
+GLAPI GLAPIENTRY void *glBufferDataARB(GLenum target, GLenum access) __attribute__((alias("glBufferData")));
+GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
+GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
+GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+GLAPI GLAPIENTRY void glBindBufferRangeARB(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) __attribute__((alias("glBindBufferRange")));
+GLAPI GLAPIENTRY void glBindBufferBaseARB(GLenum target, GLuint index, GLuint buffer) __attribute__((alias("glBindBufferBase")));
+GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) __attribute__((alias("glDeleteBuffers")));
+GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers) __attribute__((alias("glGenBuffers")));
+GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer) __attribute__((alias("glIsBuffer")));
 }

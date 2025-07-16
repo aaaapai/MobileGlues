@@ -39,12 +39,15 @@ void init_target_egl() {
             EGL_GREEN_SIZE, 8,
             EGL_BLUE_SIZE, 8,
             EGL_ALPHA_SIZE, 8,
-            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_DEPTH_SIZE, 24,
+            EGL_ALPHA_MASK_SIZE, 8,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
+            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
             EGL_NONE
     };
 
-    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
 
     EGLint pbAttribs[] = { EGL_WIDTH, 32, EGL_HEIGHT, 32, EGL_NONE };
 
