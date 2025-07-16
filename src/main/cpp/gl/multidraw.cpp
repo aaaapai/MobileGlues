@@ -718,19 +718,19 @@ extern "C" {
 
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type,
                                              const void* const* indices, GLsizei primcount,
-                                             const GLint* baseVertices) {
+                                             const GLint* basevertex) {
     if (primcount <= 0) return;
 
     // 检查是否可以使用实例化优化
     bool canInstance = true;
     size_t indexSize = (type == GL_UNSIGNED_SHORT) ? 2 : 4;
     size_t expectedOffset = counts[0] * indexSize;
-    GLint baseVertex = baseVertices[0];
+    GLint baseVertices = basevertex[0];
     
     for (GLsizei i = 1; i < primcount; ++i) {
         if (counts[i] != counts[0] || 
             (const uint8_t*)indices[i] != (const uint8_t*)indices[i-1] + expectedOffset ||
-            baseVertices[i] != baseVertex) {
+            basevertex[i] != baseVertices) {
             canInstance = false;
             break;
         }
@@ -738,7 +738,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
 
     if (canInstance && primcount > 3) {
         GLES.glDrawElementsInstancedBaseVertex(
-            mode, counts[0], type, indices[0], primcount, baseVertex);
+            mode, counts[0], type, indices[0], primcount, baseVertices);
         return;
     }
 
@@ -757,7 +757,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
     if (mode != batchState.currentMode || 
         type != batchState.currentType ||
         (batchState.batchStart < primcount && 
-         baseVertices[batchState.batchStart] != batchState.lastBaseVertex)) {
+         basevertex[batchState.batchStart] != batchState.lastBaseVertex)) {
         if (batchState.totalIndices > 0) {
             // 执行剩余绘制
             for (GLsizei j = batchState.batchStart; j < primcount; ++j) {
@@ -770,7 +770,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
             }
         }
         batchState = {0, 0, mode, type, nullptr, 
-                     primcount > 0 ? baseVertices[0] : 0};
+                     primcount > 0 ? basevertex[0] : 0};
     }
 
     // 执行批处理绘制
@@ -780,7 +780,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
             
             // 检查基顶点变化是否过大
             if (i > batchState.batchStart && 
-                abs(baseVertices[i] - baseVertices[i-1]) > ANDROID_MAX_VERTEX_DELTA) {
+                abs(basevertex[i] - basevertex[i-1]) > ANDROID_MAX_VERTEX_DELTA) {
                 // 强制中断当前批次
                 i--; // 回退一步，这个draw将在下个批次处理
                 batchState.totalIndices -= counts[i];
@@ -795,9 +795,9 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
             for (GLsizei j = batchState.batchStart; j < i; ++j) {
                 if (counts[j] > 0) {
                     GLES.glDrawElementsBaseVertex(
-                        mode, counts[j], type, indices[j], baseVertices[j]);
+                        mode, counts[j], type, indices[j], basevertex[j]);
                     batchState.lastIndices = indices[j];
-                    batchState.lastBaseVertex = baseVertices[j];
+                    batchState.lastBaseVertex = basevertex[j];
                 }
             }
             batchState.batchStart = i;
