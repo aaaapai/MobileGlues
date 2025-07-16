@@ -113,12 +113,17 @@ void glClear(GLbitfield mask) {
     LOG();
     LOG_D("glClear, mask = 0x%x", mask);
 
-    if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1 &&
-        global_settings.angle == AngleMode::Enabled && 
+    if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
         fabs(currentDepthValue - 1.0f) <= 0.001f) {
-        // Workaround for ANGLE depth-clear bug: if depth≈1.0, draw a fullscreen triangle at z=1.0 to force actual depth buffer write.
-        DrawDepthClearTri();
+        if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
+            // Workaround for ANGLE depth-clear bug: if depth≈1.0, draw a fullscreen triangle at z=1.0 to force actual depth buffer write.
+            DrawDepthClearTri();
+        else if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode2) {
+            // Or just explicitly clear depth buffer and see what's happened
+            const GLfloat clear_depth_value = 1.0f;
+            GLES.glClearBufferfv(GL_DEPTH, 0, &clear_depth_value);
+        }
         // Clear again
         GLES.glClear(mask);
     } else {

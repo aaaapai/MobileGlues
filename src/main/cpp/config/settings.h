@@ -54,6 +54,7 @@ extern "C" {
     enum class AngleDepthClearFixMode : int {
         Disabled = 0,
         Mode1 = 1,
+        Mode2 = 2,
         MaxValue
 	};
 
