@@ -712,6 +712,10 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* counts, GLe
     }
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type,
                                              const void* const* indices, GLsizei primcount,
                                              const GLint* baseVertices) {
@@ -801,3 +805,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* c
         }
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
