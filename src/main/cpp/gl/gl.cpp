@@ -258,3 +258,51 @@ void glQueryCounter(GLuint id, GLenum target) {
 
     GLES.glQueryCounterEXT(id, target);
 }
+
+void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params) {
+
+    LOG()
+    LOG_D("Entering glGetQueryObjecti64v(id=%u, pname=0x%X, params=%p)", id, pname, params);
+
+    if (!params) {
+        LOG_W("Warning: glGetQueryObjecti64v called with NULL params pointer");
+        return;
+    }
+
+    // GLES3 implementation - may require extension checks
+    if (pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE) {
+        GLES.glGetQueryObjectiv(id, pname, (GLint*)params); // Note: potential precision loss
+    } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
+        // Check if extension is available
+            GLES.glGetQueryObjectivEXT(id, pname, (GLint*)params);
+    }
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        LOG_E("OpenGL error in glGetQueryObjecti64v: 0x%X", err);
+    }
+}
+
+void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params) {
+
+    LOG()
+    LOG_D("Entering glGetQueryObjectui64v(id=%u, pname=0x%X, params=%p)", id, pname, params);
+
+    if (!params) {
+        LOG_W("Warning: glGetQueryObjectui64v called with NULL params pointer");
+        return;
+    }
+
+    // GLES3 implementation - may require extension checks
+    if (pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE) {
+        GLES.glGetQueryObjectuiv(id, pname, (GLuint*)params); // Note: potential precision loss
+    } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
+        // Check if extension is available
+            GLES.glGetQueryObjectuivEXT(id, pname, (GLuint*)params);
+    }
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        LOG_W("OpenGL error in glGetQueryObjectui64v: 0x%X", err);
+    }
+}
