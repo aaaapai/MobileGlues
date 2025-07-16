@@ -9,7 +9,7 @@
 #define VERSION_RELEASE 2
 
 #define MAJOR 1
-#define MINOR 21
+#define MINOR 2
 #define REVISION 7
 #define PATCH 0
 
