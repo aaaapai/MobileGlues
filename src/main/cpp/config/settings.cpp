@@ -193,6 +193,7 @@ void init_settings_post() {
             (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || (g_gles_caps.major > 3);
     bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
     bool drawelements = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool deepseek_one = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
 
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
@@ -234,6 +235,11 @@ void init_settings_post() {
             global_settings.multidraw_mode = multidraw_mode_t::Compute;
             LOG_V("    -> Compute (OK)")
             break;
+	case multidraw_mode_t::DeepSeekOne:
+            LOG_V("multidrawMode = DeepSeek的方案1")
+            global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+            LOG_V("    -> DeepSeek的方案1 (OK)")
+            break;
         case multidraw_mode_t::Auto:
         default:
             LOG_V("multidrawMode = Auto")
@@ -249,7 +255,10 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Auto detected)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Auto detected)")
+	    }
             break;
     }
 }
