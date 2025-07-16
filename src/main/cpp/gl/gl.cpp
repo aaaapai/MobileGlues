@@ -271,7 +271,7 @@ void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params) {
 
     // GLES3 implementation - may require extension checks
     if (pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE) {
-        GLES.glGetQueryObjectiv(id, pname, (GLint*)params); // Note: potential precision loss
+        GLES.glGetQueryObjectivEXT(id, pname, (GLint*)params); // Note: potential precision loss
     } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
         // Check if extension is available
             GLES.glGetQueryObjectivEXT(id, pname, (GLint*)params);
@@ -298,7 +298,7 @@ void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params) {
         GLES.glGetQueryObjectuiv(id, pname, (GLuint*)params); // Note: potential precision loss
     } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
         // Check if extension is available
-            GLES.glGetQueryObjectuivEXT(id, pname, (GLuint*)params);
+            GLES.glGetQueryObjectuiv(id, pname, (GLuint*)params);
     }
 
     GLenum err;
