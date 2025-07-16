@@ -630,207 +630,110 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 }
 
 
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* count, 
-                                        GLenum type, const void* const* indices, 
-                                        GLsizei primcount) {
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* count,
+                                       GLenum type, const void* const* indices,
+                                       GLsizei primcount) {
     LOG();
 
-    // 使用thread_local缓存避免重复分配，特别适合安卓的线程模型
+    // ARM64优化：确保指针对齐
+    ASSERT(((uintptr_t)count % 16) == 0 && "count array not aligned");
+    ASSERT(((uintptr_t)indices % 16) == 0 && "indices array not aligned");
+
+    // 使用thread_local缓存避免重复分配
     static thread_local struct {
-        std::vector<std::pair<GLsizei, const void*>> validDraws;
-        bool isInitialized = false;
-        int optimalBatchSize = 8; // 根据CPU核心数动态调整
+        uint32_t validMask[4];  // 128位掩码，用于NEON处理
+        GLsizei validCounts[16];
+        const void* validIndices[16];
+        int batchSize = 0;
     } cache;
 
-    // 首次使用时初始化（安卓通常4-8核）
-    if (!cache.isInitialized) {
-        cache.isInitialized = true;
-        // 简单试探：更多核心适合更大批次
-        if (android_getCpuCount() > 4) {
-            cache.optimalBatchSize = 16;
-        }
-    }
-
     // 空绘制快速返回
-    if (primcount <= 0) {
-        return;
-    }
+    if (primcount <= 0) return;
 
-    // 小批量处理（完全展开）
-    if (primcount <= 8) {
-        #define PROCESS_ONE(i) if (count[i] > 0) GLES.glDrawElements(mode, count[i], type, indices[i])
-        PROCESS_ONE(0);
-        if (primcount > 1) PROCESS_ONE(1);
-        if (primcount > 2) PROCESS_ONE(2);
-        if (primcount > 3) PROCESS_ONE(3);
-        if (primcount > 4) PROCESS_ONE(4);
-        if (primcount > 5) PROCESS_ONE(5);
-        if (primcount > 6) PROCESS_ONE(6);
-        if (primcount > 7) PROCESS_ONE(7);
-        #undef PROCESS_ONE
+    // 小批量处理(完全展开)
+    if (primcount <= 16) {
+        // ARM64优化：使用NEON指令批量检查count>0
+        uint32_t* maskPtr = cache.validMask;
+        const GLsizei* countPtr = count;
+        
+        // 每4个count一组处理
+        for (int i = 0; i < primcount; i += 4) {
+            int remain = primcount - i;
+            if (remain >= 4) {
+                // 加载4个count到NEON寄存器
+                int32x4_t vcount = vld1q_s32(countPtr);
+                // 比较大于0
+                uint32x4_t vmask = vcgtq_s32(vcount, vdupq_n_s32(0));
+                // 存储掩码
+                vst1q_u32(maskPtr, vmask);
+                countPtr += 4;
+                maskPtr += 4;
+            } else {
+                // 处理剩余不足4个
+                for (int j = 0; j < remain; j++) {
+                    cache.validMask[i+j] = (countPtr[j] > 0) ? 0xFFFFFFFF : 0;
+                }
+                break;
+            }
+        }
+
+        // 根据掩码执行绘制
+        for (int i = 0; i < primcount; i++) {
+            if (cache.validMask[i]) {
+                GLES.glDrawElements(mode, count[i], type, indices[i]);
+            }
+        }
         CHECK_GL_ERROR;
         return;
     }
 
-    // 大批量处理（使用缓存和安卓特定优化）
-    cache.validDraws.clear();
+    // 大批量处理
+    cache.batchSize = 0;
+    const int kMaxBatch = 16;
+    
+    // ARM64优化：预取内存
+    __builtin_prefetch(count, 0, 3);
+    __builtin_prefetch(indices, 0, 3);
 
-    // 第一阶段：并行收集有效绘制命令（仅限安卓21+）
-    #if __ANDROID_API__ >= 21
-    if (primcount > 1000) {
-        const int worker_threads = std::min(4, android_getCpuCount() - 1);
-        if (worker_threads > 1) {
-            std::vector<std::vector<std::pair<GLsizei, const void*>>> threadResults(worker_threads);
+    for (GLsizei i = 0; i < primcount; i++) {
+        if (count[i] > 0) {
+            cache.validCounts[cache.batchSize] = count[i];
+            cache.validIndices[cache.batchSize] = indices[i];
+            cache.batchSize++;
             
-            #pragma omp parallel for num_threads(worker_threads)
-            for (GLsizei i = 0; i < primcount; ++i) {
-                if (count[i] > 0) {
-                    int tid = omp_get_thread_num();
-                    threadResults[tid].emplace_back(count[i], indices[i]);
-                }
-            }
-            
-            // 合并结果
-            for (auto& vec : threadResults) {
-                cache.validDraws.insert(cache.validDraws.end(), vec.begin(), vec.end());
-            }
-        } else {
-            goto SINGLE_THREAD_PROCESS;
-        }
-    } else 
-    #endif
-    {
-    SINGLE_THREAD_PROCESS:
-        // 单线程处理
-        cache.validDraws.reserve(primcount);
-        for (GLsizei i = 0; i < primcount; ++i) {
-            if (count[i] > 0) {
-                cache.validDraws.emplace_back(count[i], indices[i]);
+            // 批次已满，立即提交
+            if (cache.batchSize == kMaxBatch) {
+                // 完全展开的批次提交
+                GLES.glDrawElements(mode, cache.validCounts[0], type, cache.validIndices[0]);
+                GLES.glDrawElements(mode, cache.validCounts[1], type, cache.validIndices[1]);
+                GLES.glDrawElements(mode, cache.validCounts[2], type, cache.validIndices[2]);
+                GLES.glDrawElements(mode, cache.validCounts[3], type, cache.validIndices[3]);
+                GLES.glDrawElements(mode, cache.validCounts[4], type, cache.validIndices[4]);
+                GLES.glDrawElements(mode, cache.validCounts[5], type, cache.validIndices[5]);
+                GLES.glDrawElements(mode, cache.validCounts[6], type, cache.validIndices[6]);
+                GLES.glDrawElements(mode, cache.validCounts[7], type, cache.validIndices[7]);
+                GLES.glDrawElements(mode, cache.validCounts[8], type, cache.validIndices[8]);
+                GLES.glDrawElements(mode, cache.validCounts[9], type, cache.validIndices[9]);
+                GLES.glDrawElements(mode, cache.validCounts[10], type, cache.validIndices[10]);
+                GLES.glDrawElements(mode, cache.validCounts[11], type, cache.validIndices[11]);
+                GLES.glDrawElements(mode, cache.validCounts[12], type, cache.validIndices[12]);
+                GLES.glDrawElements(mode, cache.validCounts[13], type, cache.validIndices[13]);
+                GLES.glDrawElements(mode, cache.validCounts[14], type, cache.validIndices[14]);
+                GLES.glDrawElements(mode, cache.validCounts[15], type, cache.validIndices[15]);
+                
+                cache.batchSize = 0;
             }
         }
     }
 
-    // 第二阶段：批量提交（使用展开循环）
-    const size_t total = cache.validDraws.size();
-    const size_t batchSize = cache.optimalBatchSize;
-    const auto& draws = cache.validDraws;
-
-    for (size_t i = 0; i < total; ) {
-        // 每次处理一个批次
-        const size_t remain = total - i;
-        const size_t thisBatch = remain > batchSize ? batchSize : remain;
-
-        // 手动展开批次处理
-        switch (thisBatch) {
-            case 16: GLES.glDrawElements(mode, draws[i+15].first, type, draws[i+15].second);
-            case 15: GLES.glDrawElements(mode, draws[i+14].first, type, draws[i+14].second);
-            case 14: GLES.glDrawElements(mode, draws[i+13].first, type, draws[i+13].second);
-            case 13: GLES.glDrawElements(mode, draws[i+12].first, type, draws[i+12].second);
-            case 12: GLES.glDrawElements(mode, draws[i+11].first, type, draws[i+11].second);
-            case 11: GLES.glDrawElements(mode, draws[i+10].first, type, draws[i+10].second);
-            case 10: GLES.glDrawElements(mode, draws[i+9].first, type, draws[i+9].second);
-            case 9:  GLES.glDrawElements(mode, draws[i+8].first, type, draws[i+8].second);
-            case 8:  GLES.glDrawElements(mode, draws[i+7].first, type, draws[i+7].second);
-            case 7:  GLES.glDrawElements(mode, draws[i+6].first, type, draws[i+6].second);
-            case 6:  GLES.glDrawElements(mode, draws[i+5].first, type, draws[i+5].second);
-            case 5:  GLES.glDrawElements(mode, draws[i+4].first, type, draws[i+4].second);
-            case 4:  GLES.glDrawElements(mode, draws[i+3].first, type, draws[i+3].second);
-            case 3:  GLES.glDrawElements(mode, draws[i+2].first, type, draws[i+2].second);
-            case 2:  GLES.glDrawElements(mode, draws[i+1].first, type, draws[i+1].second);
-            case 1:  GLES.glDrawElements(mode, draws[i].first, type, draws[i].second);
+    // 提交剩余批次
+    if (cache.batchSize > 0) {
+        for (int i = 0; i < cache.batchSize; i++) {
+            GLES.glDrawElements(mode, cache.validCounts[i], type, cache.validIndices[i]);
         }
-        i += thisBatch;
     }
 
     CHECK_GL_ERROR;
-}
-
-void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
-    if (primcount <= 0) return;
-
-    // 检查是否可以使用实例化优化
-    bool canInstance = true;
-    size_t indexSize = (type == GL_UNSIGNED_SHORT) ? 2 : 4;
-    size_t expectedOffset = counts[0] * indexSize;
-    GLint baseVertices = basevertex[0];
-    
-    for (GLsizei i = 1; i < primcount; ++i) {
-        if (counts[i] != counts[0] || 
-            (const uint8_t*)indices[i] != (const uint8_t*)indices[i-1] + expectedOffset ||
-            basevertex[i] != baseVertices) {
-            canInstance = false;
-            break;
-        }
-    }
-
-    if (canInstance && primcount > 3) {
-        GLES.glDrawElementsInstancedBaseVertex(
-            mode, counts[0], type, indices[0], primcount, baseVertices);
-        return;
-    }
-
-    // 批处理实现
-    struct BaseVertexBatchState {
-        size_t batchStart = 0;
-        size_t totalIndices = 0;
-        GLenum currentMode = 0;
-        GLenum currentType = 0;
-        const void* lastIndices = nullptr;
-        GLint lastBaseVertex = 0;
-    };
-    static TLS BaseVertexBatchState batchState;
-    
-    // 状态变更检查
-    if (mode != batchState.currentMode || 
-        type != batchState.currentType ||
-        (batchState.batchStart < primcount && 
-         basevertex[batchState.batchStart] != batchState.lastBaseVertex)) {
-        if (batchState.totalIndices > 0) {
-            // 执行剩余绘制
-            for (GLsizei j = batchState.batchStart; j < primcount; ++j) {
-                if (counts[j] > 0) {
-                    GLES.glDrawElementsBaseVertex(
-                        batchState.currentMode, counts[j], 
-                        batchState.currentType, indices[j],
-                        batchState.lastBaseVertex);
-                }
-            }
-        }
-        batchState = {0, 0, mode, type, nullptr, 
-                     primcount > 0 ? basevertex[0] : 0};
-    }
-
-    // 执行批处理绘制
-    for (GLsizei i = 0; i <= primcount; ++i) {
-        if (i < primcount) {
-            batchState.totalIndices += counts[i];
-            
-            // 检查基顶点变化是否过大
-            if (i > batchState.batchStart && 
-                abs(basevertex[i] - basevertex[i-1]) > ANDROID_MAX_VERTEX_DELTA) {
-                // 强制中断当前批次
-                i--; // 回退一步，这个draw将在下个批次处理
-                batchState.totalIndices -= counts[i];
-            }
-        }
-        
-        if (i == primcount || 
-            (i - batchState.batchStart >= ANDROID_MAX_BATCH_DRAWS) || 
-            (batchState.totalIndices >= ANDROID_MAX_BATCH_INDICES) ||
-            (indices[i] != batchState.lastIndices && i > batchState.batchStart)) {
-            // 执行批处理绘制
-            for (GLsizei j = batchState.batchStart; j < i; ++j) {
-                if (counts[j] > 0) {
-                    GLES.glDrawElementsBaseVertex(
-                        mode, counts[j], type, indices[j], basevertex[j]);
-                    batchState.lastIndices = indices[j];
-                    batchState.lastBaseVertex = basevertex[j];
-                }
-            }
-            batchState.batchStart = i;
-            batchState.totalIndices = 0;
-        }
-    }
 }
 
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex)
@@ -849,7 +752,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts,
         if (basevertex[i] != currentBase || 
             (const uint8_t *)indices[i] != (const uint8_t *)currentIndices + totalCount * GetTypeSize(type)) {
             if (totalCount > 0) {
-                glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
+                GLES.glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
             }
             currentBase = basevertex[i];
             currentIndices = indices[i];
@@ -860,6 +763,6 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts,
 
     // 提交剩余批次
     if (totalCount > 0) {
-        glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
+        GLES.glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
     }
 }
