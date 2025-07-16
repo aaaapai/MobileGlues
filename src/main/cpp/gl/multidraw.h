@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <mutex>
 #include <cmath>
+#include <cassert>
 #include <arm_neon.h>
 #include <GLES3/gl3.h>
 #include "../includes.h"
