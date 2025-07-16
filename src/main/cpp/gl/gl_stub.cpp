@@ -508,7 +508,7 @@ STUB_FUNCTION_HEAD(void, glTexImage2DMultisample, GLenum target, GLsizei samples
 STUB_FUNCTION_HEAD(void, glTexImage3DMultisample, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations); STUB_FUNCTION_END_NO_RETURN(void, glTexImage3DMultisample,target,samples,internalformat,width,height,depth,fixedsamplelocations)
 STUB_FUNCTION_HEAD(void, glBindFragDataLocationIndexed, GLuint program, GLuint colorNumber, GLuint index, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(void, glBindFragDataLocationIndexed,program,colorNumber,index,name)
 STUB_FUNCTION_HEAD(GLint, glGetFragDataIndex, GLuint program, const GLchar* name); STUB_FUNCTION_END_NO_RETURN(GLint, glGetFragDataIndex,program,name)
-STUB_FUNCTION_HEAD(void, glQueryCounter, GLuint id, GLenum target); STUB_FUNCTION_END_NO_RETURN(void, glQueryCounter,id,target)
+//STUB_FUNCTION_HEAD(void, glQueryCounter, GLuint id, GLenum target); STUB_FUNCTION_END_NO_RETURN(void, glQueryCounter,id,target)
 //STUB_FUNCTION_HEAD(void, glGetQueryObjecti64v, GLuint id, GLenum pname, GLint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjecti64v,id,pname,params)
 STUB_FUNCTION_HEAD(void, glGetQueryObjectui64v, GLuint id, GLenum pname, GLuint64* params); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryObjectui64v,id,pname,params)
 STUB_FUNCTION_HEAD(void, glVertexAttribP1ui, GLuint index, GLenum type, GLboolean normalized, GLuint value); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttribP1ui,index,type,normalized,value)
