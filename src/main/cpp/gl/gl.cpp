@@ -252,3 +252,9 @@ void glPolygonMode(GLenum face, GLenum mode) {
     // 立即应用改变
     applyPolygonMode();
 } //DeepSeek
+
+void glQueryCounter(GLuint id, GLenum target) {
+    LOG()
+
+    GLES.glQueryCounterEXT(id, target);
+}
