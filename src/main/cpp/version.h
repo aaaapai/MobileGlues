@@ -9,7 +9,7 @@
 #define VERSION_RELEASE 2
 
 #define MAJOR 1
-#define MINOR 2
+#define MINOR 21
 #define REVISION 7
 #define PATCH 0
 
@@ -17,8 +17,6 @@
 
 #define VERSION_NUM \
     (MAJOR * 1000 + MINOR * 100 + REVISION * 10 + PATCH)
-
-#define VERSION_TYPE VERSION_DEVELOPMENT
 
 #define VERSION_SUFFIX ""
 
