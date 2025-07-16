@@ -4,10 +4,6 @@
 
 #include "multidraw.h"
 #include "../config/settings.h"
-#include <vector>
-#include <algorithm>
-#include <mutex>
-#include <cmath>
 
 #define DEBUG 0
 
