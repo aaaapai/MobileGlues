@@ -33,7 +33,7 @@ static const GLfloat kFullScreenTri[3][2] = {
 };
 
 static const char* kDepthClearVS = R"glsl(
-    #version 300 es
+    #version 320 es
     layout(location = 0) in vec2 aPos;
     void main() {
         // Write far‐plane depth
@@ -41,7 +41,7 @@ static const char* kDepthClearVS = R"glsl(
     }
 )glsl";
 static const char* kDepthClearFS = R"glsl(
-    #version 300 es
+    #version 320 es
     precision mediump float;
     out vec4 fragColor;
     void main() {
@@ -108,6 +108,7 @@ void DrawDepthClearTri() {
     GLES.glColorMask(prevColorMask[0], prevColorMask[1], prevColorMask[2], prevColorMask[3]);
 }
 
+/*
 void glClear(GLbitfield mask) {
     LOG();
     LOG_D("glClear, mask = 0x%x", mask);
@@ -126,6 +127,7 @@ void glClear(GLbitfield mask) {
 
     CHECK_GL_ERROR;
 }
+*/
 
 void glHint(GLenum target, GLenum mode) {
     LOG()
