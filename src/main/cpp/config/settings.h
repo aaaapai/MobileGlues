@@ -22,6 +22,7 @@ extern "C" {
         PreferMultidrawIndirect,
         DrawElements,
         Compute,
+        DeepSeekOne,
         MaxValue
     };
 
