@@ -6,10 +6,6 @@
 #define FOLD_CRAFT_LAUNCHER_EGL_LOADER_H
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "egl.h"
 
 
@@ -185,9 +181,5 @@ void destroy_temp_egl_ctx();
 }
 #endif
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //FOLD_CRAFT_LAUNCHER_EGL_LOADER_H
