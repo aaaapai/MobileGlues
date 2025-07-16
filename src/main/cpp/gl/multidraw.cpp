@@ -832,3 +832,34 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
         }
     }
 }
+
+void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex)
+{
+    if (primcount <= 0 || !counts || !indices || !basevertex) return;
+
+    // 合并连续绘制调用（减少 API 开销）
+    GLint currentBase = basevertex[0];
+    const void *currentIndices = indices[0];
+    GLsizei totalCount = 0;
+
+    for (GLsizei i = 0; i < primcount; ++i) {
+        if (counts[i] <= 0) continue;
+
+        // 如果 basevertex 或 indices 不连续，提交当前批次
+        if (basevertex[i] != currentBase || 
+            (const uint8_t *)indices[i] != (const uint8_t *)currentIndices + totalCount * GetTypeSize(type)) {
+            if (totalCount > 0) {
+                glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
+            }
+            currentBase = basevertex[i];
+            currentIndices = indices[i];
+            totalCount = 0;
+        }
+        totalCount += counts[i];
+    }
+
+    // 提交剩余批次
+    if (totalCount > 0) {
+        glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
+    }
+}
