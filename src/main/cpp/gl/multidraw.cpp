@@ -630,6 +630,17 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 }
 
 
+#define ASSERT(cond) assert(cond)
+// 获取类型大小的辅助函数
+static inline size_t GetTypeSize(GLenum type) {
+    switch(type) {
+        case GL_UNSIGNED_BYTE:  return sizeof(GLubyte);
+        case GL_UNSIGNED_SHORT: return sizeof(GLushort);
+        case GL_UNSIGNED_INT:   return sizeof(GLuint);
+        default:                return 0;
+    }
+}
+
 void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* count,
                                        GLenum type, const void* const* indices,
                                        GLsizei primcount) {
