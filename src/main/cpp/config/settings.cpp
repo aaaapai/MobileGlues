@@ -162,6 +162,7 @@ void init_settings() {
         case multidraw_mode_t::PreferMultidrawIndirect: draw_mode_str = "Multidraw indirect"; break;
         case multidraw_mode_t::DrawElements: draw_mode_str = "DrawElements"; break;
         case multidraw_mode_t::Compute: draw_mode_str = "Compute"; break;
+	case multidraw_mode_t::DeepSeekOne: draw_mode_str = "DeepSeek的方案1"; break;
         case multidraw_mode_t::Auto: draw_mode_str = "Auto"; break;
         default:
             draw_mode_str = "(Unknown)";
@@ -207,7 +208,10 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
+	    }
             break;
         case multidraw_mode_t::PreferBaseVertex:
             LOG_V("multidrawMode = PreferBaseVertex")
@@ -223,6 +227,9 @@ void init_settings_post() {
             } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
             }
             break;
         case multidraw_mode_t::DrawElements:
