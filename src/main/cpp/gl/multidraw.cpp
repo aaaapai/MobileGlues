@@ -5,6 +5,9 @@
 #include "multidraw.h"
 #include "../config/settings.h"
 #include <vector>
+#include <algorithm>
+#include <mutex>
+#include <cmath>
 
 #define DEBUG 0
 
@@ -622,4 +625,177 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     // Restore states
     GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     CHECK_GL_ERROR_NO_INIT
+}
+
+
+namespace {
+    constexpr size_t ANDROID_MAX_BATCH_DRAWS = 16;      // 安卓设备适合小批次
+    constexpr size_t ANDROID_MAX_BATCH_INDICES = 32768; // 减少内存压力
+    constexpr GLint ANDROID_MAX_VERTEX_DELTA = 512;     // 保守的基顶点变化阈值
+}
+
+// 线程安全的批处理状态（TLS实现）
+#if defined(__ANDROID__)
+#define TLS __thread
+#else
+#define TLS thread_local
+#endif
+
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type,
+                                   const void* const* indices, GLsizei primcount) {
+    if (primcount <= 0) return;
+
+    // 检查是否可以使用实例化优化
+    bool canInstance = true;
+    size_t indexSize = (type == GL_UNSIGNED_SHORT) ? 2 : 4;
+    size_t expectedOffset = counts[0] * indexSize;
+    
+    for (GLsizei i = 1; i < primcount; ++i) {
+        if (counts[i] != counts[0] || 
+            (const uint8_t*)indices[i] != (const uint8_t*)indices[i-1] + expectedOffset) {
+            canInstance = false;
+            break;
+        }
+    }
+
+    if (canInstance && primcount > 3) {
+        GLES.glDrawElementsInstanced(mode, counts[0], type, indices[0], primcount);
+        return;
+    }
+
+    // 批处理实现
+    struct BatchState {
+        size_t batchStart = 0;
+        size_t totalIndices = 0;
+        GLenum currentMode = 0;
+        GLenum currentType = 0;
+        const void* lastIndices = nullptr;
+    };
+    static TLS BatchState batchState;
+    
+    // 状态变更检查
+    if (mode != batchState.currentMode || type != batchState.currentType) {
+        if (batchState.totalIndices > 0) {
+            // 执行剩余绘制
+            for (GLsizei j = batchState.batchStart; j < primcount; ++j) {
+                if (counts[j] > 0) {
+                    GLES.glDrawElements(batchState.currentMode, counts[j], 
+                                 batchState.currentType, indices[j]);
+                }
+            }
+        }
+        batchState = {0, 0, mode, type, nullptr};
+    }
+
+    // 执行批处理绘制
+    for (GLsizei i = 0; i <= primcount; ++i) {
+        if (i < primcount) {
+            batchState.totalIndices += counts[i];
+        }
+        
+        if (i == primcount || 
+            (i - batchState.batchStart >= ANDROID_MAX_BATCH_DRAWS) || 
+            (batchState.totalIndices >= ANDROID_MAX_BATCH_INDICES) ||
+            (indices[i] != batchState.lastIndices && i > batchState.batchStart)) {
+            // 执行批处理绘制
+            for (GLsizei j = batchState.batchStart; j < i; ++j) {
+                if (counts[j] > 0) {
+                    GLES.glDrawElements(mode, counts[j], type, indices[j]);
+                    batchState.lastIndices = indices[j];
+                }
+            }
+            batchState.batchStart = i;
+            batchState.totalIndices = 0;
+        }
+    }
+}
+
+void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type,
+                                             const void* const* indices, GLsizei primcount,
+                                             const GLint* baseVertices) {
+    if (primcount <= 0) return;
+
+    // 检查是否可以使用实例化优化
+    bool canInstance = true;
+    size_t indexSize = (type == GL_UNSIGNED_SHORT) ? 2 : 4;
+    size_t expectedOffset = counts[0] * indexSize;
+    GLint baseVertex = baseVertices[0];
+    
+    for (GLsizei i = 1; i < primcount; ++i) {
+        if (counts[i] != counts[0] || 
+            (const uint8_t*)indices[i] != (const uint8_t*)indices[i-1] + expectedOffset ||
+            baseVertices[i] != baseVertex) {
+            canInstance = false;
+            break;
+        }
+    }
+
+    if (canInstance && primcount > 3) {
+        GLES.glDrawElementsInstancedBaseVertex(
+            mode, counts[0], type, indices[0], primcount, baseVertex);
+        return;
+    }
+
+    // 批处理实现
+    struct BaseVertexBatchState {
+        size_t batchStart = 0;
+        size_t totalIndices = 0;
+        GLenum currentMode = 0;
+        GLenum currentType = 0;
+        const void* lastIndices = nullptr;
+        GLint lastBaseVertex = 0;
+    };
+    static TLS BaseVertexBatchState batchState;
+    
+    // 状态变更检查
+    if (mode != batchState.currentMode || 
+        type != batchState.currentType ||
+        (batchState.batchStart < primcount && 
+         baseVertices[batchState.batchStart] != batchState.lastBaseVertex)) {
+        if (batchState.totalIndices > 0) {
+            // 执行剩余绘制
+            for (GLsizei j = batchState.batchStart; j < primcount; ++j) {
+                if (counts[j] > 0) {
+                    GLES.glDrawElementsBaseVertex(
+                        batchState.currentMode, counts[j], 
+                        batchState.currentType, indices[j],
+                        batchState.lastBaseVertex);
+                }
+            }
+        }
+        batchState = {0, 0, mode, type, nullptr, 
+                     primcount > 0 ? baseVertices[0] : 0};
+    }
+
+    // 执行批处理绘制
+    for (GLsizei i = 0; i <= primcount; ++i) {
+        if (i < primcount) {
+            batchState.totalIndices += counts[i];
+            
+            // 检查基顶点变化是否过大
+            if (i > batchState.batchStart && 
+                abs(baseVertices[i] - baseVertices[i-1]) > ANDROID_MAX_VERTEX_DELTA) {
+                // 强制中断当前批次
+                i--; // 回退一步，这个draw将在下个批次处理
+                batchState.totalIndices -= counts[i];
+            }
+        }
+        
+        if (i == primcount || 
+            (i - batchState.batchStart >= ANDROID_MAX_BATCH_DRAWS) || 
+            (batchState.totalIndices >= ANDROID_MAX_BATCH_INDICES) ||
+            (indices[i] != batchState.lastIndices && i > batchState.batchStart)) {
+            // 执行批处理绘制
+            for (GLsizei j = batchState.batchStart; j < i; ++j) {
+                if (counts[j] > 0) {
+                    GLES.glDrawElementsBaseVertex(
+                        mode, counts[j], type, indices[j], baseVertices[j]);
+                    batchState.lastIndices = indices[j];
+                    batchState.lastBaseVertex = baseVertices[j];
+                }
+            }
+            batchState.batchStart = i;
+            batchState.totalIndices = 0;
+        }
+    }
 }
