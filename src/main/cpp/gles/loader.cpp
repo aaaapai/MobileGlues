@@ -216,6 +216,7 @@ void init_target_gles() {
     init_gl_state();
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
+    INIT_GLES_FUNC(glQueryCounterEXT)
     INIT_GLES_FUNC(glActiveTexture)
     INIT_GLES_FUNC(glAttachShader)
     INIT_GLES_FUNC(glBindAttribLocation)
