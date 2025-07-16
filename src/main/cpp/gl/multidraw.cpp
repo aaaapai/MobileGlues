@@ -716,9 +716,7 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* counts, GLe
 extern "C" {
 #endif
 
-void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type,
-                                             const void* const* indices, GLsizei primcount,
-                                             const GLint* basevertex) {
+void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     if (primcount <= 0) return;
 
     // 检查是否可以使用实例化优化
