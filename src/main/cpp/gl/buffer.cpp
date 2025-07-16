@@ -400,6 +400,15 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #define BIN_FILE_PREFIX "/sdcard/MG/buf/"
 #endif
 
+
+void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    LOG()
+    if (global_settings.buffer_coherent_as_flush)
+        access &= ~GL_MAP_FLUSH_EXPLICIT_BIT;
+//    access |= GL_MAP_UNSYNCHRONIZED_BIT;
+    return GLES.glMapBufferRange(target, offset, length, access);
+}
+
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
     LOG_D("%s(%s)", __func__, glEnumToString(target));
@@ -437,9 +446,18 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
-    if(GLES.glBufferStorageEXT)
-        GLES.glBufferStorageEXT(target,size,data,flags);
+    if(GLES.glBufferStorageEXT) {
+        if (global_settings.buffer_coherent_as_flush && (flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0)
+            flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
+        GLES.glBufferStorageEXT(target, size, data, flags);
+    }
     CHECK_GL_ERROR
+}
+
+void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) {
+    LOG()
+    if (!global_settings.buffer_coherent_as_flush)
+        GLES.glFlushMappedBufferRange(target, offset, length);
 }
 
 void glGenVertexArrays(GLsizei n, GLuint *arrays) {

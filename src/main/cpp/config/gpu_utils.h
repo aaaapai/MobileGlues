@@ -16,11 +16,15 @@ extern "C" {
 
 int isAdreno(const char *gpu);
 
+int isAdreno730(const char *gpu);
+
 int isAdreno740(const char *gpu);
 
 int isAdreno830(const char *gpu);
 
-int hasVulkan13();
+int hasVulkan12();
+
+bool checkIfANGLESupported(const char* gpu);
 
 #ifdef __cplusplus
 }
