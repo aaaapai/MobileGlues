@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 
+GL_FUNC_TYPEDEF(void, glQueryCounterEXT, GLuint id, GLenum target)
 GL_FUNC_TYPEDEF(void, glActiveTexture, GLenum texture)
 GL_FUNC_TYPEDEF(void, glAttachShader, GLuint program, GLuint shader)
 GL_FUNC_TYPEDEF(void, glBindAttribLocation, GLuint program, GLuint index, const GLchar *name)
@@ -581,6 +582,7 @@ struct gles_func_t {
     GL_FUNC_DECL(glEnableVertexAttribArray)
     GL_FUNC_DECL(glFinish)
     GL_FUNC_DECL(glFlush)
+    GL_FUNC_DECL(glQueryCounterEXT)
     GL_FUNC_DECL(glFramebufferRenderbuffer)
     GL_FUNC_DECL(glFramebufferTexture2D)
     GL_FUNC_DECL(glFrontFace)
