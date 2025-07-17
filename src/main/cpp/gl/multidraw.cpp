@@ -646,7 +646,7 @@ public:
             
             // 处理对齐部分
             for(GLsizei i = 0; i < aligned_n; i += 4) {
-                const int32x4_t vcount = vld1q_s32(&counts[i]);
+                int32x4_t vcount = vld1q_s32(&counts[i]);
                 vcount = vmaxq_s32(vcount, vdupq_n_s32(0));  // 确保count >= 0
                 vst1q_s32(&counts[i], vcount);
             }
