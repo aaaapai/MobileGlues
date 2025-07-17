@@ -540,7 +540,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
 
     // Get buffer size
     GLint size;
-    GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
     if (size <= 0) {
         LOG_E("ERROR: Invalid buffer size: %d", size);
         return;
@@ -622,26 +622,26 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
 
     // Save current binding
     GLint prev_buffer;
-    GLES.glGetIntegerv(get_binding_query(target), &prev_buffer);
+    glGetIntegerv(get_binding_query(target), &prev_buffer);
     
     // Bind our buffer and delegate to glClearBufferData
     GLuint real_buffer = find_real_buffer(buffer);
-    GLES.glBindBuffer(target, real_buffer);
+    glBindBuffer(target, real_buffer);
     glClearBufferData(target, internalformat, format, type, data);
     
     // Restore previous binding
-    GLES.glBindBuffer(target, prev_buffer);
+    glBindBuffer(target, prev_buffer);
     CHECK_GL_ERROR
 }  //DeepSeek
 
-void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
     LOG()
     LOG_W("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat), (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
 
     // Get the currently bound buffer for this target
     GLint current_buffer = 0;
-    GLES.glGetIntegerv(get_binding_query(target), &current_buffer);
+    glGetIntegerv(get_binding_query(target), &current_buffer);
     
     if (current_buffer == 0) {
         // No buffer bound to this target
@@ -657,16 +657,16 @@ void APIENTRY glClearBufferSubData(GLenum target, GLenum internalformat, GLintpt
 
     // Save current buffer binding
     GLint prev_binding = 0;
-    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
     
     // Bind our buffer to COPY_WRITE_BUFFER target
-    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
     
     // Use glBufferSubData to clear the buffer range
-    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
     
     // Restore previous binding
-    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
     
     CHECK_GL_ERROR
 } //DeepSeek
@@ -685,17 +685,17 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr of
 
     // Save current buffer binding
     GLint prev_binding = 0;
-    GLES.glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
     
     // Bind our buffer to COPY_WRITE_BUFFER target (since we can't bind by name directly in GLES)
-    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, real_buffer);
     
     // Use glBufferSubData to clear the buffer range (GLES doesn't have glClearBufferSubData)
     // Note: This isn't exactly the same as clear, but closest we can get in GLES
-    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
     
     // Restore previous binding
-    GLES.glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
     
     CHECK_GL_ERROR
 } //DeepSeek
