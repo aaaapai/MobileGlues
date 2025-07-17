@@ -109,6 +109,8 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
         
         // 如果是 GL_RGBA32F，尝试降级到 GL_RGBA16F
         if (internalFormat == GL_RGBA32F) {
+
+            struct attachment_t* attach;
             // 重新创建 16F 纹理
             GLuint fallbackTex;
             GLES.glGenTextures(1, &fallbackTex);
