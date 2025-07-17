@@ -12,7 +12,7 @@
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 struct shader_t shaderInfo;
 
