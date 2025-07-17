@@ -529,7 +529,7 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
     INIT_CHECK_GL_ERROR
 
     GLint realInternalFormat;
-    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_INTERNAL_FORMAT, &realInternalFormat);
+    glGetTexLevelParameteriv(target, level, GL_TEXTURE_INTERNAL_FORMAT, &realInternalFormat);
     internalFormat = (GLenum)realInternalFormat;
 
     LOG_D("glCopyTexImage2D, target: %d, level: %d, internalFormat: %d, x: %d, y: %d, width: %d, height: %d, border: %d",
@@ -539,7 +539,7 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
         GLenum format = GL_DEPTH_COMPONENT;
         GLenum type = GL_UNSIGNED_INT;
         internal_convert(&internalFormat, &type, &format);
-        GLES.glTexImage2D(target, level, (GLint)internalFormat, width, height, border, format, type, nullptr);
+        glTexImage2D(target, level, (GLint)internalFormat, width, height, border, format, type, nullptr);
         CHECK_GL_ERROR_NO_INIT
         GLint prevDrawFBO;
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
@@ -585,7 +585,7 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
     LOG()
     GLint internalFormat;
-    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+    glGetTexLevelParameteriv(target, level, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
 
     LOG_D("glCopyTexSubImage2D, target: %d, level: %d, ......, internalFormat: %d", target, level, internalFormat)
 
@@ -817,19 +817,19 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
           glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
 
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     GLenum bindingTarget = get_binding_for_target(target);
     if (bindingTarget == 0) return;
     GLint oldTexBinding;
-    GLES.glActiveTexture(GL_TEXTURE0);
-    GLES.glGetIntegerv(bindingTarget, &oldTexBinding);
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(bindingTarget, &oldTexBinding);
     auto texture = static_cast<GLuint>(oldTexBinding);
     if (texture == 0) return;
     GLint width, height;
-    GLES.glBindTexture(target, texture);
-    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_WIDTH, &width);
-    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_HEIGHT, &height);
-    GLES.glBindTexture(target, oldTexBinding);
+    glBindTexture(target, texture);
+    glGetTexLevelParameteriv(target, level, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(target, level, GL_TEXTURE_HEIGHT, &height);
+    glBindTexture(target, oldTexBinding);
     if (width <= 0 || height <= 0) return;
     GLuint fbo;
     glGenFramebuffers(1, &fbo);
@@ -847,7 +847,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
         return;
     }
     GLint oldViewport[4];
-    GLES.glGetIntegerv(GL_VIEWPORT, oldViewport);
+    glGetIntegerv(GL_VIEWPORT, oldViewport);
     GLES.glViewport(0, 0, width, height);
     GLint oldPackAlignment;
     glGetIntegerv(GL_PACK_ALIGNMENT, &oldPackAlignment);
@@ -1131,16 +1131,16 @@ void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
         target = it->second.target;
     }
     
-    GLES.glGetIntegerv(get_binding_for_target(target), &prevTexture);
-    GLES.glBindTexture(target, texture);
+    glGetIntegerv(get_binding_for_target(target), &prevTexture);
+    glBindTexture(target, texture);
     
     if (pname == GL_TEXTURE_SWIZZLE_RGBA) {
         // 特殊处理swizzle参数
         if (param) {
-            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_R, &param[0]);
-            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_G, &param[1]);
-            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_B, &param[2]);
-            GLES.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_A, &param[3]);
+            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_R, &param[0]);
+            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_G, &param[1]);
+            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_B, &param[2]);
+            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_A, &param[3]);
             
             // 更新纹理状态
             g_textures[texture].swizzle_param[0] = param[0];
@@ -1149,10 +1149,10 @@ void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
             g_textures[texture].swizzle_param[3] = param[3];
         }
     } else {
-        GLES.glTexParameteriv(target, pname, param);
+        glTexParameteriv(target, pname, param);
     }
     
-    GLES.glBindTexture(target, prevTexture);
+    glBindTexture(target, prevTexture);
     CHECK_GL_ERROR
 } //DeepSeek
 
@@ -1172,14 +1172,14 @@ void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
         target = it->second.target;
     }
     
-    GLES.glGetIntegerv(get_binding_for_target(target), &prevTexture);
-    GLES.glBindTexture(target, texture);
+    glGetIntegerv(get_binding_for_target(target), &prevTexture);
+    glBindTexture(target, texture);
     
     // 直接使用GLES的拷贝函数
     GLES.glCopyTexSubImage2D(target, level, xoffset, yoffset, 
                             x, y, width, height);
     
-    GLES.glBindTexture(target, prevTexture);
+    glBindTexture(target, prevTexture);
     CHECK_GL_ERROR
 } //DeepSeek
 
@@ -1240,7 +1240,7 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
 
     // 保存当前活跃纹理单元
     GLint prevActiveUnit;
-    GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveUnit);
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveUnit);
     prevActiveUnit -= GL_TEXTURE0; // 转换为索引值
 
     // 绑定采样器
