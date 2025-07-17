@@ -141,6 +141,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);       \
 }
 
+#undef GL_EXT_texture_lod_bias
 struct gles_caps_t {
     int maxtex;
     int major;
@@ -162,6 +163,7 @@ struct gles_caps_t {
     int GL_EXT_texture_rg;
     int GL_EXT_texture_query_lod;
 };
+#define GL_EXT_texture_lod_bias 1
 
 extern struct gles_caps_t g_gles_caps;
 
