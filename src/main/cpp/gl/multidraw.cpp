@@ -669,7 +669,7 @@ private:
     NeonDrawOptimizer() = delete;
 };
 
-void glMultiDrawElements(GLenum mode, GLint* count, GLenum type, 
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLint* count, GLenum type, 
                        const GLvoid** indices, GLsizei primcount) {
     if(primcount <= 0) return;
 
