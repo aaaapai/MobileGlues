@@ -735,7 +735,7 @@ void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type,
 
 } // 匿名命名空间
 
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
+extern "C" void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
                                  const void* const* indices, GLsizei primcount, 
                                  const GLint* basevertex) {
     if (primcount <= 0) return;
