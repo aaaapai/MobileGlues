@@ -280,7 +280,13 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
     LOG_D("glTexParameteri, pname: 0x%x", pname)
 
     if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
-        LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
+
+	if (g_gles_caps.GL_EXT_texture_lod_bias) {
+           // 回退到标准 LOD_BIAS（ES 3.0+ 或 EXT 扩展）
+           GLES.glTexParameteri(target, GL_TEXTURE_LOD_BIAS, param);
+        } else {
+           LOG_W("Does not support GL_QCOM_texture_lod_bias!")
+	}
         return;
     }
 
