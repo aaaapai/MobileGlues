@@ -630,72 +630,93 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 }
 
 
-// NEON优化版配置
 namespace {
-    constexpr GLsizei NEON_ALIGNMENT = 16;  // NEON内存对齐要求
-    constexpr GLsizei MIN_NEON_SIZE = 8;    // 使用NEON的最小数据量
+// Thread-local storage for batching data
+thread_local struct {
+    std::vector<GLint> counts;
+    std::vector<const GLvoid*> indices;
+    GLenum current_mode;
+    GLenum current_type;
+} drawBatch;
+
+// Helper function to flush batched draws
+void flushDrawBatch() {
+    if (drawBatch.counts.empty()) return;
+    
+    // Use NEON optimized memory access if available
+    const size_t batchSize = drawBatch.counts.size();
+    
+    // Process in chunks of 4 for NEON optimization
+    size_t i = 0;
+    for (; i + 3 < batchSize; i += 4) {
+        // NEON optimized pointer arithmetic
+        int32x4_t countVec = vld1q_s32(&drawBatch.counts[i]);
+        const GLvoid* indicesArray[4] = {
+            drawBatch.indices[i],
+            drawBatch.indices[i+1],
+            drawBatch.indices[i+2],
+            drawBatch.indices[i+3]
+        };
+        
+        // Perform the draws
+        for (int j = 0; j < 4; j++) {
+            GLES.glDrawElements(drawBatch.current_mode, 
+                              vgetq_lane_s32(countVec, j), 
+                              drawBatch.current_type, 
+                              indicesArray[j]);
+        }
+    }
+    
+    // Process remaining elements
+    for (; i < batchSize; ++i) {
+        GLES.glDrawElements(drawBatch.current_mode, 
+                          drawBatch.counts[i], 
+                          drawBatch.current_type, 
+                          drawBatch.indices[i]);
+    }
+    
+    // Clear the batch
+    drawBatch.counts.clear();
+    drawBatch.indices.clear();
 }
 
-class NeonDrawOptimizer {
-public:
-    static void OptimizeDrawCounts(GLint* counts, GLsizei n) {
-#ifdef __ARM_NEON
-        if(n >= MIN_NEON_SIZE) {
-            // NEON向量化处理
-            GLsizei aligned_n = n & ~0x3;  // 向下对齐到4的倍数
-            
-            // 处理对齐部分
-            for(GLsizei i = 0; i < aligned_n; i += 4) {
-                int32x4_t vcount = vld1q_s32(&counts[i]);
-                vcount = vmaxq_s32(vcount, vdupq_n_s32(0));  // 确保count >= 0
-                vst1q_s32(&counts[i], vcount);
-            }
-            
-            // 处理剩余元素
-            for(GLsizei i = aligned_n; i < n; ++i) {
-                counts[i] = counts[i] > 0 ? counts[i] : 0;
-            }
-            return;
-        }
-#endif
-        // 回退到标量处理
-        for(GLsizei i = 0; i < n; ++i) {
-            counts[i] = counts[i] > 0 ? counts[i] : 0;
+} // anonymous namespace
+
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint *count, GLenum type, 
+                        const GLvoid *const *indices, GLsizei primcount) {
+    // Early out if nothing to draw
+    if (primcount <= 0) return;
+    
+    // Check if we can batch with previous draws
+    if (!drawBatch.counts.empty() && 
+        (mode != drawBatch.current_mode || type != drawBatch.current_type)) {
+        flushDrawBatch();
+    }
+    
+    // Set current mode/type if batch is empty
+    if (drawBatch.counts.empty()) {
+        drawBatch.current_mode = mode;
+        drawBatch.current_type = type;
+    }
+    
+    // Reserve space to avoid frequent reallocations
+    drawBatch.counts.reserve(drawBatch.counts.size() + primcount);
+    drawBatch.indices.reserve(drawBatch.indices.size() + primcount);
+    
+    // Batch the draw commands
+    for (GLsizei i = 0; i < primcount; ++i) {
+        if (count[i] > 0) {  // Only add valid draws
+            drawBatch.counts.push_back(count[i]);
+            drawBatch.indices.push_back(indices[i]);
         }
     }
-
-private:
-    // 私有化构造函数防止实例化
-    NeonDrawOptimizer() = delete;
-};
-
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint* count, GLenum type, 
-                       const void *const *indices, GLsizei primcount) {
-
-    LOG()
-    // 阶段1：使用NEON优化count数组处理
-    NeonDrawOptimizer::OptimizeDrawCounts(count, primcount);
-
-    // 阶段2：分批提交绘制命令
-    GLsizei batch_size = 16;  // 经验值，可根据设备调整
-    for(GLsizei i = 0; i < primcount; i += batch_size) {
-    GLsizei current_batch = (batch_size < (primcount - i)) ? batch_size : (primcount - i);
-
-        for(GLsizei j = 0; j < current_batch; ++j) {
-            if(count[i+j] > 0) {
-                GLES.glDrawElements(mode, count[i+j], type, indices[i+j]);
-            }
-        }
-        
-        // 轻量同步
-        if((i / batch_size) % 4 == 0) {
-            GLsync sync = GLES.glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-            if(sync) {
-                GLES.glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000);
-                GLES.glDeleteSync(sync);
-            }
-        }
+    
+    // For very large batches, flush periodically to avoid memory issues
+    if (drawBatch.counts.size() > 256) {
+        flushDrawBatch();
     }
+    
+    // Note: Actual flush happens on mode/type change or explicit flush call
 }
 
 
