@@ -56,8 +56,8 @@ static const char *egl_lib[] = {
         nullptr
 };
 
-const char *GLES_ANGLE = "libvgpu.so";
-const char *EGL_ANGLE = "libvgpu.so";
+const char *GLES_ANGLE = "libGLESv2_angle.so";
+const char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
