@@ -662,7 +662,7 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei *count,
         }
     }
     
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR
 }
 
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, 
