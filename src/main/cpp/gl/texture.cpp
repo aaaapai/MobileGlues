@@ -1275,7 +1275,6 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
     CHECK_GL_ERROR;
 } //DeepSeek
 
-/*
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, 
                         GLsizei width, GLsizei height, GLenum format, 
                         GLenum type, const void *pixels) {
@@ -1293,4 +1292,3 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
     // 恢复之前绑定的纹理
     GLES.glBindTexture(GL_TEXTURE_2D, (GLuint)prevTexture);
 }
-*/
