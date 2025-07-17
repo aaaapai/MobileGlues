@@ -11,7 +11,7 @@
 #include <iostream>
 #include "../config/settings.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
     std::string shaderCode(esslSource);
@@ -91,10 +91,10 @@ void glLinkProgram(GLuint program) {
 
     LOG_D("glLinkProgram(%d)", program)
     if (!shaderInfo.converted.empty() && shaderInfo.frag_data_changed) {
-        GLES.glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
+        glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
         GLES.glCompileShader(shaderInfo.id);
         GLint status = 0;
-        GLES.glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
+        glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
         if(status!=GL_TRUE) {
             char tmp[500];
             GLES.glGetShaderInfoLog(shaderInfo.id, 500, nullptr, tmp);
