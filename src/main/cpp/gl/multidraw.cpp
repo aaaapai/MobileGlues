@@ -669,8 +669,8 @@ private:
     NeonDrawOptimizer() = delete;
 };
 
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLint* count, GLenum type, 
-                       const GLvoid** indices, GLsizei primcount) {
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint* count, GLenum type, 
+                       const void *const *indices, GLsizei primcount) {
 
     LOG()
     // 阶段1：使用NEON优化count数组处理
@@ -734,8 +734,7 @@ void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type,
 }
 
 } // 匿名命名空间
-
-extern "C" void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
+void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
                                  const void* const* indices, GLsizei primcount, 
                                  const GLint* basevertex) {
     if (primcount <= 0) return;
