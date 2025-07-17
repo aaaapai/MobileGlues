@@ -188,7 +188,7 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
     
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     glDrawBuffer(buf);
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
     
     CHECK_GL_ERROR
 }
@@ -197,11 +197,11 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
     LOG()
     
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     glDrawBuffers(n, bufs);
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
     
     CHECK_GL_ERROR
 }
@@ -210,11 +210,11 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     LOG()
     
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
+    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
     
     CHECK_GL_ERROR
 }
@@ -223,11 +223,11 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
     LOG()
     
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    GLES.glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, level, layer);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, level, layer);
+    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
     
     CHECK_GL_ERROR
 }
@@ -236,11 +236,11 @@ void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
     LOG()
     
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
-    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
     glReadBuffer(src);
-    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, prevFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prevFBO);
     
     CHECK_GL_ERROR
 }
@@ -253,12 +253,12 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
     
     // 保存当前绑定的帧缓冲
     GLint prevReadFBO, prevDrawFBO;
-    GLES.glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFBO);
-    GLES.glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFBO);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
     
     // 绑定指定的帧缓冲
-    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFramebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFramebuffer);
     
     // 执行实际的像素复制操作
     GLES.glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
@@ -266,8 +266,8 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
                           mask, filter);
     
     // 恢复之前绑定的帧缓冲
-    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
     
     CHECK_GL_ERROR
 } //DeepSeek
