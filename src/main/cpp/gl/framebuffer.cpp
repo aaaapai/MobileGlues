@@ -97,10 +97,11 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
-        // 检查是否失败（例如 GL_RGBA32F 不支持）
+/*
+    // 检查是否失败（例如 GL_RGBA32F 不支持）
     GLenum error = GLES.glGetError();
     if (error == GL_INVALID_OPERATION) {
-        LOG_W("Falling back to GL_RGBA16F due to GL_RGBA32F not supported");
+        LOG_D("Falling back to GL_RGBA16F due to GL_RGBA32F not supported");
 
         // 获取当前纹理格式（假设可以查询）
         GLint internalFormat;
@@ -143,6 +144,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
             }
         }
     } //DeepSeek
+*/
 
     CHECK_GL_ERROR
 }
