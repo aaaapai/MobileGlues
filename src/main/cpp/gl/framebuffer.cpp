@@ -14,7 +14,7 @@ GLint MAX_DRAW_BUFFERS = 0;
 
 GLint getMaxDrawBuffers() {
     if (!MAX_DRAW_BUFFERS) {
-        GLES.glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
     }
     return MAX_DRAW_BUFFERS;
 }
@@ -184,9 +184,9 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
     LOG()
     
     GLint prevFBO;
-    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     glDrawBuffer(buf);
     GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
     
