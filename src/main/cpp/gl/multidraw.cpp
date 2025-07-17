@@ -638,7 +638,7 @@ namespace {
 
 class NeonDrawOptimizer {
 public:
-    static void OptimizeDrawCounts(const GLint* counts, GLsizei n) {
+    static void OptimizeDrawCounts(GLint* counts, GLsizei n) {
 #ifdef __ARM_NEON
         if(n >= MIN_NEON_SIZE) {
             // NEON向量化处理
@@ -679,8 +679,8 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint* count, GLenum
     // 阶段2：分批提交绘制命令
     GLsizei batch_size = 16;  // 经验值，可根据设备调整
     for(GLsizei i = 0; i < primcount; i += batch_size) {
-        GLsizei current_batch = std::min(batch_size, static_cast<size_t>(primcount - i));
-        
+    GLsizei current_batch = (batch_size < (primcount - i)) ? batch_size : (primcount - i);
+
         for(GLsizei j = 0; j < current_batch; ++j) {
             if(count[i+j] > 0) {
                 GLES.glDrawElements(mode, count[i+j], type, indices[i+j]);
