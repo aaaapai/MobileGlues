@@ -631,6 +631,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
 
 namespace {
+
 // Thread-local storage for batching data
 thread_local struct {
     std::vector<GLint> counts;
@@ -643,28 +644,29 @@ thread_local struct {
 void flushDrawBatch() {
     if (drawBatch.counts.empty()) return;
     
-    // Use NEON optimized memory access if available
     const size_t batchSize = drawBatch.counts.size();
     
-    // Process in chunks of 4 for NEON optimization
+    // Process in chunks where we can use NEON for loading
     size_t i = 0;
-    for (; i + 3 < batchSize; i += 4) {
-        // NEON optimized pointer arithmetic
+    for (; i + 4 <= batchSize; i += 4) {
+        // Load 4 counts at once using NEON
         int32x4_t countVec = vld1q_s32(&drawBatch.counts[i]);
-        const GLvoid* indicesArray[4] = {
-            drawBatch.indices[i],
-            drawBatch.indices[i+1],
-            drawBatch.indices[i+2],
-            drawBatch.indices[i+3]
-        };
+        
+        // Extract counts - must use constant indices
+        GLint count0 = vgetq_lane_s32(countVec, 0);
+        GLint count1 = vgetq_lane_s32(countVec, 1);
+        GLint count2 = vgetq_lane_s32(countVec, 2);
+        GLint count3 = vgetq_lane_s32(countVec, 3);
         
         // Perform the draws
-        for (int j = 0; j < 4; j++) {
-            GLES.glDrawElements(drawBatch.current_mode, 
-                              vgetq_lane_s32(countVec, j), 
-                              drawBatch.current_type, 
-                              indicesArray[j]);
-        }
+        GLES.glDrawElements(drawBatch.current_mode, count0, 
+                          drawBatch.current_type, drawBatch.indices[i]);
+        GLES.glDrawElements(drawBatch.current_mode, count1, 
+                          drawBatch.current_type, drawBatch.indices[i+1]);
+        GLES.glDrawElements(drawBatch.current_mode, count2, 
+                          drawBatch.current_type, drawBatch.indices[i+2]);
+        GLES.glDrawElements(drawBatch.current_mode, count3, 
+                          drawBatch.current_type, drawBatch.indices[i+3]);
     }
     
     // Process remaining elements
@@ -699,10 +701,6 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint *count, GLenum
         drawBatch.current_type = type;
     }
     
-    // Reserve space to avoid frequent reallocations
-    drawBatch.counts.reserve(drawBatch.counts.size() + primcount);
-    drawBatch.indices.reserve(drawBatch.indices.size() + primcount);
-    
     // Batch the draw commands
     for (GLsizei i = 0; i < primcount; ++i) {
         if (count[i] > 0) {  // Only add valid draws
@@ -715,10 +713,7 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint *count, GLenum
     if (drawBatch.counts.size() > 256) {
         flushDrawBatch();
     }
-    
-    // Note: Actual flush happens on mode/type change or explicit flush call
 }
-
 
 namespace {
 
