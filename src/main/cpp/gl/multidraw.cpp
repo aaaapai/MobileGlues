@@ -753,6 +753,8 @@ void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type,
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
                                  const void* const* indices, GLsizei primcount, 
                                  const GLint* basevertex) {
+
+    if (primcount <= 0) return;
     
     // 准备GPU友好的数据格式
     prepareGPUBuffers(mode, counts, type, indices, primcount, basevertex);
