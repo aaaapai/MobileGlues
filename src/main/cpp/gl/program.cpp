@@ -11,7 +11,7 @@
 #include <iostream>
 #include "../config/settings.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
     std::string shaderCode(esslSource);
