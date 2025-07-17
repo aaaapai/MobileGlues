@@ -152,12 +152,12 @@ static struct {
 
 // 内部着色器创建函数
 static GLuint createShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
+    GLuint shader = GLES.glCreateShader(type);
+    GLES.glShaderSource(shader, 1, &source, NULL);
+    GLES.glCompileShader(shader);
     
     GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    GLES.glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
@@ -168,24 +168,24 @@ static GLuint createShader(GLenum type, const char* source) {
 
 // 内部程序创建函数
 static GLuint createProgram(const char* vsSource, const char* fsSource) {
-    GLuint program = glCreateProgram();
+    GLuint program = GLES.glCreateProgram();
     GLuint vs = createShader(GL_VERTEX_SHADER, vsSource);
     GLuint fs = createShader(GL_FRAGMENT_SHADER, fsSource);
     
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
+    GLES.glAttachShader(program, vs);
+    GLES.glAttachShader(program, fs);
+    GLES.glLinkProgram(program);
     
     GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    GLES.glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, NULL, infoLog);
         LOG_E("Program linking failed: %s", infoLog);
     }
     
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLES.glDeleteShader(vs);
+    GLES.glDeleteShader(fs);
     return program;
 }
 
