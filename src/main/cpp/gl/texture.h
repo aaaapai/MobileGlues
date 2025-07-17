@@ -60,7 +60,7 @@ GLAPI GLAPIENTRY void glCopyTextureSubImage2D (GLuint texture, GLint level, GLin
 GLAPI GLAPIENTRY void glCopyTextureSubImage3D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
 GLAPI GLAPIENTRY void glTextureParameteriv (GLuint texture, GLenum pname, const GLint *param);
 
-GLAPI GLAPIENTRY void glTextureSubImage2D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+//GLAPI GLAPIENTRY void glTextureSubImage2D (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
 #ifdef __cplusplus
 }
 #endif
