@@ -632,34 +632,34 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
 // NEON优化版配置
 namespace {
-    constexpr size_t NEON_ALIGNMENT = 16;  // NEON内存对齐要求
-    constexpr size_t MIN_NEON_SIZE = 8;    // 使用NEON的最小数据量
+    constexpr GLsizei NEON_ALIGNMENT = 16;  // NEON内存对齐要求
+    constexpr GLsizei MIN_NEON_SIZE = 8;    // 使用NEON的最小数据量
 }
 
 class NeonDrawOptimizer {
 public:
-    static void OptimizeDrawCounts(int32_t* counts, size_t n) {
+    static void OptimizeDrawCounts(const GLint* counts, GLsizei n) {
 #ifdef __ARM_NEON
         if(n >= MIN_NEON_SIZE) {
             // NEON向量化处理
-            size_t aligned_n = n & ~0x3;  // 向下对齐到4的倍数
+            GLsizei aligned_n = n & ~0x3;  // 向下对齐到4的倍数
             
             // 处理对齐部分
-            for(size_t i = 0; i < aligned_n; i += 4) {
-                int32x4_t vcount = vld1q_s32(&counts[i]);
+            for(GLsizei i = 0; i < aligned_n; i += 4) {
+                const int32x4_t vcount = vld1q_s32(&counts[i]);
                 vcount = vmaxq_s32(vcount, vdupq_n_s32(0));  // 确保count >= 0
                 vst1q_s32(&counts[i], vcount);
             }
             
             // 处理剩余元素
-            for(size_t i = aligned_n; i < n; ++i) {
+            for(GLsizei i = aligned_n; i < n; ++i) {
                 counts[i] = counts[i] > 0 ? counts[i] : 0;
             }
             return;
         }
 #endif
         // 回退到标量处理
-        for(size_t i = 0; i < n; ++i) {
+        for(GLsizei i = 0; i < n; ++i) {
             counts[i] = counts[i] > 0 ? counts[i] : 0;
         }
     }
@@ -677,11 +677,11 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint* count, GLenum
     NeonDrawOptimizer::OptimizeDrawCounts(count, primcount);
 
     // 阶段2：分批提交绘制命令
-    size_t batch_size = 16;  // 经验值，可根据设备调整
-    for(size_t i = 0; i < primcount; i += batch_size) {
-        size_t current_batch = std::min(batch_size, static_cast<size_t>(primcount - i));
+    GLsizei batch_size = 16;  // 经验值，可根据设备调整
+    for(GLsizei i = 0; i < primcount; i += batch_size) {
+        GLsizei current_batch = std::min(batch_size, static_cast<size_t>(primcount - i));
         
-        for(size_t j = 0; j < current_batch; ++j) {
+        for(GLsizei j = 0; j < current_batch; ++j) {
             if(count[i+j] > 0) {
                 GLES.glDrawElements(mode, count[i+j], type, indices[i+j]);
             }
@@ -717,7 +717,7 @@ void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type,
     
     // 使用NEON指令加速数据处理（如果适用）
     if (primcount >= 4) {
-        size_t i = 0;
+        GLsizei i = 0;
         for (; i <= primcount - 4; i += 4) {
             int32x4_t counts_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&counts[i]));
             int32x4_t base_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&basevertex[i]));
@@ -737,7 +737,6 @@ void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type,
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
                                  const void* const* indices, GLsizei primcount, 
                                  const GLint* basevertex) {
-    if (primcount <= 0) return;
     
     // 准备GPU友好的数据格式
     prepareGPUBuffers(mode, counts, type, indices, primcount, basevertex);
