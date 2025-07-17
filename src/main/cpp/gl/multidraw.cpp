@@ -630,121 +630,72 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 }
 
 
-#define ASSERT(cond) assert(cond)
-// 获取类型大小的辅助函数
-static inline size_t GetTypeSize(GLenum type) {
-    switch(type) {
-        case GL_UNSIGNED_BYTE:  return sizeof(GLubyte);
-        case GL_UNSIGNED_SHORT: return sizeof(GLushort);
-        case GL_UNSIGNED_INT:   return sizeof(GLuint);
-        default:                return 0;
-    }
+// NEON优化版配置
+namespace {
+    constexpr size_t NEON_ALIGNMENT = 16;  // NEON内存对齐要求
+    constexpr size_t MIN_NEON_SIZE = 8;    // 使用NEON的最小数据量
 }
 
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei* count,
-                                       GLenum type, const void* const* indices,
-                                       GLsizei primcount) {
-    LOG();
-
-    // ARM64优化：确保指针对齐
-    ASSERT(((uintptr_t)count % 16) == 0 && "count array not aligned");
-    ASSERT(((uintptr_t)indices % 16) == 0 && "indices array not aligned");
-
-    // 使用thread_local缓存避免重复分配
-    static thread_local struct {
-        uint32_t validMask[4];  // 128位掩码，用于NEON处理
-        GLsizei validCounts[16];
-        const void* validIndices[16];
-        int batchSize = 0;
-    } cache;
-
-    // 空绘制快速返回
-    if (primcount <= 0) return;
-
-    // 小批量处理(完全展开)
-    if (primcount <= 16) {
-        // ARM64优化：使用NEON指令批量检查count>0
-        uint32_t* maskPtr = cache.validMask;
-        const GLsizei* countPtr = count;
-        
-        // 每4个count一组处理
-        for (int i = 0; i < primcount; i += 4) {
-            int remain = primcount - i;
-            if (remain >= 4) {
-                // 加载4个count到NEON寄存器
-                int32x4_t vcount = vld1q_s32(countPtr);
-                // 比较大于0
-                uint32x4_t vmask = vcgtq_s32(vcount, vdupq_n_s32(0));
-                // 存储掩码
-                vst1q_u32(maskPtr, vmask);
-                countPtr += 4;
-                maskPtr += 4;
-            } else {
-                // 处理剩余不足4个
-                for (int j = 0; j < remain; j++) {
-                    cache.validMask[i+j] = (countPtr[j] > 0) ? 0xFFFFFFFF : 0;
-                }
-                break;
-            }
-        }
-
-        // 根据掩码执行绘制
-        for (int i = 0; i < primcount; i++) {
-            if (cache.validMask[i]) {
-                GLES.glDrawElements(mode, count[i], type, indices[i]);
-            }
-        }
-        CHECK_GL_ERROR;
-        return;
-    }
-
-    // 大批量处理
-    cache.batchSize = 0;
-    const int kMaxBatch = 16;
-    
-    // ARM64优化：预取内存
-    __builtin_prefetch(count, 0, 3);
-    __builtin_prefetch(indices, 0, 3);
-
-    for (GLsizei i = 0; i < primcount; i++) {
-        if (count[i] > 0) {
-            cache.validCounts[cache.batchSize] = count[i];
-            cache.validIndices[cache.batchSize] = indices[i];
-            cache.batchSize++;
+class NeonDrawOptimizer {
+public:
+    static void OptimizeDrawCounts(int32_t* counts, size_t n) {
+#ifdef __ARM_NEON
+        if(n >= MIN_NEON_SIZE) {
+            // NEON向量化处理
+            size_t aligned_n = n & ~0x3;  // 向下对齐到4的倍数
             
-            // 批次已满，立即提交
-            if (cache.batchSize == kMaxBatch) {
-                // 完全展开的批次提交
-                GLES.glDrawElements(mode, cache.validCounts[0], type, cache.validIndices[0]);
-                GLES.glDrawElements(mode, cache.validCounts[1], type, cache.validIndices[1]);
-                GLES.glDrawElements(mode, cache.validCounts[2], type, cache.validIndices[2]);
-                GLES.glDrawElements(mode, cache.validCounts[3], type, cache.validIndices[3]);
-                GLES.glDrawElements(mode, cache.validCounts[4], type, cache.validIndices[4]);
-                GLES.glDrawElements(mode, cache.validCounts[5], type, cache.validIndices[5]);
-                GLES.glDrawElements(mode, cache.validCounts[6], type, cache.validIndices[6]);
-                GLES.glDrawElements(mode, cache.validCounts[7], type, cache.validIndices[7]);
-                GLES.glDrawElements(mode, cache.validCounts[8], type, cache.validIndices[8]);
-                GLES.glDrawElements(mode, cache.validCounts[9], type, cache.validIndices[9]);
-                GLES.glDrawElements(mode, cache.validCounts[10], type, cache.validIndices[10]);
-                GLES.glDrawElements(mode, cache.validCounts[11], type, cache.validIndices[11]);
-                GLES.glDrawElements(mode, cache.validCounts[12], type, cache.validIndices[12]);
-                GLES.glDrawElements(mode, cache.validCounts[13], type, cache.validIndices[13]);
-                GLES.glDrawElements(mode, cache.validCounts[14], type, cache.validIndices[14]);
-                GLES.glDrawElements(mode, cache.validCounts[15], type, cache.validIndices[15]);
-                
-                cache.batchSize = 0;
+            // 处理对齐部分
+            for(size_t i = 0; i < aligned_n; i += 4) {
+                int32x4_t vcount = vld1q_s32(&counts[i]);
+                vcount = vmaxq_s32(vcount, vdupq_n_s32(0));  // 确保count >= 0
+                vst1q_s32(&counts[i], vcount);
+            }
+            
+            // 处理剩余元素
+            for(size_t i = aligned_n; i < n; ++i) {
+                counts[i] = counts[i] > 0 ? counts[i] : 0;
+            }
+            return;
+        }
+#endif
+        // 回退到标量处理
+        for(size_t i = 0; i < n; ++i) {
+            counts[i] = counts[i] > 0 ? counts[i] : 0;
+        }
+    }
+
+private:
+    // 私有化构造函数防止实例化
+    NeonDrawOptimizer() = delete;
+};
+
+void glMultiDrawElements(GLenum mode, GLint* count, GLenum type, 
+                       const GLvoid** indices, GLsizei primcount) {
+    if(primcount <= 0) return;
+
+    // 阶段1：使用NEON优化count数组处理
+    NeonDrawOptimizer::OptimizeDrawCounts(count, primcount);
+
+    // 阶段2：分批提交绘制命令
+    size_t batch_size = 16;  // 经验值，可根据设备调整
+    for(size_t i = 0; i < primcount; i += batch_size) {
+        size_t current_batch = std::min(batch_size, static_cast<size_t>(primcount - i));
+        
+        for(size_t j = 0; j < current_batch; ++j) {
+            if(count[i+j] > 0) {
+                GLES.glDrawElements(mode, count[i+j], type, indices[i+j]);
+            }
+        }
+        
+        // 轻量同步
+        if((i / batch_size) % 4 == 0) {
+            GLsync sync = GLES.glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+            if(sync) {
+                GLES.glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000);
+                GLES.glDeleteSync(sync);
             }
         }
     }
-
-    // 提交剩余批次
-    if (cache.batchSize > 0) {
-        for (int i = 0; i < cache.batchSize; i++) {
-            GLES.glDrawElements(mode, cache.validCounts[i], type, cache.validIndices[i]);
-        }
-    }
-
-    CHECK_GL_ERROR;
 }
 
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex)
