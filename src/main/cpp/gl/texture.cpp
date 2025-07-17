@@ -1274,3 +1274,21 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
 
     CHECK_GL_ERROR;
 } //DeepSeek
+
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, 
+                        GLsizei width, GLsizei height, GLenum format, 
+                        GLenum type, const void *pixels) {
+    // 保存当前绑定的纹理以便后续恢复
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    
+    // 绑定目标纹理
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    
+    // 调用实际的纹理更新函数
+    GLES.glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, 
+                   width, height, format, type, pixels);
+    
+    // 恢复之前绑定的纹理
+    GLES.glBindTexture(GL_TEXTURE_2D, (GLuint)prevTexture);
+}
