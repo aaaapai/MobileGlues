@@ -671,8 +671,8 @@ private:
 
 void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLint* count, GLenum type, 
                        const GLvoid** indices, GLsizei primcount) {
-    if(primcount <= 0) return;
 
+    LOG()
     // 阶段1：使用NEON优化count数组处理
     NeonDrawOptimizer::OptimizeDrawCounts(count, primcount);
 
@@ -698,33 +698,70 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, GLint* count, GLenum type,
     }
 }
 
-void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex)
-{
-    if (primcount <= 0 || !counts || !indices || !basevertex) return;
 
-    // 合并连续绘制调用（减少 API 开销）
-    GLint currentBase = basevertex[0];
-    const void *currentIndices = indices[0];
-    GLsizei totalCount = 0;
+namespace {
 
-    for (GLsizei i = 0; i < primcount; ++i) {
-        if (counts[i] <= 0) continue;
+// 线程本地存储，用于多线程优化
+thread_local std::vector<GLsizei> localCounts;
+thread_local std::vector<const void*> localIndices;
+thread_local std::vector<GLint> localBaseVertices;
 
-        // 如果 basevertex 或 indices 不连续，提交当前批次
-        if (basevertex[i] != currentBase || 
-            (const uint8_t *)indices[i] != (const uint8_t *)currentIndices + totalCount * GetTypeSize(type)) {
-            if (totalCount > 0) {
-                GLES.glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
-            }
-            currentBase = basevertex[i];
-            currentIndices = indices[i];
-            totalCount = 0;
+// 辅助函数：将数据转换为GPU友好的格式
+void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type, 
+                      const void* const* indices, GLsizei primcount,
+                      const GLint* basevertex) {
+    // 预分配内存以避免多次分配
+    localCounts.assign(counts, counts + primcount);
+    localIndices.assign(indices, indices + primcount);
+    localBaseVertices.assign(basevertex, basevertex + primcount);
+    
+    // 使用NEON指令加速数据处理（如果适用）
+    if (primcount >= 4) {
+        size_t i = 0;
+        for (; i <= primcount - 4; i += 4) {
+            int32x4_t counts_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&counts[i]));
+            int32x4_t base_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&basevertex[i]));
+            vst1q_s32(reinterpret_cast<int32_t*>(&localCounts[i]), counts_vec);
+            vst1q_s32(reinterpret_cast<int32_t*>(&localBaseVertices[i]), base_vec);
         }
-        totalCount += counts[i];
+        
+        // 处理剩余元素
+        for (; i < primcount; ++i) {
+            localCounts[i] = counts[i];
+            localBaseVertices[i] = basevertex[i];
+        }
+    }
+}
+
+} // 匿名命名空间
+
+void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, 
+                                 const void* const* indices, GLsizei primcount, 
+                                 const GLint* basevertex) {
+    if (primcount <= 0) return;
+    
+    // 准备GPU友好的数据格式
+    prepareGPUBuffers(mode, counts, type, indices, primcount, basevertex);
+    
+    // 使用GPU进行渲染 - 这是最耗时的部分
+    // 对于GLES3.1，我们需要将多绘制调用拆分为单个绘制调用
+    // 这里我们使用一个线程来执行所有绘制调用，避免多线程同步开销
+    
+    // 使用一个单独的线程执行绘制，避免阻塞主线程
+    std::thread renderThread([=]() {
+        for (GLsizei i = 0; i < primcount; ++i) {
+            if (localCounts[i] > 0) {
+                GLES.glDrawElementsBaseVertex(mode, localCounts[i], type, 
+                                             localIndices[i], localBaseVertices[i]);
+            }
+        }
+    });
+    
+    // 根据情况决定是否等待渲染完成
+    if (primcount < 8) { // 少量绘制调用时等待完成
+        renderThread.join();
+    } else { // 大量绘制调用时分离线程
+        renderThread.detach();
     }
 
-    // 提交剩余批次
-    if (totalCount > 0) {
-        GLES.glDrawElementsBaseVertex(mode, totalCount, type, currentIndices, currentBase);
-    }
 }
