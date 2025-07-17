@@ -97,6 +97,51 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
+        // 检查是否失败（例如 GL_RGBA32F 不支持）
+    GLenum error = GLES.glGetError();
+    if (error == GL_INVALID_OPERATION) {
+        LOG_W("Falling back to GL_RGBA16F due to GL_RGBA32F not supported");
+
+        // 获取当前纹理格式（假设可以查询）
+        GLint internalFormat;
+        GLES.glBindTexture(textarget, texture);
+        GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+        
+        // 如果是 GL_RGBA32F，尝试降级到 GL_RGBA16F
+        if (internalFormat == GL_RGBA32F) {
+            // 重新创建 16F 纹理
+            GLuint fallbackTex;
+            GLES.glGenTextures(1, &fallbackTex);
+            GLES.glBindTexture(textarget, fallbackTex);
+            
+            // 获取原纹理尺寸
+            GLint width, height;
+            GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_WIDTH, &width);
+            GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_HEIGHT, &height);
+            
+            // 改用 GL_RGBA16F
+            GLES.glTexImage2D(
+                textarget, 0, GL_RGBA16F, width, height, 0,
+                GL_RGBA, GL_FLOAT, nullptr
+            );
+            
+            // 重新绑定降级后的纹理
+            GLES.glFramebufferTexture2D(target, attachment, textarget, fallbackTex, level);
+            
+            // 检查是否成功
+            if (glGetError() == GL_NO_ERROR) {
+                LOG_W("Fallback to GL_RGBA16F succeeded");
+                // 更新绑定的纹理（可选）
+                if (bound_framebuffer && attach) {
+                    attach[attachment - GL_COLOR_ATTACHMENT0].texture = fallbackTex;
+                }
+            } else {
+                LOG_E("Fallback to GL_RGBA16F failed");
+                GLES.glDeleteTextures(1, &fallbackTex);
+            }
+        }
+    } //DeepSeek
+
     CHECK_GL_ERROR
 }
 
