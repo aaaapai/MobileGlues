@@ -629,155 +629,80 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 }
 
-
-namespace {
-
-// Thread-local storage for batching data
-thread_local struct {
-    std::vector<GLint> counts;
-    std::vector<const GLvoid*> indices;
-    GLenum current_mode;
-    GLenum current_type;
-} drawBatch;
-
-// Helper function to flush batched draws
-void flushDrawBatch() {
-    if (drawBatch.counts.empty()) return;
+void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei *count, 
+                                      GLenum type, const void *const *indices, 
+                                      GLsizei primcount) {
+    LOG();
     
-    const size_t batchSize = drawBatch.counts.size();
-    
-    // Process in chunks where we can use NEON for loading
-    size_t i = 0;
-    for (; i + 4 <= batchSize; i += 4) {
-        // Load 4 counts at once using NEON
-        int32x4_t countVec = vld1q_s32(&drawBatch.counts[i]);
+    // Process 4 elements at a time using NEON
+    GLsizei i = 0;
+    for (; i + 3 < primcount; i += 4) {
+        // Load 4 counts at once
+        int32x4_t counts = vld1q_s32(&count[i]);
         
-        // Extract counts - must use constant indices
-        GLint count0 = vgetq_lane_s32(countVec, 0);
-        GLint count1 = vgetq_lane_s32(countVec, 1);
-        GLint count2 = vgetq_lane_s32(countVec, 2);
-        GLint count3 = vgetq_lane_s32(countVec, 3);
+        // Create mask for non-zero counts (0xFFFFFFFF for true, 0 for false)
+        uint32x4_t mask = vcgtq_s32(counts, vdupq_n_s32(0));
         
-        // Perform the draws
-        GLES.glDrawElements(drawBatch.current_mode, count0, 
-                          drawBatch.current_type, drawBatch.indices[i]);
-        GLES.glDrawElements(drawBatch.current_mode, count1, 
-                          drawBatch.current_type, drawBatch.indices[i+1]);
-        GLES.glDrawElements(drawBatch.current_mode, count2, 
-                          drawBatch.current_type, drawBatch.indices[i+2]);
-        GLES.glDrawElements(drawBatch.current_mode, count3, 
-                          drawBatch.current_type, drawBatch.indices[i+3]);
+        // Check if any of the 4 counts are > 0
+        if (vmaxvq_u32(mask) != 0) {
+            // Process each of the 4 elements
+            for (int j = 0; j < 4; j++) {
+                if (count[i + j] > 0) {
+                    GLES.glDrawElements(mode, count[i + j], type, indices[i + j]);
+                }
+            }
+        }
     }
     
     // Process remaining elements
-    for (; i < batchSize; ++i) {
-        GLES.glDrawElements(drawBatch.current_mode, 
-                          drawBatch.counts[i], 
-                          drawBatch.current_type, 
-                          drawBatch.indices[i]);
-    }
-    
-    // Clear the batch
-    drawBatch.counts.clear();
-    drawBatch.indices.clear();
-}
-
-} // anonymous namespace
-
-void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLint *count, GLenum type, 
-                        const GLvoid *const *indices, GLsizei primcount) {
-    // Early out if nothing to draw
-    if (primcount <= 0) return;
-    
-    // Check if we can batch with previous draws
-    if (!drawBatch.counts.empty() && 
-        (mode != drawBatch.current_mode || type != drawBatch.current_type)) {
-        flushDrawBatch();
-    }
-    
-    // Set current mode/type if batch is empty
-    if (drawBatch.counts.empty()) {
-        drawBatch.current_mode = mode;
-        drawBatch.current_type = type;
-    }
-    
-    // Batch the draw commands
-    for (GLsizei i = 0; i < primcount; ++i) {
-        if (count[i] > 0) {  // Only add valid draws
-            drawBatch.counts.push_back(count[i]);
-            drawBatch.indices.push_back(indices[i]);
+    for (; i < primcount; ++i) {
+        const GLsizei c = count[i];
+        if (c > 0) {
+            GLES.glDrawElements(mode, c, type, indices[i]);
         }
     }
     
-    // For very large batches, flush periodically to avoid memory issues
-    if (drawBatch.counts.size() > 256) {
-        flushDrawBatch();
-    }
+    CHECK_GL_ERROR();
 }
 
-namespace {
+void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, 
+                                                GLenum type, const void* const* indices, 
+                                                GLsizei primcount, const GLint* basevertex) {
+    LOG();
 
-// 线程本地存储，用于多线程优化
-thread_local std::vector<GLsizei> localCounts;
-thread_local std::vector<const void*> localIndices;
-thread_local std::vector<GLint> localBaseVertices;
-
-// 辅助函数：将数据转换为GPU友好的格式
-void prepareGPUBuffers(GLenum mode, GLsizei* counts, GLenum type, 
-                      const void* const* indices, GLsizei primcount,
-                      const GLint* basevertex) {
-    // 预分配内存以避免多次分配
-    localCounts.assign(counts, counts + primcount);
-    localIndices.assign(indices, indices + primcount);
-    localBaseVertices.assign(basevertex, basevertex + primcount);
-    
-    // 使用NEON指令加速数据处理（如果适用）
-    if (primcount >= 4) {
-        GLsizei i = 0;
-        for (; i <= primcount - 4; i += 4) {
-            int32x4_t counts_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&counts[i]));
-            int32x4_t base_vec = vld1q_s32(reinterpret_cast<const int32_t*>(&basevertex[i]));
-            vst1q_s32(reinterpret_cast<int32_t*>(&localCounts[i]), counts_vec);
-            vst1q_s32(reinterpret_cast<int32_t*>(&localBaseVertices[i]), base_vec);
-        }
+    // Process 4 elements at a time using NEON
+    GLsizei i = 0;
+    for (; i + 3 < primcount; i += 4) {
+        // Load 4 counts at once
+        int32x4_t count_vec = vld1q_s32((const int32_t*)&counts[i]);
         
-        // 处理剩余元素
-        for (; i < primcount; ++i) {
-            localCounts[i] = counts[i];
-            localBaseVertices[i] = basevertex[i];
+        // Create mask for counts > 0
+        uint32x4_t mask = vcgtq_s32(count_vec, vdupq_n_s32(0));
+        
+        // Check each element of the mask
+        if (vgetq_lane_u32(mask, 0)) {
+            GLES.glDrawElementsBaseVertex(mode, counts[i], type, indices[i], basevertex[i]);
+        }
+        if (vgetq_lane_u32(mask, 1)) {
+            GLES.glDrawElementsBaseVertex(mode, counts[i+1], type, indices[i+1], basevertex[i+1]);
+        }
+        if (vgetq_lane_u32(mask, 2)) {
+            GLES.glDrawElementsBaseVertex(mode, counts[i+2], type, indices[i+2], basevertex[i+2]);
+        }
+        if (vgetq_lane_u32(mask, 3)) {
+            GLES.glDrawElementsBaseVertex(mode, counts[i+3], type, indices[i+3], basevertex[i+3]);
         }
     }
-}
 
-} // 匿名命名空间
-void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, GLenum type, 
-                                 const void* const* indices, GLsizei primcount, 
-                                 const GLint* basevertex) {
-
-    if (primcount <= 0) return;
-    
-    // 准备GPU友好的数据格式
-    prepareGPUBuffers(mode, counts, type, indices, primcount, basevertex);
-    
-    // 使用GPU进行渲染 - 这是最耗时的部分
-    // 对于GLES3.1，我们需要将多绘制调用拆分为单个绘制调用
-    // 这里我们使用一个线程来执行所有绘制调用，避免多线程同步开销
-    
-    // 使用一个单独的线程执行绘制，避免阻塞主线程
-    std::thread renderThread([=]() {
-        for (GLsizei i = 0; i < primcount; ++i) {
-            if (localCounts[i] > 0) {
-                GLES.glDrawElementsBaseVertex(mode, localCounts[i], type, 
-                                             localIndices[i], localBaseVertices[i]);
-            }
+    // Process remaining elements
+    for (; i < primcount; ++i) {
+        const GLsizei count = counts[i];
+        if (count > 0) {
+            LOG_D("GLES.glDrawElementsBaseVertex, mode = %s, count = %d, type = %s, indices[i] = 0x%x, basevertex[i] = %d",
+                 glEnumToString(mode), count, glEnumToString(type), indices[i], basevertex[i]);
+            GLES.glDrawElementsBaseVertex(mode, count, type, indices[i], basevertex[i]);
         }
-    });
-    
-    // 根据情况决定是否等待渲染完成
-    if (primcount < 8) { // 少量绘制调用时等待完成
-        renderThread.join();
-    } else { // 大量绘制调用时分离线程
-        renderThread.detach();
     }
 
+    CHECK_GL_ERROR
 }
