@@ -23,6 +23,8 @@ struct framebuffer_t {
     struct attachment_t* read_attachment;
 };
 
+struct framebuffer_t* bound_framebuffer;
+extern GLint MAX_DRAW_BUFFERS;
 void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
 GLint getMaxDrawBuffers();
 
