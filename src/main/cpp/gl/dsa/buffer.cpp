@@ -260,54 +260,58 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     CHECK_GL_ERROR
 } //DeepSeek
 
-static GLenum find_buffer_binding_target(GLuint buffer) {
-    for (const auto& pair : g_bound_buffers) {
-        if (pair.second == buffer) {
-            return pair.first;
-        }
-    }
-    return 0;
-}
 void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
                           GLenum format, GLenum type, const void *data) {
-    LOG()
     LOG_D("glClearNamedBufferData(buffer=%u, internalformat=%s, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
-          glEnumToString(format), glEnumToString(type), data)
+          glEnumToString(format), glEnumToString(type), data);
 
-    INIT_CHECK_GL_ERROR
-
-    // 1. 验证缓冲区存在性
-    if (!has_buffer(buffer)) {
-        LOG_E("ERROR: Buffer %u does not exist", buffer)
-        return;
+    // 直接使用 glClearBufferData 的 GLES3 等效实现
+    GLint prev_binding = 0;
+    glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
+    
+    glBindBuffer(GL_COPY_WRITE_BUFFER, buffer);
+    
+    // GLES3 使用 glBufferData 来清除缓冲区
+    GLint buffer_size = 0;
+    GLES.glGetBufferParameteriv(GL_COPY_WRITE_BUFFER, GL_BUFFER_SIZE, &buffer_size);
+    
+    if (buffer_size > 0) {
+        if (data) {
+            // 计算清除数据的大小
+            size_t elem_size = 0;
+            switch(type) {
+                case GL_BYTE:
+                case GL_UNSIGNED_BYTE: elem_size = 1; break;
+                case GL_SHORT:
+                case GL_UNSIGNED_SHORT:
+                case GL_HALF_FLOAT:    elem_size = 2; break;
+                case GL_INT:
+                case GL_UNSIGNED_INT:
+                case GL_FLOAT:
+                case GL_FIXED:         elem_size = 4; break;
+            }
+            
+            if (elem_size > 0) {
+                // 创建填充数据缓冲区
+                size_t data_size = buffer_size / elem_size;
+                void *fill_data = malloc(buffer_size);
+                if (fill_data) {
+                    for (size_t i = 0; i < data_size; i++) {
+                        memcpy((char*)fill_data + i * elem_size, data, elem_size);
+                    }
+                    glBufferData(GL_COPY_WRITE_BUFFER, buffer_size, fill_data, GL_STATIC_DRAW);
+                    free(fill_data);
+                }
+            }
+        } else {
+            // 如果没有提供数据，则用0填充
+            glBufferData(GL_COPY_WRITE_BUFFER, buffer_size, NULL, GL_STATIC_DRAW);
+        }
     }
-
-    // 2. 确定目标类型
-    GLenum target = find_buffer_binding_target(buffer);
-    if (target == 0) {
-        target = GL_ARRAY_BUFFER;
-        LOG_W("WARNING: Using default target GL_ARRAY_BUFFER for buffer %u", buffer)
-    }
-
-    // 3. 获取真实缓冲区ID
-    GLuint real_buffer = find_real_buffer(buffer);
-    if (!real_buffer) {
-        LOG_E("ERROR: Failed to find real buffer ID for buffer %u", buffer)
-        return;
-    }
-
-    // 4. 保存当前绑定状态
-    SAVE_BUFFER_CTX(target)
-
-    // 5. 执行清除操作
-    glClearBufferData(target, internalformat, format, type, data);
-
-    // 6. 恢复状态
-    RESTORE_BUFFER_CTX(target)
-
-    CHECK_GL_ERROR
-} //DeepSeek*2
+    
+    glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
+}
 
 void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, 
                          GLsizeiptr size, GLenum format, GLenum type, const void *data) {
