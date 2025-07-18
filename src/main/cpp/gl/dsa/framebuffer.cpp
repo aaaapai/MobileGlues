@@ -41,33 +41,18 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
 void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs) {
     LOG_D("glNamedFramebufferDrawBuffers, framebuffer: %u, n: %d, bufs: %p", framebuffer, n, bufs)
 
-    // 验证输入参数
-    if (n < 0) {
-        LOG_E("ERROR: Invalid n value: %d", n);
-        return;
-    }
-
-    if (n > MAX_DRAW_BUFFERS) {
-        LOG_E("ERROR: Exceeds MAX_DRAW_BUFFERS (%d), n: %d", MAX_DRAW_BUFFERS, n);
-        return;
-    }
-
-    // 检查当前绑定的framebuffer是否匹配
-    if (bound_framebuffer && bound_framebuffer->current_target == GL_DRAW_FRAMEBUFFER) {
-        // 直接设置draw buffers
-        glDrawBuffers(n, bufs);
-    } else {
-        // 需要先绑定framebuffer
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-        glDrawBuffers(n, bufs);
-        
-        // 恢复之前的绑定状态
-        if (bound_framebuffer) {
-            glBindFramebuffer(bound_framebuffer->current_target, bound_framebuffer->texture);
-        } else {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        }
-    }
+    // 保存当前绑定的帧缓冲区
+    GLint prevFramebuffer;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
+    
+    // 绑定目标帧缓冲区
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    
+    // 设置绘制缓冲区
+    glDrawBuffers(n, bufs);
+    
+    // 恢复之前绑定的帧缓冲区
+    glBindFramebuffer(GL_FRAMEBUFFER, prevFramebuffer);
 
 }
 
