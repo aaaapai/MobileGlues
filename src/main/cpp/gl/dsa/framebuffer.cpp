@@ -4,15 +4,10 @@
 
 #include "framebuffer.h"
 
-#include "../framebuffer.h"
 #include "../log.h"
 #include "../config/settings.h"
 
 #define DEBUG 0
-
-extern GLint getMaxDrawBuffers();
-extern struct framebuffer_t* bound_framebuffer;
-extern GLint MAX_DRAW_BUFFERS;
 
 void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
     LOG()
