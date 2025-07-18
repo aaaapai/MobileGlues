@@ -23,6 +23,7 @@ struct framebuffer_t {
     struct attachment_t* read_attachment;
 };
 
+void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
 GLint getMaxDrawBuffers();
 
 GLAPI GLAPIENTRY void glBindFramebuffer(GLenum target, GLuint framebuffer);
