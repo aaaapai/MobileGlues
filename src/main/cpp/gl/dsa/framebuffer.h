@@ -20,6 +20,12 @@ struct attachment_t {
     GLint level;
 };
 
+struct framebuffer_t {
+    GLenum current_target;
+    struct attachment_t* draw_attachment;
+    struct attachment_t* read_attachment;
+};
+
 GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 
 GLAPI GLAPIENTRY void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
