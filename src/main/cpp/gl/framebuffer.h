@@ -28,23 +28,6 @@ GLint getMaxDrawBuffers();
 extern "C" {
 #endif
 
-struct attachment_t {
-    GLenum textarget;
-    GLuint texture;
-    GLint level;
-};
-
-struct framebuffer_t {
-    GLenum current_target;
-    struct attachment_t* draw_attachment;
-    struct attachment_t* read_attachment;
-};
-
-struct framebuffer_t* bound_framebuffer;
-extern GLint MAX_DRAW_BUFFERS;
-void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
-GLint getMaxDrawBuffers();
-
 GLAPI GLAPIENTRY void glBindFramebuffer(GLenum target, GLuint framebuffer);
 
 GLAPI GLAPIENTRY void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
