@@ -96,7 +96,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
-/*
+
     GLenum error = GLES.glGetError();
     if (error == GL_INVALID_OPERATION) {
         // Get the texture's internal format
@@ -150,7 +150,6 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
             }
         }
     } //DeepSeek
-*/
 
     CHECK_GL_ERROR
 }
