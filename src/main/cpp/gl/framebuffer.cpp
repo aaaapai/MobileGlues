@@ -99,6 +99,12 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     GLenum error = GLES.glGetError();
     if (error == GL_INVALID_OPERATION) {
+
+        struct attachment_t* attach;
+        if (target == GL_DRAW_FRAMEBUFFER) {
+            attach = bound_framebuffer->draw_attachment;
+        }
+
         // Get the texture's internal format
         GLint internalFormat;
         GLint oldTexture;
