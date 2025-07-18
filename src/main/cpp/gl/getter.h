@@ -24,6 +24,8 @@ GLAPI GLAPIENTRY void glGetIntegerv(GLenum pname, GLint *params);
 GLAPI GLAPIENTRY void glGetFloatv(GLenum pname, GLfloat *data);
 GLAPI GLAPIENTRY void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
 GLAPI GLAPIENTRY void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);
+GLAPI GLAPIENTRY void glQueryCounter(GLuint id, GLenum target);
+GLAPI GLAPIENTRY void glGetQueryObjectui64v (GLuint id, GLenum pname, GLuint64 *params);
 
 void AppendExtension(const char* ext);
 void InitGLESBaseExtensions();
