@@ -156,34 +156,6 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     CHECK_GL_ERROR
 }
 
-void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) {
-    LOG()
-    LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
-
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= getMaxDrawBuffers()) {
-        struct attachment_t* attach;
-        if (target == GL_DRAW_FRAMEBUFFER)
-            attach = bound_framebuffer->draw_attachment;
-        else
-            attach = bound_framebuffer->read_attachment;
-
-        if (attach) {
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = textarget;
-            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
-            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-        }
-
-        bound_framebuffer->current_target = target;
-    }
-
-    // First try the original call
-    GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
-    
-
-    CHECK_GL_ERROR
-}
-
-
 void glDrawBuffer(GLenum buffer) {
     LOG()
 
