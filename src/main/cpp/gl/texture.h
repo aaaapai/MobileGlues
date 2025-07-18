@@ -8,9 +8,6 @@
 #include "GL/gl.h"
 #include "ankerl/unordered_dense.h"
 
-void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
-int nlevel(int size, int level);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +19,9 @@ struct texture_t {
     GLenum format;
     GLint swizzle_param[4];
 };
+
+void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
+int nlevel(int size, int level);
 
 GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
