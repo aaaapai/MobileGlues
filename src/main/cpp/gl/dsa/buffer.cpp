@@ -9,6 +9,22 @@
 
 #define DEBUG 0
 
+template <typename K, typename V>
+using unordered_map = ankerl::unordered_dense::map<K, V>;
+
+extern GLint maxBufferId = 0;
+extern GLint maxArrayId = 0;
+
+extern unordered_map<GLuint, GLuint> g_gen_buffers;
+extern unordered_map<GLuint, GLuint> g_gen_arrays;
+
+extern unordered_map<GLenum, GLuint> g_bound_buffers;
+extern GLuint bound_array = 0;
+// fake array - fake ibo
+extern unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
+
+extern unordered_map<GLuint, BufferMapping> g_active_mappings;
+
 #define SAVE_BUFFER_CTX(target) \
     GLint prevbuf = 0; \
     glGetIntegerv(target##_BINDING, &prevbuf); \
