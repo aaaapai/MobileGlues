@@ -4,6 +4,9 @@
 
 #include "buffer.h"
 
+#include "../buffer.h"
+#include "ankerl/unordered_dense.h"
+
 #define DEBUG 0
 
 #define SAVE_BUFFER_CTX(target) \
