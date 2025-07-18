@@ -19,9 +19,6 @@ GLAPI GLAPIENTRY void glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 GLAPI GLAPIENTRY void glClear (GLbitfield mask);
 GLAPI GLAPIENTRY void glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 GLAPI GLAPIENTRY void glPolygonMode(GLenum face, GLenum mode);
-GLAPI GLAPIENTRY void glQueryCounter(GLuint id, GLenum target);
-GLAPI GLAPIENTRY void glGetQueryObjecti64v (GLuint id, GLenum pname, GLint64 *params);
-GLAPI GLAPIENTRY void glGetQueryObjectui64v (GLuint id, GLenum pname, GLuint64 *params);
 
 #ifdef __cplusplus
 }
