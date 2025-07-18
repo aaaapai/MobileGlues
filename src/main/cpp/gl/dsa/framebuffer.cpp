@@ -76,9 +76,9 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     // 更新bound_framebuffer状态
     if (!bound_framebuffer || bound_framebuffer->id != framebuffer) {
         if (bound_framebuffer) free(bound_framebuffer);
-        bound_framebuffer = (struct framebuffer_t*)malloc(sizeof(struct framebuffer_t));
-        memset(bound_framebuffer, 0, sizeof(struct framebuffer_t));
-        bound_framebuffer->id = framebuffer;
+        struct bound_framebuffer = (struct framebuffer_t*)malloc(sizeof(struct framebuffer_t));
+        memset(bound_framebuffer, 0, sizeof(framebuffer_t));
+        struct bound_framebuffer->id = framebuffer;
     }
     
     // 确定attachment类型
@@ -86,7 +86,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
                    ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
     
     // 更新对应的attachment结构
-    attachment_t** target_attach = (target == GL_DRAW_FRAMEBUFFER) 
+    struct attachment_t** target_attach = (target == GL_DRAW_FRAMEBUFFER) 
                                  ? &bound_framebuffer->draw_attachment 
                                  : &bound_framebuffer->read_attachment;
     
@@ -101,13 +101,13 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     
     // 执行绑定和纹理附加
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    bound_framebuffer->current_target = GL_FRAMEBUFFER;
+    struct bound_framebuffer->current_target = GL_FRAMEBUFFER;
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
     
     // 恢复之前的绑定
     glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
     if (bound_framebuffer) {
-        bound_framebuffer->current_target = (prevFBO == framebuffer) ? GL_FRAMEBUFFER : 0;
+        struct bound_framebuffer->current_target = (prevFBO == framebuffer) ? GL_FRAMEBUFFER : 0;
     }
     
     CHECK_GL_ERROR
