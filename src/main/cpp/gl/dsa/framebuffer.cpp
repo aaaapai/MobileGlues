@@ -62,7 +62,7 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
         glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); // 注意：ES中恢复时用GL_FRAMEBUFFER
     }
 
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 } //DeepSeek*4
 
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
@@ -76,8 +76,8 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     // 更新bound_framebuffer状态
     if (!bound_framebuffer || bound_framebuffer->id != framebuffer) {
         if (bound_framebuffer) free(bound_framebuffer);
-        bound_framebuffer = (framebuffer_t*)malloc(sizeof(framebuffer_t));
-        memset(bound_framebuffer, 0, sizeof(framebuffer_t));
+        bound_framebuffer = (struct framebuffer_t*)malloc(sizeof(struct framebuffer_t));
+        memset(bound_framebuffer, 0, sizeof(struct framebuffer_t));
         bound_framebuffer->id = framebuffer;
     }
     
@@ -91,8 +91,8 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
                                  : &bound_framebuffer->read_attachment;
     
     if (!*target_attach) {
-        *target_attach = (attachment_t*)malloc(sizeof(attachment_t));
-        memset(*target_attach, 0, sizeof(attachment_t));
+        *target_attach = (struct attachment_t*)malloc(sizeof(struct attachment_t));
+        memset(*target_attach, 0, sizeof(struct attachment_t));
     }
     
     (*target_attach)->textarget = GL_TEXTURE_2D;
@@ -137,7 +137,7 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
         glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
     }
 
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 }
 
 void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
@@ -163,7 +163,7 @@ void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, prevFBO);
     }
 
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 }
 
 void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
@@ -205,5 +205,5 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
     }
 
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 }
