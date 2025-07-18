@@ -43,16 +43,6 @@ GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffer
 
 GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffer (GLuint framebuffer, GLenum buf);
 
-GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffers (GLuint framebuffer, GLsizei n, const GLenum *bufs);
-
-GLAPI GLAPIENTRY void glNamedFramebufferTexture (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-
-GLAPI GLAPIENTRY void glNamedFramebufferTextureLayer (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
-
-GLAPI GLAPIENTRY void glNamedFramebufferReadBuffer (GLuint framebuffer, GLenum src);
-
-GLAPI GLAPIENTRY void glBlitNamedFramebuffer (GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-
 #ifdef __cplusplus
 }
 #endif
