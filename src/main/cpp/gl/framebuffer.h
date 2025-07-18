@@ -41,8 +41,6 @@ GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);
 
 GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers);
 
-GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffer (GLuint framebuffer, GLenum buf);
-
 #ifdef __cplusplus
 }
 #endif
