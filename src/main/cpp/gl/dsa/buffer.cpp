@@ -326,6 +326,8 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
     LOG_D("glClearBufferSubData, target: %u, offset: %lld, size: %lld, data: %p",
           target, (long long)offset, (long long)size, data);
 
+    INIT_CHECK_GL_ERROR
+
     GLenum binding = get_binding_query(target);
     if (!binding || g_active_mappings.count(g_bound_buffers[target])) return;
 
