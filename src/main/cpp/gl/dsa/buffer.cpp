@@ -321,31 +321,24 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
 }
 
-void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
-                         GLsizeiptr size, GLenum format, GLenum type, const void* data) {
-    LOG_D("glClearBufferSubData, target: %u, offset: %lld, size: %lld, data: %p",
-          target, (long long)offset, (long long)size, data);
-
-    INIT_CHECK_GL_ERROR
-
-    GLenum binding = get_binding_query(target);
-    if (!binding || g_active_mappings.count(g_bound_buffers[target])) return;
-
-    SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER);
+inline GLenum GetBufferBindingTarget(GLenum target) {
+    return target == GL_ELEMENT_ARRAY_BUFFER ? GL_ELEMENT_ARRAY_BUFFER_BINDING
+         : target == GL_UNIFORM_BUFFER ? GL_UNIFORM_BUFFER_BINDING
+         : GL_ARRAY_BUFFER_BINDING;
+}
+void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
+    GLint prevBuf;
+    glGetIntegerv(GetBufferBindingTarget(target), &prevBuf);
     
-    // Create temp buffer with desired data
-    GLuint tempBuf;
-    GLES.glGenBuffers(1, &tempBuf);
-    GLES.glBufferData(GL_COPY_WRITE_BUFFER, size, data ? data : calloc(1, size), GL_STATIC_DRAW);
+    void* ptr = glMapBufferRange(target, offset, size, 
+                               GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+    if(ptr) {
+        data ? memcpy(ptr, data, size) : memset(ptr, 0, size);
+        glUnmapBuffer(target);
+    }
     
-    // Copy to target
-    GLES.glCopyBufferSubData(GL_COPY_WRITE_BUFFER, target, 0, offset, size);
-    
-    // Cleanup
-    if (!data) free(const_cast<void*>(GLES.glMapBufferRange(GL_COPY_WRITE_BUFFER, 0, size, GL_MAP_READ_BIT)));
-    GLES.glDeleteBuffers(1, &tempBuf);
-    RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER);
-} //dk
+    glBindBuffer(target, prevBuf);
+}
 
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, 
                              GLintptr offset, GLsizeiptr size,
