@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include "GL/gl.h"
+#include "ankerl/unordered_dense.h"
 
 struct texture_t {
     GLenum target;
