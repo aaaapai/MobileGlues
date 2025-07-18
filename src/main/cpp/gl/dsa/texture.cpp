@@ -25,6 +25,36 @@
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 extern GLuint bound_texture;
+static int is_depth_format(GLenum format) {
+    switch(format) {
+        case GL_DEPTH_COMPONENT:
+        case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
+        case GL_DEPTH_COMPONENT32F:
+            return 1;
+        default:
+            return 0;
+    }
+}
+static GLenum get_binding_for_target(GLenum target) {
+    switch(target) {
+        case GL_TEXTURE_2D: return GL_TEXTURE_BINDING_2D;
+        case GL_TEXTURE_2D_MULTISAMPLE: return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        case GL_TEXTURE_2D_ARRAY: return GL_TEXTURE_BINDING_2D_ARRAY;
+        case GL_TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
+        case GL_TEXTURE_BUFFER: return GL_TEXTURE_BUFFER_BINDING;
+        case GL_TEXTURE_CUBE_MAP:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+            return GL_TEXTURE_BINDING_CUBE_MAP;
+        default: return 0;
+    }
+}
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     LOG()
