@@ -15,6 +15,9 @@
 extern "C" {
 #endif
 
+static GLenum get_binding_query(GLenum target);
+
+
 GLAPI GLAPIENTRY void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 
 GLAPI GLAPIENTRY void glCreateBuffers(GLsizei n, GLuint* buffers);
