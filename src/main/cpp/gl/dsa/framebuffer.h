@@ -14,6 +14,12 @@
 extern "C" {
 #endif
 
+struct attachment_t {
+    GLenum textarget;
+    GLuint texture;
+    GLint level;
+};
+
 GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 
 GLAPI GLAPIENTRY void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
