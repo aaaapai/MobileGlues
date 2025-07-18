@@ -257,33 +257,3 @@ void glPolygonMode(GLenum face, GLenum mode) {
     // 立即应用改变
     applyPolygonMode();
 } //DeepSeek
-
-void glQueryCounter(GLuint id, GLenum target) {
-    LOG()
-
-    GLES.glQueryCounterEXT(id, target);
-}
-
-void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params) {
-
-    LOG()
-    LOG_D("Entering glGetQueryObjectui64v(id=%u, pname=0x%X, params=%p)", id, pname, params);
-
-    if (!params) {
-        LOG_W("Warning: glGetQueryObjectui64v called with NULL params pointer");
-        return;
-    }
-
-    // GLES3 implementation - may require extension checks
-    if (pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE) {
-        GLES.glGetQueryObjectuiv(id, pname, (GLuint*)params); // Note: potential precision loss
-    } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
-        // Check if extension is available
-            GLES.glGetQueryObjectuiv(id, pname, (GLuint*)params);
-    }
-
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        LOG_W("OpenGL error in glGetQueryObjectui64v: 0x%X", err);
-    }
-}
