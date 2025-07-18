@@ -145,7 +145,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
     // 1. 查找真实缓冲区ID
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
-        LOG_E("Buffer %u not found in mapping table", buffer);
+        LOG_E("ERROR: Buffer %u not found in mapping table", buffer)
         return;
     }
 
@@ -160,10 +160,10 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
             memcpy(data, ptr, size);
             GLES.glUnmapBuffer(GL_COPY_READ_BUFFER);
         } else {
-            LOG_E("ERROR: Failed to map buffer for reading");
+            LOG_E("ERROR: Failed to map buffer for reading")
         }
     } else {
-        LOG_E("ERROR: Invalid data pointer (NULL)");
+        LOG_E("ERROR: Invalid data pointer (NULL)")
     }
     
     // 4. 恢复状态
@@ -197,14 +197,14 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     // Find the currently bound buffer for this target
     GLuint buffer = find_bound_buffer(get_binding_query(target));
     if (!buffer) {
-        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target));
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
         return;
     }
 
     // Get the real buffer ID from our mapping
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
-        LOG_E("ERROR: Buffer %d not found in mapping", buffer);
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer)
         return;
     }
 
@@ -212,7 +212,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     GLint size;
     glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
     if (size <= 0) {
-        LOG_E("ERROR: Invalid buffer size: %d", size);
+        LOG_E("ERROR: Invalid buffer size: %d", size)
         return;
     }
 
@@ -220,7 +220,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     void *ptr = GLES.glMapBufferRange(target, 0, size, 
                                      GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
     if (!ptr) {
-        LOG_E("ERROR: Failed to map buffer");
+        LOG_E("ERROR: Failed to map buffer")
         return;
     }
 
@@ -241,7 +241,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
             elem_size = 4;
             break;
         default:
-            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type));
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type))
             GLES.glUnmapBuffer(target);
             return;
     }
@@ -273,13 +273,13 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     LOG()
     LOG_D("glClearNamedBufferData(buffer=%u, internalformat=%s, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
-          glEnumToString(format), glEnumToString(type), data);
+          glEnumToString(format), glEnumToString(type), data)
 
     INIT_CHECK_GL_ERROR
 
     // 1. 验证缓冲区存在性
     if (!has_buffer(buffer)) {
-        LOG_E("ERROR: Buffer %u does not exist", buffer);
+        LOG_E("ERROR: Buffer %u does not exist", buffer)
         return;
     }
 
@@ -287,13 +287,13 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     GLenum target = find_buffer_binding_target(buffer);
     if (target == 0) {
         target = GL_ARRAY_BUFFER;
-        LOG_W("WARNING: Using default target GL_ARRAY_BUFFER for buffer %u", buffer);
+        LOG_W("WARNING: Using default target GL_ARRAY_BUFFER for buffer %u", buffer)
     }
 
     // 3. 获取真实缓冲区ID
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
-        LOG_E("ERROR: Failed to find real buffer ID for buffer %u", buffer);
+        LOG_E("ERROR: Failed to find real buffer ID for buffer %u", buffer)
         return;
     }
 
@@ -312,7 +312,7 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
 void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, 
                          GLsizeiptr size, GLenum format, GLenum type, const void *data) {
     LOG()
-    LOG_W("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
+    LOG_D("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat), 
           (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
     
@@ -322,7 +322,7 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
     GLint current_buffer = 0;
     glGetIntegerv(get_binding_query(target), &current_buffer);
     if (current_buffer == 0) {
-        LOG_E("No buffer bound to target %s", glEnumToString(target));
+        LOG_E("No buffer bound to target %s", glEnumToString(target))
         return;
     }
 
@@ -330,7 +330,7 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
     GLuint real_buffer = find_real_buffer(current_buffer);
     if (!real_buffer) {
         real_buffer = current_buffer;
-        LOG_D("Using buffer %d directly (not in mapping table)", real_buffer);
+        LOG_D("Using buffer %d directly (not in mapping table)", real_buffer)
     }
 
     // 3. 保存当前COPY_WRITE_BUFFER绑定状态
@@ -357,7 +357,7 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
 
     // 1. 验证缓冲区存在性
     if (!has_buffer(buffer)) {
-        LOG_E("Buffer %u does not exist", buffer);
+        LOG_E("Buffer %u does not exist", buffer)
         return;
     }
 
@@ -365,7 +365,7 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
         real_buffer = buffer;
-        LOG_D("Using buffer %u directly (not in mapping table)", real_buffer);
+        LOG_D("Using buffer %u directly (not in mapping table)", real_buffer)
     }
 
     // 3. 保存当前绑定状态
