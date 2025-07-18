@@ -98,48 +98,55 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
 /*
-    // 检查是否失败（例如 GL_RGBA32F 不支持）
     GLenum error = GLES.glGetError();
     if (error == GL_INVALID_OPERATION) {
-        LOG_D("Falling back to GL_RGBA16F due to GL_RGBA32F not supported");
-
-        // 获取当前纹理格式（假设可以查询）
+        // Get the texture's internal format
         GLint internalFormat;
+        GLint oldTexture;
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
         GLES.glBindTexture(textarget, texture);
         GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+        GLES.glBindTexture(textarget, oldTexture);
         
-        // 如果是 GL_RGBA32F，尝试降级到 GL_RGBA16F
-        if (internalFormat == GL_RGBA32F) {
-
-            struct attachment_t* attach;
-            // 重新创建 16F 纹理
+        // Try to find a compatible format using internal_convert
+        GLenum convertedFormat = internalFormat;
+        GLenum type = 0; // Not used for framebuffer attachment
+        GLenum format = 0; // Not used for framebuffer attachment
+        internal_convert(&convertedFormat, &type, &format);
+        
+        if (convertedFormat != internalFormat) {
+            LOG_D("Falling back from 0x%x to 0x%x due to format not supported", 
+                 internalFormat, convertedFormat);
+            
+            // Create new texture with fallback format
             GLuint fallbackTex;
             GLES.glGenTextures(1, &fallbackTex);
             GLES.glBindTexture(textarget, fallbackTex);
             
-            // 获取原纹理尺寸
+            // Get original texture dimensions
             GLint width, height;
             GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_WIDTH, &width);
             GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_HEIGHT, &height);
             
-            // 改用 GL_RGBA16F
+            // Create texture with fallback format
             GLES.glTexImage2D(
-                textarget, 0, GL_RGBA16F, width, height, 0,
-                GL_RGBA, GL_FLOAT, nullptr
+                textarget, level, convertedFormat, width, height, 0,
+                format ? format : GL_RGBA, // Default to GL_RGBA if format not set
+                type ? type : GL_UNSIGNED_BYTE, // Default to GL_UNSIGNED_BYTE
+                nullptr
             );
             
-            // 重新绑定降级后的纹理
+            // Try attaching the fallback texture
             GLES.glFramebufferTexture2D(target, attachment, textarget, fallbackTex, level);
             
-            // 检查是否成功
-            if (glGetError() == GL_NO_ERROR) {
-                LOG_W("Fallback to GL_RGBA16F succeeded");
-                // 更新绑定的纹理（可选）
+            if (GLES.glGetError() == GL_NO_ERROR) {
+                LOG_W("Fallback to format 0x%x succeeded", convertedFormat);
+                // Update bound texture if using framebuffer tracking
                 if (bound_framebuffer && attach) {
                     attach[attachment - GL_COLOR_ATTACHMENT0].texture = fallbackTex;
                 }
             } else {
-                LOG_E("Fallback to GL_RGBA16F failed");
+                LOG_E("Fallback to format 0x%x failed", convertedFormat);
                 GLES.glDeleteTextures(1, &fallbackTex);
             }
         }
@@ -148,6 +155,34 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     CHECK_GL_ERROR
 }
+
+void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) {
+    LOG()
+    LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
+
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= getMaxDrawBuffers()) {
+        struct attachment_t* attach;
+        if (target == GL_DRAW_FRAMEBUFFER)
+            attach = bound_framebuffer->draw_attachment;
+        else
+            attach = bound_framebuffer->read_attachment;
+
+        if (attach) {
+            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = textarget;
+            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
+            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
+        }
+
+        bound_framebuffer->current_target = target;
+    }
+
+    // First try the original call
+    GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
+    
+
+    CHECK_GL_ERROR
+}
+
 
 void glDrawBuffer(GLenum buffer) {
     LOG()
