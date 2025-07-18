@@ -9,22 +9,11 @@
 
 #include "GL/gl.h"
 #include "../log.h"
+#include "../framebuffer.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct attachment_t {
-    GLenum textarget;
-    GLuint texture;
-    GLint level;
-};
-
-struct framebuffer_t {
-    GLenum current_target;
-    struct attachment_t* draw_attachment;
-    struct attachment_t* read_attachment;
-};
 
 GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 
