@@ -10,6 +10,7 @@
 
 #define DEBUG 0
 
+extern GLint getMaxDrawBuffers();
 extern struct framebuffer_t* bound_framebuffer;
 extern GLint MAX_DRAW_BUFFERS;
 
@@ -52,8 +53,7 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
     }
 
     // 检查当前绑定的framebuffer是否匹配
-    if (bound_framebuffer && bound_framebuffer->current_target == GLES.GL_DRAW_FRAMEBUFFER && 
-        bound_framebuffer->texture == framebuffer) {
+    if (bound_framebuffer && bound_framebuffer->current_target == GL_DRAW_FRAMEBUFFER) {
         // 直接设置draw buffers
         glDrawBuffers(n, bufs);
     } else {
@@ -65,7 +65,7 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
         if (bound_framebuffer) {
             glBindFramebuffer(bound_framebuffer->current_target, bound_framebuffer->texture);
         } else {
-            glBindFramebuffer(GLES.GL_DRAW_FRAMEBUFFER, 0);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         }
     }
 
