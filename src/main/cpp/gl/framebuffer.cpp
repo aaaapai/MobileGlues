@@ -2,6 +2,7 @@
 // Created by hanji on 2025/2/6.
 //
 
+#include "texture.h"
 #include "framebuffer.h"
 #include "log.h"
 #include "../config/settings.h"
