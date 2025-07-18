@@ -169,7 +169,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
     // 4. 恢复状态
     RESTORE_BUFFER_CTX(GL_COPY_READ_BUFFER)
     
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 }
 
 void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
