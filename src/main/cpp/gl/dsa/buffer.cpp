@@ -55,19 +55,19 @@ static GLenum get_binding_query(GLenum target) {
     CHECK_GL_ERROR_NO_INIT
 
 void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data) {
-    LOG();
+    LOG()
     LOG_D("glNamedBufferSubData(buffer=%u, offset=%ld, size=%ld, data=%p)",
-          buffer, offset, size, data);
+          buffer, offset, size, data)
 
-    INIT_CHECK_GL_ERROR;
+    INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
     GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
     RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
 }
 
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
-    LOG();
-    LOG_D("glCreateBuffers(n=%d)", n);
+    LOG()
+    LOG_D("glCreateBuffers(n=%d)", n)
 
     INIT_CHECK_GL_ERROR
     
@@ -84,7 +84,7 @@ void glCreateBuffers(GLsizei n, GLuint* buffers) {
 void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length) {
     LOG();
     LOG_D("glFlushMappedNamedBufferRange(buffer=%u, offset=%ld, length=%ld)",
-          buffer, offset, length);
+          buffer, offset, length)
 
     INIT_CHECK_GL_ERROR
 
@@ -95,9 +95,9 @@ void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr le
 }
 
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
-    LOG();
+    LOG()
     LOG_D("glGetNamedBufferParameteriv(buffer=%u, pname=%s)",
-          buffer, glEnumToString(pname));
+          buffer, glEnumToString(pname))
 
     INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -107,9 +107,9 @@ void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
 }
 
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params) {
-    LOG();
+    LOG()
     LOG_D("glGetNamedBufferParameteri64v(buffer=%u, pname=%s)",
-          buffer, glEnumToString(pname));
+          buffer, glEnumToString(pname))
 
     INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -119,9 +119,9 @@ void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params)
 }
 
 void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void** params) {
-    LOG();
+    LOG()
     LOG_D("glGetNamedBufferPointerv(buffer=%u, pname=%s)",
-          buffer, glEnumToString(pname));
+          buffer, glEnumToString(pname))
 
     INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -131,9 +131,9 @@ void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void** params) {
 }
 
 void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void* data) {
-    LOG();
+    LOG()
     LOG_D("glGetNamedBufferSubData(buffer=%u, offset=%ld, size=%ld, data=%p)",
-          buffer, offset, size, data);
+          buffer, offset, size, data)
 
     INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_READ_BUFFER)
@@ -142,9 +142,9 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 }
 
 void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    LOG();
+    LOG()
     LOG_D("glMapNamedBufferRange(buffer=%u, offset=%ld, length=%ld, access=0x%x)",
-          buffer, offset, length, access);
+          buffer, offset, length, access)
 
     INIT_CHECK_GL_ERROR
     SAVE_BUFFER_CTX(GL_COPY_READ_BUFFER)
@@ -155,22 +155,22 @@ void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, G
 
 void glClearBufferData(GLenum target, GLenum internalformat,
                       GLenum format, GLenum type, const void* data) {
-    LOG();
+    LOG()
     LOG_W("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat),
-          glEnumToString(format), glEnumToString(type), data);
+          glEnumToString(format), glEnumToString(type), data)
 
     // Find the currently bound buffer for this target
     GLuint buffer = find_bound_buffer(get_binding_query(target));
     if (!buffer) {
-        LOG_E("No buffer bound to target %s", glEnumToString(target));
+        LOG_E("No buffer bound to target %s", glEnumToString(target))
         return;
     }
 
     // Get the real buffer ID from our mapping
     GLuint real_buffer = find_real_buffer(buffer);
     if (!real_buffer) {
-        LOG_E("Buffer %u not found in mapping", buffer);
+        LOG_E("Buffer %u not found in mapping", buffer)
         return;
     }
 
@@ -178,7 +178,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     GLint size;
     glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
     if (size <= 0) {
-        LOG_E("Invalid buffer size: %d", size);
+        LOG_E("Invalid buffer size: %d", size)
         return;
     }
 
@@ -186,7 +186,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     void* ptr = GLES.glMapBufferRange(target, 0, size, 
                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
     if (!ptr) {
-        LOG_E("Failed to map buffer");
+        LOG_E("Failed to map buffer")
         return;
     }
 
@@ -207,7 +207,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
             elem_size = 4;
             break;
         default:
-            LOG_E("Unsupported type: %s", glEnumToString(type));
+            LOG_E("Unsupported type: %s", glEnumToString(type))
             GLES.glUnmapBuffer(target);
             return;
     }
@@ -228,10 +228,10 @@ void glClearBufferData(GLenum target, GLenum internalformat,
 
 void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
                           GLenum format, GLenum type, const void* data) {
-    LOG();
+    LOG()
     LOG_W("glClearNamedBufferData(buffer=%u, internalformat=%s, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
-          glEnumToString(format), glEnumToString(type), data);
+          glEnumToString(format), glEnumToString(type), data)
 
     if (!has_buffer(buffer)) {
         LOG_E("Buffer %u does not exist", buffer);
@@ -250,7 +250,7 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     // If not found in current bindings, default to ARRAY_BUFFER
     if (target == 0) {
         target = GL_ARRAY_BUFFER;
-        LOG_W("Could not determine buffer target for %u, defaulting to GL_ARRAY_BUFFER", buffer);
+        LOG_W("Could not determine buffer target for %u, defaulting to GL_ARRAY_BUFFER", buffer)
     }
 
     // Save current binding
@@ -264,16 +264,16 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     
     // Restore previous binding
     glBindBuffer(target, prev_buffer);
-    CHECK_GL_ERROR;
+    CHECK_GL_ERROR
 }
 
 void glClearBufferSubData(GLenum target, GLenum internalformat, 
                          GLintptr offset, GLsizeiptr size, 
                          GLenum format, GLenum type, const void* data) {
-    LOG();
+    LOG()
     LOG_W("glClearBufferSubData(target=%s, internalformat=%s, offset=%ld, size=%ld, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat), 
-          offset, size, glEnumToString(format), glEnumToString(type), data);
+          offset, size, glEnumToString(format), glEnumToString(type), data)
 
     // Get the currently bound buffer for this target
     GLint current_buffer = 0;
@@ -309,10 +309,10 @@ void glClearBufferSubData(GLenum target, GLenum internalformat,
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, 
                              GLintptr offset, GLsizeiptr size, 
                              GLenum format, GLenum type, const void* data) {
-    LOG();
+    LOG()
     LOG_W("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%ld, size=%ld, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), offset, size, 
-          glEnumToString(format), glEnumToString(type), data);
+          glEnumToString(format), glEnumToString(type), data)
 
     // Find the real buffer ID
     GLuint real_buffer = find_real_buffer(buffer);
