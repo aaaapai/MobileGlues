@@ -25,6 +25,24 @@ extern unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
 
 extern unordered_map<GLuint, BufferMapping> g_active_mappings;
 
+static GLenum get_binding_query(GLenum target) {
+    switch(target) {
+        case GL_ARRAY_BUFFER:          return GL_ARRAY_BUFFER_BINDING;
+        case GL_ELEMENT_ARRAY_BUFFER:  return GL_ELEMENT_ARRAY_BUFFER_BINDING;
+        case GL_PIXEL_PACK_BUFFER:     return GL_PIXEL_PACK_BUFFER_BINDING;
+        case GL_PIXEL_UNPACK_BUFFER:   return GL_PIXEL_UNPACK_BUFFER_BINDING;
+        case GL_COPY_WRITE_BUFFER:     return GL_COPY_WRITE_BUFFER_BINDING;
+        case GL_COPY_READ_BUFFER:      return GL_COPY_READ_BUFFER_BINDING;
+        case GL_UNIFORM_BUFFER:        return GL_UNIFORM_BUFFER_BINDING;
+        case GL_SHADER_STORAGE_BUFFER: return GL_SHADER_STORAGE_BUFFER_BINDING;
+        case GL_TRANSFORM_FEEDBACK_BUFFER: return GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+        case GL_ATOMIC_COUNTER_BUFFER: return GL_ATOMIC_COUNTER_BUFFER_BINDING;
+        case GL_DRAW_INDIRECT_BUFFER:  return GL_DRAW_INDIRECT_BUFFER_BINDING;
+        case GL_DISPATCH_INDIRECT_BUFFER: return GL_DISPATCH_INDIRECT_BUFFER_BINDING;
+        default:                       return 0;
+    }
+}
+
 #define SAVE_BUFFER_CTX(target) \
     GLint prevbuf = 0; \
     glGetIntegerv(target##_BINDING, &prevbuf); \
