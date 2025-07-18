@@ -8,6 +8,9 @@
 #include "GL/gl.h"
 #include "ankerl/unordered_dense.h"
 
+template<typename T>
+void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
