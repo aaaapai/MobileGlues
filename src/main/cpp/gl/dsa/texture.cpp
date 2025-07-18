@@ -9,17 +9,17 @@
 #include <android/log.h>
 #endif
 
-#include "ankerl/unordered_dense.h"
+#include <ankerl/unordered_dense.h>
 
-#include "GL/gl.h"
-#include "../gles/gles.h"
-#include "log.h"
-#include "../gles/loader.h"
-#include "../includes.h"
-#include "glsl/glsl_for_es.h"
-#include "mg.h"
-#include "framebuffer.h"
-#include "pixel.h"
+#include <GL/gl.h>
+#include "../../gles/gles.h"
+#include "../log.h"
+#include "../../gles/loader.h"
+#include "../../includes.h"
+#include "../glsl/glsl_for_es.h"
+#include "../mg.h"
+#include "../framebuffer.h"
+#include "../pixel.h"
 
 #define DEBUG 0
 
