@@ -125,3 +125,55 @@ void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, G
 
     return ptr;
 }
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_W("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data);
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(get_binding_query(target));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target));
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer);
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size);
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer");
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+} //DeepSeek
