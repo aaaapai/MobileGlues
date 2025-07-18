@@ -26,7 +26,7 @@ struct framebuffer_t {
     struct attachment_t* draw_attachment;
     struct attachment_t* read_attachment;
 };
-struct framebuffer_t* bound_framebuffer;
+extern struct framebuffer_t* bound_framebuffer;
 
 GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 
