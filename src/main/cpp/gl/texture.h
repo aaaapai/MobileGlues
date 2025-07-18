@@ -5,6 +5,8 @@
 #ifndef MOBILEGLUES_TEXTURE_H
 #define MOBILEGLUES_TEXTURE_H
 
+#include "GL/gl.h"
+#include "ankerl/unordered_dense.h"
 
 ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 GLuint bound_texture = 0;
@@ -14,9 +16,6 @@ int nlevel(int size, int level);
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "GL/gl.h"
-#include "ankerl/unordered_dense.h"
 
 struct texture_t {
     GLenum target;
