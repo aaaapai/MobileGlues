@@ -5,6 +5,12 @@
 #ifndef MOBILEGLUES_TEXTURE_H
 #define MOBILEGLUES_TEXTURE_H
 
+
+ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+GLuint bound_texture = 0;
+void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
+int nlevel(int size, int level);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
