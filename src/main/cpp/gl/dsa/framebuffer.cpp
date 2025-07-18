@@ -39,27 +39,100 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
 
 void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs) {
     LOG()
-    
+    LOG_D("glNamedFramebufferDrawBuffers, framebuffer = %u, n = %d", framebuffer, n)
+
+    INIT_CHECK_GL_ERROR
+
+    // 检查draw buffer数量是否超过硬件限制
+    if (n > MAX_DRAW_BUFFERS) {
+        LOG_E("ERROR: Number of draw buffers (%d) exceeds MAX_DRAW_BUFFERS (%d)", n, MAX_DRAW_BUFFERS)
+        return;
+    }
+
+    // 获取或创建framebuffer对象
+    framebuffer_t* fb = bound_framebuffer;
+    if (!fb || fb->id != framebuffer) {
+        // 这里简化处理，实际应该有个framebuffer管理表
+        fb = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+        memset(fb, 0, sizeof(framebuffer_t));
+        fb->id = framebuffer;
+        bound_framebuffer = fb;
+    }
+
+    // 更新draw attachments
+    if (!fb->draw_attachment) {
+        fb->draw_attachment = (attachment_t*)malloc(sizeof(attachment_t) * n);
+        memset(fb->draw_attachment, 0, sizeof(attachment_t) * n);
+    }
+
+    // 保存当前绑定状态
     GLint prevFBO;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
-    
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFBO);
+
+    // 绑定并设置draw buffers
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     glDrawBuffers(n, bufs);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
-    
+
+    // 更新attachment信息
+    for (GLsizei i = 0; i < n; ++i) {
+        fb->draw_attachment[i].target = GL_DRAW_FRAMEBUFFER;
+        fb->draw_attachment[i].attachment = bufs[i];
+    }
+
+    // 恢复之前的绑定
+    if (prevFBO != (GLint)framebuffer) {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFBO);
+    }
+
     CHECK_GL_ERROR
-}
+} //DeepSeek*2
 
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
     LOG()
-    
-    GLint prevFBO;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    LOG_D("glNamedFramebufferTexture: fb=%u, attach=0x%X, tex=%u, level=%d", 
+          framebuffer, attachment, texture, level)
+
+    INIT_CHECK_GL_ERROR
+
+    // 获取或创建framebuffer对象
+    framebuffer_t* fb = bound_framebuffer;
+    if (!fb || fb->id != framebuffer) {
+        fb = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+        memset(fb, 0, sizeof(framebuffer_t));
+        fb->id = framebuffer;
+        bound_framebuffer = fb;
+    }
+
+    // 确定attachment类型(READ/DRAW)
+    GLenum target = (attachment == GL_DEPTH_ATTACHMENT || 
+                    attachment == GL_STENCIL_ATTACHMENT ||
+                    attachment == GL_DEPTH_STENCIL_ATTACHMENT) 
+                   ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
+
+    // 更新attachment结构
+    attachment_t* attach = (target == GL_DRAW_FRAMEBUFFER) ? 
+                          &fb->draw_attachment : &fb->read_attachment;
+    if (!attach) {
+        attach = (attachment_t*)malloc(sizeof(attachment_t));
+        memset(attach, 0, sizeof(attachment_t));
+        if (target == GL_DRAW_FRAMEBUFFER) {
+            fb->draw_attachment = attach;
+        } else {
+            fb->read_attachment = attach;
+        }
+    }
+
+    attach->textarget = GL_TEXTURE_2D;
+    attach->texture = texture;
+    attach->level = level;
+    attach->attachment = attachment;
+
+    // 使用rebind_framebuffer管理状态
+    rebind_framebuffer(fb, target);
+
+    // 执行实际GL操作
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
-    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
-    
+
     CHECK_GL_ERROR
 }
 
