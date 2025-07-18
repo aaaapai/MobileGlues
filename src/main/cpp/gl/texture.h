@@ -8,8 +8,6 @@
 #include "GL/gl.h"
 #include "ankerl/unordered_dense.h"
 
-ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
-GLuint bound_texture = 0;
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
 int nlevel(int size, int level);
 
