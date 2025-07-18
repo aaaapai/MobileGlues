@@ -113,86 +113,72 @@ void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) 
 }
 
 void glBindTextureUnit(GLuint unit, GLuint texture) {
-    LOG()
-    LOG_D("glBindTextureUnit, unit: %d, texture: %d", unit, texture)
-    INIT_CHECK_GL_ERROR
+    LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture);
     
-    // First bind the texture to the specified texture unit
+    // 激活纹理单元
     GLES.glActiveTexture(GL_TEXTURE0 + unit);
-    CHECK_GL_ERROR_NO_INIT
     
-    // Then bind the texture to the currently bound target
+    // 处理纹理绑定
     if (texture != 0) {
+        GLenum target = GL_TEXTURE_2D; // 默认目标
+        
+        // 检查已知纹理类型
         auto it = g_textures.find(texture);
         if (it != g_textures.end()) {
-            GLES.glBindTexture(it->second.target, texture);
-            bound_texture = texture;
+            target = it->second.target;
         } else {
-            // If texture not found in our tracking, bind to GL_TEXTURE_2D by default
-            GLES.glBindTexture(GL_TEXTURE_2D, texture);
-            bound_texture = texture;
-            // Add to our texture tracking
-            g_textures[texture] = {
-                .target = GL_TEXTURE_2D,
-                .texture = texture,
-                .format = 0,
-                .swizzle_param = {0}
-            };
+            // 未知纹理自动注册为2D纹理
+            g_textures[texture] = {GL_TEXTURE_2D, texture, 0, {0}};
         }
+        
+        glBindTexture(target, texture);
     } else {
-        // If texture is 0, unbind current texture
-        GLES.glBindTexture(GL_TEXTURE_2D, 0);
-        bound_texture = 0;
+        // 解绑纹理
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
     
-    CHECK_GL_ERROR_NO_INIT
-}
-
-void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
-    LOG()
-    LOG_D("glTextureParameteriv, texture: %d, pname: %s, param: %d", 
-          texture, glEnumToString(pname), param ? *param : 0)
-    
-    GLint prevTexture;
-    GLenum target = GL_TEXTURE_2D; // 默认目标
-    
-    // 从纹理跟踪器中获取实际目标类型
-    auto it = g_textures.find(texture);
-    if (it != g_textures.end()) {
-        target = it->second.target;
-    }
-    
-    glGetIntegerv(get_binding_for_target(target), &prevTexture);
-    glBindTexture(target, texture);
-    
-    if (pname == GL_TEXTURE_SWIZZLE_RGBA) {
-        // 特殊处理swizzle参数
-        if (param) {
-            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_R, &param[0]);
-            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_G, &param[1]);
-            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_B, &param[2]);
-            glTexParameteriv(target, GL_TEXTURE_SWIZZLE_A, &param[3]);
-            
-            // 更新纹理状态
-            g_textures[texture].swizzle_param[0] = param[0];
-            g_textures[texture].swizzle_param[1] = param[1];
-            g_textures[texture].swizzle_param[2] = param[2];
-            g_textures[texture].swizzle_param[3] = param[3];
-        }
-    } else {
-        glTexParameteriv(target, pname, param);
-    }
-    
-    glBindTexture(target, prevTexture);
+    bound_texture = texture; // 更新绑定状态
     CHECK_GL_ERROR
 } //DeepSeek
+
+void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
+
+    LOG()
+    LOG_D("glTextureParameteriv, tex: %u, pname: %s, param: %d", 
+          texture, glEnumToString(pname), param ? *param : 0)
+
+    // 获取纹理目标类型（默认为2D纹理）
+    GLenum target = GL_TEXTURE_2D;
+    auto texIt = g_textures.find(texture);
+    if (texIt != g_textures.end()) {
+        target = texIt->second.target;
+    }
+
+    // 保存并绑定纹理
+    GLint prevTex;
+    GLES.glGetIntegerv(get_binding_for_target(target), &prevTex);
+    GLES.glBindTexture(target, texture);
+
+    // 设置参数
+    if (pname == GL_TEXTURE_SWIZZLE_RGBA && param) {
+        GLES.glTexParameteriv(target, pname, param);
+        memcpy(g_textures[texture].swizzle_param, param, 4*sizeof(GLint));
+    } else {
+        GLES.glTexParameteriv(target, pname, param);
+    }
+
+    // 恢复纹理绑定
+    GLES.glBindTexture(target, prevTex);
+    CHECK_GL_ERROR;
+}
+
 
 void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, 
                             GLint yoffset, GLint x, GLint y, 
                             GLsizei width, GLsizei height) {
     LOG()
     LOG_D("glCopyTextureSubImage2D, tex: %d, level: %d, xoff: %d, yoff: %d", 
-          texture, level, xoffset, yoffset);
+          texture, level, xoffset, yoffset)
     
     GLint prevTexture;
     GLenum target = GL_TEXTURE_2D;
@@ -219,7 +205,7 @@ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
                             GLsizei width, GLsizei height) {
     LOG()
     LOG_D("glCopyTextureSubImage3D, tex: %d, level: %d, zoff: %d",
-          texture, level, zoffset);
+          texture, level, zoffset)
     
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
@@ -237,7 +223,7 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
                             GLint x, GLint y, GLsizei width) {
     LOG()
     LOG_D("glCopyTextureSubImage1D, tex: %d, level: %d, xoff: %d, width: %d",
-          texture, level, xoffset, width);
+          texture, level, xoffset, width)
 
     GLint prevTexture;
     GLenum target = GL_TEXTURE_1D;
@@ -256,49 +242,38 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
     CHECK_GL_ERROR
 }
 
-// 全局状态缓存
 static struct {
-    GLuint activeUnit = 0;
-    GLuint boundSamplers[32] = {0}; // 假设最大32个纹理单元
+    GLint activeUnit = 0;  // 使用GLint避免类型转换
+    GLuint boundSamplers[GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS] = {0};
 } s_samplerState;
-
 void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
-    // 参数检查
-    if (count < 0) {
-        LOG_E("Invalid count: %d", count);
+
+    LOG()
+    LOG_D("glBindSamplers, first: %u, count: %d, samplers: %p", first, count, samplers)
+
+    // 快速参数检查
+    if (count < 0 || first + count > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+        LOG_E("ERROR: Invalid sampler binding range: first=%u count=%d", first, count)
         return;
     }
 
-    // 保存当前活跃纹理单元
-    GLint prevActiveUnit;
-    glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActiveUnit);
-    prevActiveUnit -= GL_TEXTURE0; // 转换为索引值
-
-    // 绑定采样器
+    // 批量绑定采样器
     for (GLsizei i = 0; i < count; ++i) {
         const GLuint unit = first + i;
         const GLuint sampler = samplers ? samplers[i] : 0;
-
-        // 只有状态变化时才执行绑定
+        
         if (s_samplerState.boundSamplers[unit] != sampler) {
             if (s_samplerState.activeUnit != unit) {
                 GLES.glActiveTexture(GL_TEXTURE0 + unit);
                 s_samplerState.activeUnit = unit;
             }
-            
             GLES.glBindSampler(unit, sampler);
             s_samplerState.boundSamplers[unit] = sampler;
         }
     }
 
-    // 恢复之前活跃的纹理单元
-    if (s_samplerState.activeUnit != prevActiveUnit) {
-        GLES.glActiveTexture(GL_TEXTURE0 + prevActiveUnit);
-        s_samplerState.activeUnit = prevActiveUnit;
-    }
-
-    CHECK_GL_ERROR;
-} //DeepSeek
+    CHECK_GL_ERROR
+} //DeepSeek*2
 
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, 
                         GLsizei width, GLsizei height, GLenum format, 
