@@ -329,7 +329,7 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
     GLenum binding = get_binding_query(target);
     if (!binding || g_active_mappings.count(g_bound_buffers[target])) return;
 
-    SAVE_BUFFER_CTX(GL_COPY_WRITE);
+    SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER);
     
     // Create temp buffer with desired data
     GLuint tempBuf;
@@ -342,7 +342,7 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
     // Cleanup
     if (!data) free(const_cast<void*>(GLES.glMapBufferRange(GL_COPY_WRITE_BUFFER, 0, size, GL_MAP_READ_BIT)));
     GLES.glDeleteBuffers(1, &tempBuf);
-    RESTORE_BUFFER_CTX(GL_COPY_WRITE);
+    RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER);
 } //dk
 
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, 
