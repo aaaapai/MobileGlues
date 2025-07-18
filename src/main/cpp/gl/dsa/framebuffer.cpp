@@ -9,7 +9,6 @@
 
 #define DEBUG 0
 
-struct framebuffer_t* bound_framebuffer;
 extern GLint MAX_DRAW_BUFFERS;
 extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
 extern GLint getMaxDrawBuffers();
