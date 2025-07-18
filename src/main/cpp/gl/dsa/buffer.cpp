@@ -136,40 +136,48 @@ void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void* *params) {
 }
 
 void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void* data) {
-    LOG()
-    LOG_D("glGetNamedBufferSubData(buffer=%u, offset=%ld, size=%ld, data=%p)",
-          buffer, offset, size, data)
-    
+    LOG_D("glGetNamedBufferSubData, buffer: %u, offset: %lld, size: %lld, data: %p", 
+          buffer, (long long)offset, (long long)size, data)
+
     INIT_CHECK_GL_ERROR
-    
-    // 1. 查找真实缓冲区ID
-    GLuint real_buffer = find_real_buffer(buffer);
-    if (!real_buffer) {
-        LOG_E("ERROR: Buffer %u not found in mapping table", buffer)
-        return;
+
+    // 查找当前绑定的缓冲区
+    GLenum target = 0;
+    for (const auto& pair : g_bound_buffers) {
+        if (pair.second == buffer) {
+            target = pair.first;
+            break;
+        }
     }
 
-    // 2. 保存当前COPY_READ_BUFFER绑定状态
-    SAVE_BUFFER_CTX(GL_COPY_READ_BUFFER)
-    
-    // 3. 执行数据获取操作
-    if (data) {
-        // 方法2：回退方案 - 通过映射缓冲区获取数据
-        void* ptr = GLES.glMapBufferRange(GL_COPY_READ_BUFFER, offset, size, GL_MAP_READ_BIT);
-        if (ptr) {
-            memcpy(data, ptr, size);
-            GLES.glUnmapBuffer(GL_COPY_READ_BUFFER);
-        } else {
-            LOG_E("ERROR: Failed to map buffer for reading")
-        }
-    } else {
-        LOG_E("ERROR: Invalid data pointer (NULL)")
+    // 保存当前绑定状态
+    GLint prevbuf = 0;
+    GLenum bindingQuery = get_binding_query(target);
+    if (bindingQuery != 0) {
+        glGetIntegerv(bindingQuery, &prevbuf);
+        CHECK_GL_ERROR_NO_INIT
     }
-    
-    // 4. 恢复状态
-    RESTORE_BUFFER_CTX(GL_COPY_READ_BUFFER)
-    
+
+    // 绑定目标缓冲区
+    glBindBuffer(target, buffer);
     CHECK_GL_ERROR_NO_INIT
+
+    // 使用glGetBufferSubData的替代方法，因为GLES.glGetBufferSubData不可用
+    // 替代方案: 使用映射缓冲区的方式读取数据
+    void* mappedData = GLES.glMapBufferRange(target, offset, size, GL_MAP_READ_BIT);
+    if (mappedData) {
+        memcpy(data, mappedData, size);
+        GLES.glUnmapBuffer(target);
+        CHECK_GL_ERROR_NO_INIT
+    } else {
+        LOG_E("ERROR: Failed to map buffer %u for reading", buffer)
+    }
+
+    // 恢复之前的绑定状态
+    if (bindingQuery != 0) {
+        glBindBuffer(target, prevbuf);
+        CHECK_GL_ERROR_NO_INIT
+    }
 }
 
 void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
