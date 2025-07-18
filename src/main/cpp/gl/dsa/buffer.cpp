@@ -321,41 +321,29 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
     glBindBuffer(GL_COPY_WRITE_BUFFER, prev_binding);
 }
 
-void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, 
-                         GLsizeiptr size, GLenum format, GLenum type, const void *data) {
-    LOG()
-    LOG_D("glClearBufferSubData(target=%s, internalformat=%s, offset=%p, size=%zi, format=%s, type=%s, data=%p)",
-          glEnumToString(target), glEnumToString(internalformat), 
-          (void*)offset, size, glEnumToString(format), glEnumToString(type), data)
-    
-    INIT_CHECK_GL_ERROR
-    
-    // 1. 获取当前绑定缓冲区
-    GLint current_buffer = 0;
-    glGetIntegerv(get_binding_query(target), &current_buffer);
-    if (current_buffer == 0) {
-        LOG_E("No buffer bound to target %s", glEnumToString(target))
-        return;
-    }
+void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
+                         GLsizeiptr size, GLenum format, GLenum type, const void* data) {
+    LOG_D("glClearBufferSubData, target: %u, offset: %lld, size: %lld, data: %p",
+          target, (long long)offset, (long long)size, data);
 
-    // 2. 查找真实缓冲区ID
-    GLuint real_buffer = find_real_buffer(current_buffer);
-    if (!real_buffer) {
-        real_buffer = current_buffer;
-        LOG_D("Using buffer %d directly (not in mapping table)", real_buffer)
-    }
+    GLenum binding = get_binding_query(target);
+    if (!binding || g_active_mappings.count(g_bound_buffers[target])) return;
 
-    // 3. 保存当前COPY_WRITE_BUFFER绑定状态
-    SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
+    SAVE_BUFFER_CTX(GL_COPY_WRITE);
     
-    // 4. 执行清除操作
-    GLES.glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
+    // Create temp buffer with desired data
+    GLuint tempBuf;
+    GLES.glGenBuffers(1, &tempBuf);
+    GLES.glBufferData(GL_COPY_WRITE_BUFFER, size, data ? data : calloc(1, size), GL_STATIC_DRAW);
     
-    // 5. 恢复状态
-    RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
+    // Copy to target
+    GLES.glCopyBufferSubData(GL_COPY_WRITE_BUFFER, target, 0, offset, size);
     
-    CHECK_GL_ERROR
-} //DeepSeek*2
+    // Cleanup
+    if (!data) free(const_cast<void*>(GLES.glMapBufferRange(GL_COPY_WRITE_BUFFER, 0, size, GL_MAP_READ_BIT)));
+    GLES.glDeleteBuffers(1, &tempBuf);
+    RESTORE_BUFFER_CTX(GL_COPY_WRITE);
+} //dk
 
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, 
                              GLintptr offset, GLsizeiptr size,
@@ -395,5 +383,5 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
     // 5. 恢复状态
     RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
 
-    CHECK_GL_ERROR
+    CHECK_GL_ERROR_NO_INIT
 } //DeepSeek*2
