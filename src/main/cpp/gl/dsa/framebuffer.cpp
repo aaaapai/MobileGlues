@@ -58,7 +58,7 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
         glDrawBuffers(n, bufs);
     } else {
         // 需要先绑定framebuffer
-        glBindFramebuffer(GLES.GL_DRAW_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
         glDrawBuffers(n, bufs);
         
         // 恢复之前的绑定状态
