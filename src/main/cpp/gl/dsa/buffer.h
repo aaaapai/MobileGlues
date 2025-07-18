@@ -31,6 +31,14 @@ GLAPI GLAPIENTRY void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GL
 
 GLAPI GLAPIENTRY void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
 
+GLAPI GLAPIENTRY void glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
+
+GLAPI GLAPIENTRY void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
+
+GLAPI GLAPIENTRY void glClearBufferSubData (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+
+GLAPI GLAPIENTRY void glClearNamedBufferSubData (GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+
 #ifdef __cplusplus
 }
 #endif
