@@ -23,6 +23,9 @@
 
 #define DEBUG 0
 
+extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+extern GLuint bound_texture = 0;
+
 void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     LOG()
     
