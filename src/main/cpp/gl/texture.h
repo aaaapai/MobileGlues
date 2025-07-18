@@ -19,6 +19,11 @@ struct texture_t {
     GLint swizzle_param[4];
 };
 
+ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+GLuint bound_texture = 0;
+void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
+int nlevel(int size, int level);
+
 GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
 GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
