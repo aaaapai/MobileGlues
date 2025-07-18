@@ -9,6 +9,8 @@
 
 #define DEBUG 0
 
+struct framebuffer_t* bound_framebuffer;
+
 void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
     LOG()
     LOG_D("glCreateFramebuffers, n = %d", n)
