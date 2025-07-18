@@ -12,14 +12,14 @@
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
 
-extern GLint maxBufferId = 0;
-extern GLint maxArrayId = 0;
+extern GLint maxBufferId;
+extern GLint maxArrayId;
 
 extern unordered_map<GLuint, GLuint> g_gen_buffers;
 extern unordered_map<GLuint, GLuint> g_gen_arrays;
 
 extern unordered_map<GLenum, GLuint> g_bound_buffers;
-extern GLuint bound_array = 0;
+extern GLuint bound_array;
 // fake array - fake ibo
 extern unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
 
