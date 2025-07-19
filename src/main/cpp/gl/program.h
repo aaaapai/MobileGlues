@@ -17,7 +17,9 @@ GLAPI GLAPIENTRY void glLinkProgram(GLuint program);
 
 GLAPI GLAPIENTRY void glGetProgramiv(GLuint program, GLenum pname, GLint *params);
 
-//GLAPI GLAPIENTRY GLint glGetUniformLocation(GLuint program, const GLchar *name);
+GLAPI GLAPIENTRY GLint glGetUniformLocation(GLuint program, const GLchar *name);
+
+GLAPI GLAPIENTRY void glUseProgram (GLuint program);
 
 #ifdef __cplusplus
 }
