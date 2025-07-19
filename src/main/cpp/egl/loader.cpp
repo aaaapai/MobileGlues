@@ -71,7 +71,7 @@ void init_target_egl() {
             goto cleanup;
         }
     } else {
-        if (egl_eglBindAPI(EGL_OPENGL_API) != EGL_TRUE) {
+        if (egl_eglBindAPI(EGL_OPENGL_ES_API) != EGL_TRUE) {
             LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
             goto cleanup;
         }
