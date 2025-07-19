@@ -26,7 +26,8 @@ void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
 
 void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
     LOG()
-    
+   LOG_D("glNamedFramebufferDrawBuffer, framebuffer = %u, buf = 0x%x", framebuffer, buf)
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     
@@ -38,6 +39,8 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
 }
 
 void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs) {
+
+    LOG()
     LOG_D("glNamedFramebufferDrawBuffers, framebuffer: %u, n: %d, bufs: %p", framebuffer, n, bufs)
 
     // 保存当前绑定的帧缓冲区
@@ -56,8 +59,10 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 }
 
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
+
+    LOG()
     LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
-          framebuffer, attachment, texture, level);
+          framebuffer, attachment, texture, level)
 
     // 验证 attachment 参数是否合法
     if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
