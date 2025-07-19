@@ -116,12 +116,13 @@ void DrawDepthClearTri() {
     GLES.glColorMask(prevColorMask[0], prevColorMask[1], prevColorMask[2], prevColorMask[3]);
 }
 
-/*
+static EGLDisplay eglDisplay = EGL_NO_DISPLAY;
+static EGLSurface eglSurface = EGL_NO_SURFACE;
 void glClear(GLbitfield mask) {
-    LOG();
-    LOG_D("glClear, mask = 0x%x", mask);
+    LOG()
+    LOG_D("glClear, mask = 0x%x", mask)
 
-    if (global_settings.angle == AngleMode::Enabled &&
+    /*if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
         fabs(currentDepthValue - 1.0f) <= 0.001f) {
         if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
@@ -134,13 +135,25 @@ void glClear(GLbitfield mask) {
         }
         // Clear again
         GLES.glClear(mask);
-    } else {
+    } else {*/
+        if (mask == (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)) {
+           if (eglDisplay != EGL_NO_DISPLAY && eglSurface != EGL_NO_SURFACE) {
+              egl_eglSurfaceAttrib(eglDisplay, eglSurface, 
+                           EGL_SWAP_BEHAVIOR, EGL_BUFFER_DESTROYED);
+              return;
+           }
+        }
         GLES.glClear(mask);
-    }
 
-    CHECK_GL_ERROR;
+        if (mask & GL_DEPTH_BUFFER_BIT) {
+           GLES.glEnable(GL_DEPTH_TEST);
+           GLES.glDepthFunc(GL_LEQUAL);
+        }
+    //}
+
+    CHECK_GL_ERROR
 }
-*/
+
 
 void glHint(GLenum target, GLenum mode) {
     LOG()
