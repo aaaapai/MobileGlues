@@ -657,10 +657,10 @@ STUB_FUNCTION_HEAD(void, glGetTransformFeedbackiv, GLuint xfb, GLenum pname, GLi
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki_v, GLuint xfb, GLenum pname, GLuint index, GLint* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki_v,xfb,pname,index,param)
 STUB_FUNCTION_HEAD(void, glGetTransformFeedbacki64_v, GLuint xfb, GLenum pname, GLuint index, GLint64* param); STUB_FUNCTION_END_NO_RETURN(void, glGetTransformFeedbacki64_v,xfb,pname,index,param)
 //STUB_FUNCTION_HEAD(void, glCreateBuffers, GLsizei n, GLuint* buffers); STUB_FUNCTION_END_NO_RETURN(void, glCreateBuffers,n,buffers)
-STUB_FUNCTION_HEAD(void, glNamedBufferStorage, GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferStorage,buffer,size,data,flags)
+//STUB_FUNCTION_HEAD(void, glNamedBufferStorage, GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferStorage,buffer,size,data,flags)
 STUB_FUNCTION_HEAD(void, glNamedBufferData, GLuint buffer, GLsizeiptr size, const void* data, GLenum usage); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferData,buffer,size,data,usage)
 //STUB_FUNCTION_HEAD(void, glNamedBufferSubData, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubData,buffer,offset,size,data)
-STUB_FUNCTION_HEAD(void, glCopyNamedBufferSubData, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size); STUB_FUNCTION_END_NO_RETURN(void, glCopyNamedBufferSubData,readBuffer,writeBuffer,readOffset,writeOffset,size)
+//STUB_FUNCTION_HEAD(void, glCopyNamedBufferSubData, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size); STUB_FUNCTION_END_NO_RETURN(void, glCopyNamedBufferSubData,readBuffer,writeBuffer,readOffset,writeOffset,size)
 //STUB_FUNCTION_HEAD(void, glClearNamedBufferData, GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferData,buffer,internalformat,format,type,data)
 //STUB_FUNCTION_HEAD(void, glClearNamedBufferSubData, GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glClearNamedBufferSubData,buffer,internalformat,offset,size,format,type,data)
 STUB_FUNCTION_HEAD(GLboolean, glUnmapNamedBuffer, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(GLboolean, glUnmapNamedBuffer,buffer)
@@ -2625,7 +2625,7 @@ GLAPI GLAPIENTRY void glProgramUniformMatrix2fvEXT(GLuint program, GLint locatio
 GLAPI GLAPIENTRY void glVertex4b(GLbyte x, GLbyte y, GLbyte z, GLbyte w) { LOG_W("Stub: glVertex4b") }
 GLAPI GLAPIENTRY void glMultiTexCoord2uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord2uiv") }
 GLAPI GLAPIENTRY void glTexCoord3ui(GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glTexCoord3ui") }
-GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBuffer") }
+//GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBuffer") }
 GLAPI GLAPIENTRY void glProgramUniform3fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform3fvEXT") }
 GLAPI GLAPIENTRY void glVertex4uiv(const GLuint *v) { LOG_W("Stub: glVertex4uiv") }
 GLAPI GLAPIENTRY void glGetClipPlanex(GLenum plane, GLfixed *equation) { LOG_W("Stub: glGetClipPlanex") }
