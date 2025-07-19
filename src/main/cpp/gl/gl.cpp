@@ -22,6 +22,14 @@ void glClearDepth(GLclampd depth) {
     CHECK_GL_ERROR
 }
 
+void glDepthMask(GLboolean flag) {
+    LOG()
+    LOG_D("glDepthMask(%d)", flag)
+    
+    GLES.glDepthMask(flag);
+    CHECK_GL_ERROR
+}
+
 static GLuint g_depthClearProgram = 0;
 static GLuint g_depthClearVAO = 0;
 static GLuint g_depthClearVBO = 0;
