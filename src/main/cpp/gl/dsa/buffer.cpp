@@ -428,10 +428,17 @@ static void registerBufferMappingSupport(GLuint buffer, GLbitfield flags) {
     }
     
     // 新增注册项
+    BufferMappingInfo* newInfos = (BufferMappingInfo*)realloc(mappingInfos, 
+                                  (mappingInfoCount + 1) * sizeof(BufferMappingInfo));
+    if (!newInfos) {
+        LOG_D("Failed to allocate buffer mapping info");
+        return;
+    }
+    
+    mappingInfos = newInfos;
+    mappingInfos[mappingInfoCount].buffer = buffer;
+    mappingInfos[mappingInfoCount].flags = flags;
     mappingInfoCount++;
-    mappingInfos = realloc(mappingInfos, mappingInfoCount * sizeof(BufferMappingInfo));
-    mappingInfos[mappingInfoCount-1].buffer = buffer;
-    mappingInfos[mappingInfoCount-1].flags = flags;
 }
 void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG_D("glNamedBufferStorage: buffer = %u, size = %lld, data = %p, flags = 0x%X", buffer, (long long)size, data, flags)
@@ -468,7 +475,7 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbi
 
     // 分配存储空间
     glBufferData(GL_COPY_WRITE_BUFFER, size, data, usage);
-    CHECK_GL_ERROR()
+    CHECK_GL_ERROR_NO_INIT
 
     // 如果需要映射支持，记录缓冲区特性
     if (flags & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
