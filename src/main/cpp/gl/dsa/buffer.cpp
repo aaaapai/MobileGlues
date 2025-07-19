@@ -459,10 +459,10 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbi
         if (flags & GL_MAP_READ_BIT) glesFlags |= GL_MAP_READ_BIT;
         if (flags & GL_MAP_WRITE_BIT) glesFlags |= GL_MAP_WRITE_BIT;
         if (flags & GL_MAP_PERSISTENT_BIT) {
-            LOG_W("warning: glNamedBufferStorage - GL_MAP_PERSISTENT_BIT not fully supported")
+            LOG_W("Warning: glNamedBufferStorage - GL_MAP_PERSISTENT_BIT not fully supported")
         }
         if (flags & GL_MAP_COHERENT_BIT) {
-            LOG_W("warning: glNamedBufferStorage - GL_MAP_COHERENT_BIT not supported")
+            LOG_W("Warning: glNamedBufferStorage - GL_MAP_COHERENT_BIT not supported")
         }
     }
 
@@ -479,4 +479,25 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbi
 
     // 恢复之前的绑定状态
     RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
+}
+
+void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, 
+                             GLintptr readOffset, GLintptr writeOffset, 
+                             GLsizeiptr size) {
+    // 保存当前绑定状态
+    GLint prevReadBuf = 0, prevWriteBuf = 0;
+    glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevReadBuf);
+    glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevWriteBuf);
+    
+    // 绑定源缓冲区和目标缓冲区
+    glBindBuffer(GL_COPY_READ_BUFFER, readBuffer);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, writeBuffer);
+    
+    // 执行数据复制
+    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 
+                       readOffset, writeOffset, size);
+    
+    // 恢复之前的绑定状态
+    glBindBuffer(GL_COPY_READ_BUFFER, prevReadBuf);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, prevWriteBuf);
 }
