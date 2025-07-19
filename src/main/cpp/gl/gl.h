@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 GLAPI GLAPIENTRY void glClearDepth( GLclampd depth );
+GLAPI GLAPIENTRY void glDepthMask (GLboolean flag);
 GLAPI GLAPIENTRY void glHint( GLenum target, GLenum mode );
 GLAPI GLAPIENTRY void glDepthMask (GLboolean flag);
 GLAPI GLAPIENTRY void glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
