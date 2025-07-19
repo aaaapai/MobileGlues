@@ -58,7 +58,8 @@ static GLenum get_binding_for_target(GLenum target) {
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     LOG()
-    
+    LOG_D("glCreateTextures, target = 0x%x, n = %d, textures = %p", target, n, textures)
+
     GLES.glGenTextures(n, textures);
     
     for (GLsizei i = 0; i < n; i++) {
@@ -75,7 +76,8 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
 
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
-    
+    LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
+
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
     
@@ -88,7 +90,8 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
 
 void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params) {
     LOG()
-    
+    LOG_D("glTextureParameterIiv, texture = %u, pname = 0x%x, params = %p", texture, pname, params)
+
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
     
@@ -101,7 +104,8 @@ void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params) {
 
 void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) {
     LOG()
-    
+    LOG_D("glTextureParameterIuiv, texture = %u, pname = 0x%x, params = %p", texture, pname, params)
+
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
     
@@ -113,7 +117,8 @@ void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) 
 }
 
 void glBindTextureUnit(GLuint unit, GLuint texture) {
-    LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture);
+    LOG()
+    LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture)
     
     // 激活纹理单元
     GLES.glActiveTexture(GL_TEXTURE0 + unit);
@@ -278,6 +283,10 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, 
                         GLsizei width, GLsizei height, GLenum format, 
                         GLenum type, const void *pixels) {
+
+    LOG()
+    LOG_D("glTextureSubImage2D, texture = %u, level = %d, xoffset = %d, yoffset = %d, width = %d, height = %d, format = 0x%x, type = 0x%x, pixels = %p", texture, level, xoffset, yoffset, width, height, format, type, pixels)
+    
     // 保存当前绑定的纹理以便后续恢复
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
