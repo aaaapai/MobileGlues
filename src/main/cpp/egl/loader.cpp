@@ -20,7 +20,6 @@ static EGLContext eglContext = EGL_NO_CONTEXT;
 void init_target_egl() {
 
     LOAD_EGL(eglGetProcAddress);
-    LOAD_EGL(eglSurfaceAttrib);
     LOAD_EGL(eglBindAPI);
     LOAD_EGL(eglInitialize);
     LOAD_EGL(eglGetDisplay);
@@ -43,8 +42,8 @@ void init_target_egl() {
             EGL_DEPTH_SIZE, 24,
             EGL_ALPHA_MASK_SIZE, 8,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
-            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+            EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
             EGL_NONE
     };
 
@@ -66,9 +65,16 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (egl_eglBindAPI(EGL_OPENGL_ES_API) != EGL_TRUE) {
-        LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
-        goto cleanup;
+    if (strncmp(getenv("TAG_RENDERER"), "opengles3_desktopgl", 18) == 0) {
+        if (egl_eglBindAPI(EGL_OPENGL_API) != EGL_TRUE) {
+            LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
+            goto cleanup;
+        }
+    } else {
+        if (egl_eglBindAPI(EGL_OPENGL_API) != EGL_TRUE) {
+            LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
+            goto cleanup;
+        }
     }
 
     if (egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound) != EGL_TRUE) {
