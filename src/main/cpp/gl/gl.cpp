@@ -139,6 +139,7 @@ void glClear(GLbitfield mask) {
         // Clear again
         GLES.glClear(mask);
     } else {*/
+        LOAD_EGL(eglSurfaceAttrib);
         if (mask == (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)) {
            if (eglDisplay != EGL_NO_DISPLAY && eglSurface != EGL_NO_SURFACE) {
               egl_eglSurfaceAttrib(eglDisplay, eglSurface, 
