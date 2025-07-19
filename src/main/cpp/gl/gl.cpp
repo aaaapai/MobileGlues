@@ -2,6 +2,9 @@
 // Created by Swung0x48 on 2024/10/8.
 //
 
+#include "../egl/loader.h"
+#include "../gles/loader.h"
+#include <EGL/egl.h>
 #include "../includes.h"
 #include "GL/gl.h"
 #include "GL/glcorearb.h"
