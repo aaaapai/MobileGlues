@@ -132,4 +132,6 @@ void glUseProgram(GLuint program) {
     LOG_D("glUseProgram(%d)", program)
     
     GLES.glUseProgram(program);
+
+    CHECK_GL_ERROR
 }
