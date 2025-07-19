@@ -65,7 +65,7 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (strncmp(getenv("TAG_RENDERER"), "opengles3_desktopgl", 18) == 0) {
+    if (strncmp(getenv("TAG_RENDERER"), "opengles3_desktopgl", 19) == 0) {
         if (egl_eglBindAPI(EGL_OPENGL_API) != EGL_TRUE) {
             LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
             goto cleanup;
