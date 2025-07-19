@@ -136,6 +136,7 @@ void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void* *params) {
 }
 
 void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void* data) {
+    LOG()
     LOG_D("glGetNamedBufferSubData, buffer: %u, offset: %lld, size: %lld, data: %p", 
           buffer, (long long)offset, (long long)size, data)
 
@@ -188,6 +189,7 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access)
 
     // 获取缓冲区大小
     GLint size = 0;
+    LOG_D("glMapNamedBuffer调用已实现的glGetNamedBufferParameteriv函数")
     glGetNamedBufferParameteriv(buffer, GL_BUFFER_SIZE, &size);
     
     // 根据访问模式转换为GLES3可用的标志
@@ -207,7 +209,7 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access)
             return nullptr;
     }
     
-    // 调用已实现的MapNamedBufferRange函数
+    LOG_D("glMapNamedBuffer调用已实现的glMapNamedBufferRange函数")
     return glMapNamedBufferRange(buffer, 0, (GLsizeiptr)size, flags);
 }
 
@@ -301,9 +303,11 @@ void glClearBufferData(GLenum target, GLenum internalformat,
 
 void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
                           GLenum format, GLenum type, const void *data) {
+
+    LOG()
     LOG_D("glClearNamedBufferData(buffer=%u, internalformat=%s, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
-          glEnumToString(format), glEnumToString(type), data);
+          glEnumToString(format), glEnumToString(type), data)
 
     // 直接使用 glClearBufferData 的 GLES3 等效实现
     GLint prev_binding = 0;
@@ -358,6 +362,10 @@ inline GLenum GetBufferBindingTarget(GLenum target) {
          : GL_ARRAY_BUFFER_BINDING;
 }
 void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
+
+    LOG()
+    LOG_D("glClearBufferSubData, target = 0x%x, offset = %d, size = %d, data = %p", target, offset, size, data)
+
     GLint prevBuf;
     glGetIntegerv(GetBufferBindingTarget(target), &prevBuf);
     
@@ -441,6 +449,7 @@ static void registerBufferMappingSupport(GLuint buffer, GLbitfield flags) {
     mappingInfoCount++;
 }
 void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags) {
+    LOG()
     LOG_D("glNamedBufferStorage: buffer = %u, size = %lld, data = %p, flags = 0x%X", buffer, (long long)size, data, flags)
 
     INIT_CHECK_GL_ERROR
@@ -491,6 +500,10 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbi
 void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, 
                              GLintptr readOffset, GLintptr writeOffset, 
                              GLsizeiptr size) {
+
+    LOG()
+    LOG_D("glCopyNamedBufferSubData, readBuffer = %u, writeBuffer = %u, readOffset = %d, writeOffset = %d, size = %d", readBuffer, writeBuffer, readOffset, writeOffset, size)
+
     // 保存当前绑定状态
     GLint prevReadBuf = 0, prevWriteBuf = 0;
     glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevReadBuf);
