@@ -180,6 +180,37 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
     }
 }
 
+void* glMapNamedBuffer(GLuint buffer, GLenum access)
+{
+
+    LOG()
+    LOG_D("glMapNamedBuffer, buffer: %u, access: 0x%X", buffer, access);
+
+    // 获取缓冲区大小
+    GLint size = 0;
+    glGetNamedBufferParameteriv(buffer, GL_BUFFER_SIZE, &size);
+    
+    // 根据访问模式转换为GLES3可用的标志
+    GLbitfield flags = 0;
+    switch(access) {
+        case GL_READ_ONLY:
+            flags = GL_MAP_READ_BIT;
+            break;
+        case GL_WRITE_ONLY:
+            flags = GL_MAP_WRITE_BIT;
+            break;
+        case GL_READ_WRITE:
+            flags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+            break;
+        default:
+            LOG_E("ERROR: glMapNamedBuffer - Invalid access mode (access: 0x%X)", access)
+            return nullptr;
+    }
+    
+    // 调用已实现的MapNamedBufferRange函数
+    return glMapNamedBufferRange(buffer, 0, (GLsizeiptr)size, flags);
+}
+
 void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     LOG()
     LOG_D("glMapNamedBufferRange, buffer = %d, offset = %d, length = %d, access = 0x%x",
