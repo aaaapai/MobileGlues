@@ -380,3 +380,72 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
 
     CHECK_GL_ERROR_NO_INIT
 } //DeepSeek*2
+
+typedef struct {
+    GLuint buffer;
+    GLbitfield flags;
+} BufferMappingInfo;
+static BufferMappingInfo* mappingInfos = NULL;
+static int mappingInfoCount = 0;
+static void registerBufferMappingSupport(GLuint buffer, GLbitfield flags) {
+    // 检查是否已注册
+    for (int i = 0; i < mappingInfoCount; i++) {
+        if (mappingInfos[i].buffer == buffer) {
+            mappingInfos[i].flags = flags;
+            return;
+        }
+    }
+    
+    // 新增注册项
+    mappingInfoCount++;
+    mappingInfos = realloc(mappingInfos, mappingInfoCount * sizeof(BufferMappingInfo));
+    mappingInfos[mappingInfoCount-1].buffer = buffer;
+    mappingInfos[mappingInfoCount-1].flags = flags;
+}
+void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags) {
+    LOG_D("glNamedBufferStorage: buffer = %u, size = %lld, data = %p, flags = 0x%X", buffer, (long long)size, data, flags)
+
+    INIT_CHECK_GL_ERROR
+
+    // 保存当前绑定状态并绑定目标缓冲区
+    SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
+
+    // 转换标志为GLES3可用的标志
+    GLbitfield glesFlags = 0;
+    
+    // 动态存储标志转换为使用模式
+    GLenum usage = GL_STATIC_DRAW;
+    if (flags & GL_DYNAMIC_STORAGE_BIT) {
+        usage = GL_DYNAMIC_DRAW;
+    }
+
+    // 处理映射相关标志
+    if (flags & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
+        // GLES3的glMapBufferRange需要GL_DYNAMIC_DRAW或GL_STREAM_DRAW
+        usage = GL_DYNAMIC_DRAW;
+        
+        // 设置GLES映射标志
+        if (flags & GL_MAP_READ_BIT) glesFlags |= GL_MAP_READ_BIT;
+        if (flags & GL_MAP_WRITE_BIT) glesFlags |= GL_MAP_WRITE_BIT;
+        if (flags & GL_MAP_PERSISTENT_BIT) {
+            LOG_W("warning: glNamedBufferStorage - GL_MAP_PERSISTENT_BIT not fully supported")
+        }
+        if (flags & GL_MAP_COHERENT_BIT) {
+            LOG_W("warning: glNamedBufferStorage - GL_MAP_COHERENT_BIT not supported")
+        }
+    }
+
+    // 分配存储空间
+    glBufferData(GL_COPY_WRITE_BUFFER, size, data, usage);
+    CHECK_GL_ERROR()
+
+    // 如果需要映射支持，记录缓冲区特性
+    if (flags & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
+        // 这里可以维护一个缓冲区特性表
+        // 记录哪些缓冲区支持映射及支持的访问模式
+        registerBufferMappingSupport(buffer, flags);
+    }
+
+    // 恢复之前的绑定状态
+    RESTORE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
+}
