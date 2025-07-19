@@ -126,3 +126,10 @@ void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
     }
     CHECK_GL_ERROR
 }
+
+void glUseProgram(GLuint program) {
+    LOG()
+    LOG_D("glUseProgram(%d)", program)
+    
+    GLES.glUseProgram(program);
+}
