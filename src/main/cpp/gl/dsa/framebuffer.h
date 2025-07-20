@@ -29,20 +29,19 @@ struct framebuffer_t {
 extern struct framebuffer_t* bound_framebuffer;
 
 GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
-
 GLAPI GLAPIENTRY void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-
 GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffer (GLuint framebuffer, GLenum buf);
-
 GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffers (GLuint framebuffer, GLsizei n, const GLenum *bufs);
-
 GLAPI GLAPIENTRY void glNamedFramebufferTexture (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-
 GLAPI GLAPIENTRY void glNamedFramebufferTextureLayer (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
-
 GLAPI GLAPIENTRY void glNamedFramebufferReadBuffer (GLuint framebuffer, GLenum src);
-
 GLAPI GLAPIENTRY void glBlitNamedFramebuffer (GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+GLAPI GLAPIENTRY void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param);
+GLAPI GLAPIENTRY void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint* params);
+GLAPI GLAPIENTRY void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* param);
+GLAPI GLAPIENTRY GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
+GLAPI GLAPIENTRY void glClearNamedFramebufferiv (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value);
+GLAPI GLAPIENTRY void glClearNamedFramebufferuiv (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value);
 
 #ifdef __cplusplus
 }
