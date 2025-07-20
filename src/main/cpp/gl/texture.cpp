@@ -1030,3 +1030,51 @@ void glPixelStorei(GLenum pname, GLint param) {
     GLES.glPixelStorei(pname, param);
     CHECK_GL_ERROR
 }
+
+void glGetCompressedTexImage(GLenum target, GLint level, void* pixels) {
+    GLint compressedSize;
+    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+    
+    // 创建临时PBO
+    GLuint pbo;
+    GLES.glGenBuffers(1, &pbo);
+    GLES.glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+    GLES.glBufferData(GL_PIXEL_PACK_BUFFER, compressedSize, NULL, GL_STATIC_READ);
+    
+    // 使用glCopyTexSubImage2D间接获取
+    GLuint tempTex;
+    GLES.glGenTextures(1, &tempTex);
+    GLES.glBindTexture(target, tempTex);
+    
+    // 复制纹理内容
+    GLES.glCopyTexSubImage2D(target, level, 0, 0, 0, 0, 
+                       width, height); // 需要先获取宽高
+    
+    // 尝试映射（可能不适用于所有实现）
+    GLES.glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT);
+    void* mapped = GLES.glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, compressedSize, 
+                                  GL_MAP_READ_BIT);
+    if(mapped) {
+        memcpy(pixels, mapped, compressedSize);
+        GLES.glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    }
+    
+    // 清理
+    GLES.glDeleteTextures(1, &tempTex);
+    GLES.glDeleteBuffers(1, &pbo);
+}
+
+void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize, void* pixels) {
+    // 首先获取压缩纹理的大小
+    GLint compressedSize = 0;
+    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+    
+    // 检查缓冲区是否足够大
+    if (bufSize < compressedSize) {
+        // 可以在这里记录错误或采取其他措施
+        return;
+    }
+    
+    // 获取纹理数据
+    glGetCompressedTexImage(target, level, pixels);
+}
