@@ -380,6 +380,9 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
 
 void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, 
                         GLsizei width, GLsizei height) {
+
+    LOG()
+    
     // 保存当前绑定的纹理
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
@@ -396,6 +399,8 @@ void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat,
 
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, 
                         GLsizei width, GLsizei height, GLsizei depth) {
+
+    LOG()
     // 保存当前绑定的纹理
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
@@ -408,4 +413,44 @@ void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat,
     
     // 恢复之前绑定的纹理
     GLRS.glBindTexture(GL_TEXTURE_3D, (GLuint)prevTexture);
+}
+
+void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, 
+                                  GLsizei width, GLsizei height, GLboolean fixedsamplelocations) {
+    // 绑定纹理目标为GL_TEXTURE_2D_MULTISAMPLE
+    GLES.glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+    
+    // 使用GLES的TexStorage2DMultisample函数
+    GLES.glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalformat, 
+                                  width, height, fixedsamplelocations);
+    
+    // 解绑纹理
+    GLES.glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+}
+
+void glTextureStorage3DMultisample(
+    GLuint texture, GLsizei samples, GLenum internalformat,
+    GLsizei width, GLsizei height, GLsizei depth,
+    GLboolean fixedsamplelocations) 
+{
+    // 使用 2D 纹理数组模拟 3D 纹理，每个 slice 存储一个样本
+    GLES.glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    
+    // 分配存储：depth * samples 个 2D 纹理切片
+    GLES.glTexStorage3D(
+        GL_TEXTURE_2D_ARRAY,
+        1,                  // 1 mipmap level
+        internalformat,
+        width,
+        height,
+        depth * samples     // 每个 depth 层有 samples 个样本
+    );
+    
+    // 设置纹理参数（根据需要调整）
+    GLES.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GLES.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GLES.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    GLES.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
