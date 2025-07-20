@@ -387,7 +387,7 @@ STUB_FUNCTION_HEAD(void, glFramebufferTexture3D, GLenum target, GLenum attachmen
 // Others
 STUB_FUNCTION_HEAD(void, glCompressedTexImage1D, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glCompressedTexImage1D,target,level,internalformat,width,border,imageSize,data)
 STUB_FUNCTION_HEAD(void, glCompressedTexSubImage1D, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glCompressedTexSubImage1D,target,level,xoffset,width,format,imageSize,data)
-STUB_FUNCTION_HEAD(void, glGetCompressedTexImage, GLenum target, GLint level, void* img); STUB_FUNCTION_END_NO_RETURN(void, glGetCompressedTexImage,target,level,img)
+//STUB_FUNCTION_HEAD(void, glGetCompressedTexImage, GLenum target, GLint level, void* img); STUB_FUNCTION_END_NO_RETURN(void, glGetCompressedTexImage,target,level,img)
 //STUB_FUNCTION_HEAD(void, glClientActiveTexture, GLenum texture); STUB_FUNCTION_END_NO_RETURN(void, glClientActiveTexture,texture)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1d, GLenum target, GLdouble s); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1d,target,s)
 STUB_FUNCTION_HEAD(void, glMultiTexCoord1dv, GLenum target, const GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glMultiTexCoord1dv,target,v)
@@ -748,7 +748,7 @@ STUB_FUNCTION_HEAD(void, glGetQueryBufferObjectuiv, GLuint id, GLuint buffer, GL
 STUB_FUNCTION_HEAD(void, glGetTextureSubImage, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetTextureSubImage,texture,level,xoffset,yoffset,zoffset,width,height,depth,format,type,bufSize,pixels)
 STUB_FUNCTION_HEAD(void, glGetCompressedTextureSubImage, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetCompressedTextureSubImage,texture,level,xoffset,yoffset,zoffset,width,height,depth,bufSize,pixels)
 //STUB_FUNCTION_HEAD(GLenum, glGetGraphicsResetStatus,void); STUB_FUNCTION_END_NO_RETURN(GLenum, glGetGraphicsResetStatus,)
-STUB_FUNCTION_HEAD(void, glGetnCompressedTexImage, GLenum target, GLint lod, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetnCompressedTexImage,target,lod,bufSize,pixels)
+//STUB_FUNCTION_HEAD(void, glGetnCompressedTexImage, GLenum target, GLint lod, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetnCompressedTexImage,target,lod,bufSize,pixels)
 STUB_FUNCTION_HEAD(void, glGetnTexImage, GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetnTexImage,target,level,format,type,bufSize,pixels)
 STUB_FUNCTION_HEAD(void, glGetnUniformdv, GLuint program, GLint location, GLsizei bufSize, GLdouble* params); STUB_FUNCTION_END_NO_RETURN(void, glGetnUniformdv,program,location,bufSize,params)
 STUB_FUNCTION_HEAD(void, glGetnMapdv, GLenum target, GLenum query, GLsizei bufSize, GLdouble* v); STUB_FUNCTION_END_NO_RETURN(void, glGetnMapdv,target,query,bufSize,v)
