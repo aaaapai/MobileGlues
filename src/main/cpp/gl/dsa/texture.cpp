@@ -550,7 +550,7 @@ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
     GLES.glBindTexture(GL_TEXTURE_2D, texture);
-    GLES.glGetTexImage(GL_TEXTURE_2D, level, format, type, pixels);
+    glGetTexImage(GL_TEXTURE_2D, level, format, type, pixels);
     
     GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
 }
@@ -563,7 +563,7 @@ void glGetCompressedTextureImage(GLuint texture, GLint level,
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
     GLES.glBindTexture(GL_TEXTURE_2D, texture);
-    GLES.glGetCompressedTexImage(GL_TEXTURE_2D, level, pixels);
+    glGetCompressedTexImage(GL_TEXTURE_2D, level, pixels);
     
     GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
 }
