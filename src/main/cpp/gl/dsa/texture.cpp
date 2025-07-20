@@ -75,9 +75,6 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     CHECK_GL_ERROR
 }
 
-static bool isLayeredTarget(GLenum target) {
-    return target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_3D || target == GL_TEXTURE_CUBE_MAP;
-}
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
     LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
