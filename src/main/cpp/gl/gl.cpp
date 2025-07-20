@@ -119,8 +119,14 @@ void DrawDepthClearTri() {
     GLES.glColorMask(prevColorMask[0], prevColorMask[1], prevColorMask[2], prevColorMask[3]);
 }
 
-static EGLDisplay eglDisplay = EGL_NO_DISPLAY;
-static EGLSurface eglSurface = EGL_NO_SURFACE;
+#if defined(__aarch64__)
+#define GLES_MEMORY_BARRIER() \
+    do { \
+        __asm__ __volatile__("dmb ishst" ::: "memory"); \
+    } while(0)
+#else
+#define GLES_MEMORY_BARRIER() ((void)0)
+#endif
 void glClear(GLbitfield mask) {
     LOG()
     LOG_D("glClear, mask = 0x%x", mask)
@@ -139,21 +145,9 @@ void glClear(GLbitfield mask) {
         // Clear again
         GLES.glClear(mask);
     } else {*/
-        LOAD_EGL(eglSurfaceAttrib);
-        if (mask == (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)) {
-           if (eglDisplay != EGL_NO_DISPLAY && eglSurface != EGL_NO_SURFACE) {
-              LOG_D("Use function: egl_eglSurfaceAttrib")
-              egl_eglSurfaceAttrib(eglDisplay, eglSurface, 
-                           EGL_SWAP_BEHAVIOR, EGL_BUFFER_DESTROYED);
-              return;
-           }
-        }
+        GLES_MEMORY_BARRIER();
         GLES.glClear(mask);
-
-        if (mask & GL_DEPTH_BUFFER_BIT) {
-           GLES.glEnable(GL_DEPTH_TEST);
-           GLES.glDepthFunc(GL_LEQUAL);
-        }
+    
     //}
 
     CHECK_GL_ERROR
