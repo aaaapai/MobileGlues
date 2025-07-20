@@ -24,6 +24,7 @@
 #define DEBUG 1
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+extern ankerl::unordered_dense::map<GLuint, GLenum> g_textureTargetMap;
 extern GLuint bound_texture;
 static int is_depth_format(GLenum format) {
     switch(format) {
