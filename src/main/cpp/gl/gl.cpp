@@ -14,7 +14,7 @@
 #include "mg.h"
 #include "gl.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 static GLclampd currentDepthValue;
 
