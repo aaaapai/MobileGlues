@@ -7,7 +7,7 @@
 #include "../buffer.h"
 #include "ankerl/unordered_dense.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
