@@ -406,13 +406,13 @@ void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat,
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
     
     // 绑定指定纹理
-    GLRS.glBindTexture(GL_TEXTURE_3D, texture);
+    GLES.glBindTexture(GL_TEXTURE_3D, texture);
     
     // 创建不可变存储
     GLES.glTexStorage3D(GL_TEXTURE_3D, levels, internalformat, width, height, depth);
     
     // 恢复之前绑定的纹理
-    GLRS.glBindTexture(GL_TEXTURE_3D, (GLuint)prevTexture);
+    GLES.glBindTexture(GL_TEXTURE_3D, (GLuint)prevTexture);
 }
 
 void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, 
@@ -467,17 +467,17 @@ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
 
     LOG()
     // 保存当前错误状态
-    GLenum prevError = GLES.GetError();
+    GLenum prevError = GLES.glGetError();
     
     // 绑定纹理
-    GLES.BindTexture(GL_TEXTURE_3D, texture);
+    GLES.glBindTexture(GL_TEXTURE_3D, texture);
     
     // 调用 GLES 等效函数
-    GLES.TexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, 
+    GLES.glTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, 
                       width, height, depth, format, type, pixels);
     
     // 检查错误
-    GLenum error = GLES.GetError();
+    GLenum error = GLES.glGetError();
     if (error != GL_NO_ERROR && prevError == GL_NO_ERROR) {
         // 可以在这里记录或处理错误
     }
@@ -490,13 +490,13 @@ void glCompressedTextureSubImage3D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
-    GLenum prevError = GLES.GetError();
+    GLenum prevError = GLES.glGetError();
     
-    GLES.BindTexture(GL_TEXTURE_3D, texture);
-    GLES.CompressedTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset,
+    GLES.glBindTexture(GL_TEXTURE_3D, texture);
+    GLES.glCompressedTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset,
                                 width, height, depth, format, imageSize, data);
     
-    GLenum error = GLES.GetError();
+    GLenum error = GLES.glGetError();
     if (error != GL_NO_ERROR && prevError == GL_NO_ERROR) {
         // 错误处理
     }
@@ -509,13 +509,13 @@ void glCompressedTextureSubImage2D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
-    GLenum prevError = GLES.GetError();
+    GLenum prevError = GLES.glGetError();
     
-    GLES.BindTexture(GL_TEXTURE_2D, texture);
-    GLES.CompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset,
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glCompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset,
                                 width, height, format, imageSize, data);
     
-    GLenum error = GLES.GetError();
+    GLenum error = GLES.glGetError();
     if (error != GL_NO_ERROR && prevError == GL_NO_ERROR) {
         // 错误处理
     }
@@ -527,16 +527,16 @@ void glCompressedTextureSubImage1D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
-    GLenum prevError = GLES.GetError();
+    GLenum prevError = GLES.glGetError();
     
     // 注意: OpenGL ES 不直接支持 1D 纹理，通常使用 2D 纹理模拟
-    GLES.BindTexture(GL_TEXTURE_2D, texture);
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
     
     // 将 1D 上传转换为 2D 上传，高度为 1
-    GLES.CompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0,
+    GLES.glCompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0,
                                 width, 1, format, imageSize, data);
     
-    GLenum error = GLES.GetError();
+    GLenum error = GLES.glGetError();
     if (error != GL_NO_ERROR && prevError == GL_NO_ERROR) {
         // 错误处理
     }
