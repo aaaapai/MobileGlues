@@ -24,7 +24,6 @@
 #define DEBUG 1
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
-extern ankerl::unordered_dense::map<GLuint, GLenum> g_textureTargetMap;
 extern GLuint bound_texture;
 static int is_depth_format(GLenum format) {
     switch(format) {
@@ -138,9 +137,6 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     // 恢复原始绑定状态
     GLES.glBindTexture(target, static_cast<GLuint>(prevBinding));
 
-    // 记录纹理类型到全局映射
-    g_textureTargetMap[texture] = target;
-    LOG_D("Recorded texture %u target: 0x%04X", texture, target);
     CHECK_GL_ERROR
 }
 
