@@ -21,7 +21,7 @@
 #include "../framebuffer.h"
 #include "../pixel.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 extern GLuint bound_texture;
