@@ -130,6 +130,7 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
             // 恢复原始绑定
             GLES.glBindTexture(targets[i], static_cast<GLuint>(prevBinding));
         }
+    }
 
     // 设置纹理参数
     GLES.glTexParameteri(target, pname, param);
