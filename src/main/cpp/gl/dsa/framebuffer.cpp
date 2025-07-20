@@ -58,9 +58,6 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 
 }
 
-// 全局纹理目标记录（需在文件顶部定义）
-std::unordered_map<GLuint, GLenum> g_textureTargetMap;
-
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
     LOG()
     LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
@@ -83,6 +80,9 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
         LOG_E("ERROR: Invalid attachment parameter: 0x%04X", attachment);
         return;
     }
+
+    GLint prevFramebuffer;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFramebuffer);
 
     // 3. 获取纹理目标类型（默认为GL_TEXTURE_2D）
     GLenum target = GL_TEXTURE_2D;
@@ -112,7 +112,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
         GLuint depthAttachment = 0;
         GLuint stencilAttachment = 0;
     };
-    static std::unordered_map<GLuint, FramebufferState> fbStates;
+    static ankerl::unordered_dense::map<GLuint, FramebufferState> fbStates;
 
     FramebufferState& state = fbStates[framebuffer];
     if (isColorAttachment) {
@@ -141,7 +141,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     }
 
     // 7. 恢复原始绑定
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)prevFramebuffer);
 }
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
