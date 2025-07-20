@@ -78,7 +78,7 @@ void init_target_egl(void) {
     }
 
     ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
-    if ( != EGL_TRUE) {
+    if (ChooseConfig_result != EGL_TRUE) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
@@ -111,7 +111,7 @@ void init_target_egl(void) {
     }
 
     MakeCurrent_result = egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-    if (egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) != EGL_TRUE) {
+    if (MakeCurrent_result != EGL_TRUE) {
         LOG_E("eglMakeCurrent failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
