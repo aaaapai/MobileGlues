@@ -142,6 +142,7 @@ void glClear(GLbitfield mask) {
         LOAD_EGL(eglSurfaceAttrib);
         if (mask == (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)) {
            if (eglDisplay != EGL_NO_DISPLAY && eglSurface != EGL_NO_SURFACE) {
+              LOG_D("Use function: egl_eglSurfaceAttrib")
               egl_eglSurfaceAttrib(eglDisplay, eglSurface, 
                            EGL_SWAP_BEHAVIOR, EGL_BUFFER_DESTROYED);
               return;
