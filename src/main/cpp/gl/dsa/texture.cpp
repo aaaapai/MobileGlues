@@ -75,6 +75,9 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     CHECK_GL_ERROR
 }
 
+static bool isLayeredTarget(GLenum target) {
+    return target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_3D || target == GL_TEXTURE_CUBE_MAP;
+}
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
     LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
@@ -87,6 +90,7 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     GLenum targets[] = {
         GL_TEXTURE_2D,
         GL_TEXTURE_CUBE_MAP,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X, // 立方体贴图面
         GL_TEXTURE_2D_ARRAY,
         GL_TEXTURE_3D
     };
@@ -106,6 +110,9 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
             case GL_TEXTURE_3D:
                 bindingParam = GL_TEXTURE_BINDING_3D;
                 break;
+            case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+                bindingParam = GL_TEXTURE_BINDING_CUBE_MAP;
+                break;
             default:
                 continue;
         }
@@ -122,18 +129,20 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
         if (static_cast<GLuint>(newBinding) == texture) {
             target = targets[i];
             break;
+        } else {
+            // 恢复原始绑定
+            GLES.glBindTexture(targets[i], static_cast<GLuint>(prevBinding));
         }
-        
-        // 恢复原始绑定
-        GLES.glBindTexture(targets[i], static_cast<GLuint>(prevBinding));
-    }
 
     // 设置纹理参数
     GLES.glTexParameteri(target, pname, param);
     
     // 恢复原始绑定状态
     GLES.glBindTexture(target, static_cast<GLuint>(prevBinding));
-    
+
+    // 记录纹理类型到全局映射
+    g_textureTargetMap[texture] = target;
+    LOG_D("Recorded texture %u target: 0x%04X", texture, target);
     CHECK_GL_ERROR
 }
 
