@@ -78,12 +78,60 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
     LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
 
-    GLint prevTexture;
-    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    // 保存当前绑定状态
+    GLint prevBinding = 0;
+    GLenum target = GL_TEXTURE_2D;
     
-    GLES.glBindTexture(GL_TEXTURE_2D, texture);
-    GLES.glTexParameteri(GL_TEXTURE_2D, pname, param);
-    GLES.glBindTexture(GL_TEXTURE_2D, prevTexture);
+    // 尝试检测纹理类型
+    GLenum targets[] = {
+        GL_TEXTURE_2D,
+        GL_TEXTURE_CUBE_MAP,
+        GL_TEXTURE_2D_ARRAY,
+        GL_TEXTURE_3D
+    };
+    
+    for (size_t i = 0; i < sizeof(targets)/sizeof(targets[0]); i++) {
+        GLint bindingParam;
+        switch (targets[i]) {
+            case GL_TEXTURE_2D:
+                bindingParam = GL_TEXTURE_BINDING_2D;
+                break;
+            case GL_TEXTURE_CUBE_MAP:
+                bindingParam = GL_TEXTURE_BINDING_CUBE_MAP;
+                break;
+            case GL_TEXTURE_2D_ARRAY:
+                bindingParam = GL_TEXTURE_BINDING_2D_ARRAY;
+                break;
+            case GL_TEXTURE_3D:
+                bindingParam = GL_TEXTURE_BINDING_3D;
+                break;
+            default:
+                continue;
+        }
+        
+        GLES.glGetIntegerv(bindingParam, &prevBinding);
+        
+        // 尝试绑定纹理
+        GLES.glBindTexture(targets[i], texture);
+        
+        GLint newBinding;
+        GLES.glGetIntegerv(bindingParam, &newBinding);
+        
+        // 检查绑定是否成功
+        if (static_cast<GLuint>(newBinding) == texture) {
+            target = targets[i];
+            break;
+        }
+        
+        // 恢复原始绑定
+        GLES.glBindTexture(targets[i], static_cast<GLuint>(prevBinding));
+    }
+
+    // 设置纹理参数
+    GLES.glTexParameteri(target, pname, param);
+    
+    // 恢复原始绑定状态
+    GLES.glBindTexture(target, static_cast<GLuint>(prevBinding));
     
     CHECK_GL_ERROR
 }
@@ -116,34 +164,62 @@ void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) 
     CHECK_GL_ERROR
 }
 
+
+GLenum GetTextureTarget(GLuint texture) {
+
+    // 尝试查询纹理绑定的目标类型
+    GLint currentBinding = 0;
+    GLenum possibleTargets[] = {
+        GL_TEXTURE_2D,
+        GL_TEXTURE_CUBE_MAP,
+        GL_TEXTURE_2D_ARRAY,
+        GL_TEXTURE_3D
+    };
+
+    for (GLenum target : possibleTargets) {
+        GLint bindingParam;
+        switch (target) {
+            case GL_TEXTURE_2D:
+                bindingParam = GL_TEXTURE_BINDING_2D;
+                break;
+            case GL_TEXTURE_CUBE_MAP:
+                bindingParam = GL_TEXTURE_BINDING_CUBE_MAP;
+                break;
+            case GL_TEXTURE_2D_ARRAY:
+                bindingParam = GL_TEXTURE_BINDING_2D_ARRAY;
+                break;
+            case GL_TEXTURE_3D:
+                bindingParam = GL_TEXTURE_BINDING_3D;
+                break;
+            default:
+                continue;
+        }
+
+        GLES.glGetIntegerv(bindingParam, &currentBinding);
+        if (static_cast<GLuint>(currentBinding) == texture) {
+            return target;
+        }
+    }
+
+    return GL_TEXTURE_2D; // 默认回退到 GL_TEXTURE_2D
+}
 void glBindTextureUnit(GLuint unit, GLuint texture) {
+
     LOG()
     LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture)
-    
-    // 激活纹理单元
-    GLES.glActiveTexture(GL_TEXTURE0 + unit);
-    
-    // 处理纹理绑定
+
     if (texture != 0) {
-        GLenum target = GL_TEXTURE_2D; // 默认目标
-        
-        // 检查已知纹理类型
-        auto it = g_textures.find(texture);
-        if (it != g_textures.end()) {
-            target = it->second.target;
-        } else {
-            // 未知纹理自动注册为2D纹理
-            g_textures[texture] = {GL_TEXTURE_2D, texture, 0, {0}};
-        }
-        
-        glBindTexture(target, texture);
+        GLenum target = GetTextureTarget(texture);
+        GLES.glActiveTexture(GL_TEXTURE0 + unit);
+        GLES.glBindTexture(target, texture);
     } else {
-        // 解绑纹理
-        glBindTexture(GL_TEXTURE_2D, 0);
+        // 解绑当前单元的所有可能目标
+        GLES.glActiveTexture(GL_TEXTURE0 + unit);
+        GLES.glBindTexture(GL_TEXTURE_2D, 0);
+        GLES.glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        GLES.glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        GLES.glBindTexture(GL_TEXTURE_3D, 0);
     }
-    
-    bound_texture = texture; // 更新绑定状态
-    CHECK_GL_ERROR
 } //DeepSeek
 
 void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
