@@ -1031,40 +1031,64 @@ void glPixelStorei(GLenum pname, GLint param) {
     CHECK_GL_ERROR
 }
 
-void glGetCompressedTexImage(GLenum target, GLint level, void* pixels) {
-    GLint compressedSize;
+#include <GLES3/gl32.h>
+#include <string.h> // 用于memcpy
+
+void glGetCompressedTexImageCompat(GLenum target, GLint level, void* pixels) {
+
+    LOG()
+
+    // 1. 获取纹理参数
+    GLint compressedSize, width, height;
     GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_WIDTH, &width);
+    GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_HEIGHT, &height);
     
-    // 创建临时PBO
+    // 2. 创建临时PBO
     GLuint pbo;
     GLES.glGenBuffers(1, &pbo);
     GLES.glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
     GLES.glBufferData(GL_PIXEL_PACK_BUFFER, compressedSize, NULL, GL_STATIC_READ);
     
-    // 使用glCopyTexSubImage2D间接获取
+    // 3. 创建临时纹理并复制内容
     GLuint tempTex;
     GLES.glGenTextures(1, &tempTex);
     GLES.glBindTexture(target, tempTex);
     
-    // 复制纹理内容
-    GLES.glCopyTexSubImage2D(target, level, 0, 0, 0, 0, 
-                       width, height); // 需要先获取宽高
+    // 设置临时纹理参数（匹配原始纹理）
+    GLES.glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GLES.glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    // 尝试映射（可能不适用于所有实现）
+    // 复制纹理内容 - 注意：这个方法可能不适用于所有压缩格式
+    GLenum error;
+    GLES.glCopyTexSubImage2D(target, level, 0, 0, 0, 0, width, height);
+    if((error = GLES.glGetError()) != GL_NO_ERROR) {
+        // 处理错误：复制失败
+        GLES.glDeleteTextures(1, &tempTex);
+        GLES.glDeleteBuffers(1, &pbo);
+        return;
+    }
+    
+    // 4. 尝试映射PBO
     GLES.glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT);
     void* mapped = GLES.glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, compressedSize, 
                                   GL_MAP_READ_BIT);
     if(mapped) {
         memcpy(pixels, mapped, compressedSize);
         GLES.glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    } else {
+        // 映射失败处理
     }
     
-    // 清理
+    // 5. 清理资源
+    GLES.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     GLES.glDeleteTextures(1, &tempTex);
     GLES.glDeleteBuffers(1, &pbo);
 }
 
 void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize, void* pixels) {
+
+    LOG()
     // 首先获取压缩纹理的大小
     GLint compressedSize = 0;
     GLES.glGetTexLevelParameteriv(target, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
