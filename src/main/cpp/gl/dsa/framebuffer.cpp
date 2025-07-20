@@ -60,159 +60,26 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 
 }
 
-static bool isLayeredTarget(GLenum target) {
-    return target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_3D || target == GL_TEXTURE_CUBE_MAP;
-}
-void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, 
+                               GLuint texture, GLint level) {
+
     LOG()
-    LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
-          framebuffer, attachment, texture, level)
+    LOG_D("glNamedFramebufferTexture(framebuffer=%u, attachment=0x%04X, texture=%u, level=%d)", 
+      framebuffer, attachment, level, texture);
 
-    // 1. 验证参数合法性
-    if (framebuffer == 0) {
-        LOG_E("ERROR: Cannot modify default framebuffer (0) with glNamedFramebufferTexture");
-        return;
-    }
-
-    // 2. 检查附件类型是否有效
-    bool isColorAttachment = (attachment >= GL_COLOR_ATTACHMENT0 && 
-                             attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers());
-    bool isDepthStencil = (attachment == GL_DEPTH_ATTACHMENT || 
-                          attachment == GL_STENCIL_ATTACHMENT || 
-                          attachment == GL_DEPTH_STENCIL_ATTACHMENT);
-
-    if (!isColorAttachment && !isDepthStencil) {
-        LOG_E("ERROR: Invalid attachment parameter: 0x%04X", attachment);
-        return;
-    }
-
-    GLint prevFramebuffer;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFramebuffer);
-
-    // 3. 获取纹理目标类型（默认为GL_TEXTURE_2D）
-    GLenum target = GL_TEXTURE_2D;
-    if (texture != 0 && g_textureTargetMap.find(texture) != g_textureTargetMap.end()) {
-        auto it = g_textureTargetMap.find(texture);
-        if (it != g_textureTargetMap.end()) {
-            target = it->second;
-        } else {
-            LOG_W("WARNING: Texture %u target unknown, defaulting to GL_TEXTURE_2D", texture);
-        }
-    }
-
-    // 4. 绑定帧缓冲区并附加纹理
+    // 保存当前绑定的绘制帧缓冲区
+    GLint prevFBO;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFBO);
+    
+    // 绑定目标帧缓冲区
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-
-     // 修改：正确处理分层纹理
-    if (isLayeredTarget(target)) {
-        // 分层纹理 - 使用 glFramebufferTexture
-        GLES.glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
-        LOG_D("Attached layered texture (target=0x%04X)", target);
-    } else {
-        // 非分层纹理
-        // 标准2D纹理或立方体贴图面
-        GLES.glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, target, texture, level);
-    }
-
-    // 5. 更新内部帧缓冲区状态（示例结构体）
-    struct FramebufferState {
-        std::vector<GLuint> colorAttachments;
-        GLuint depthAttachment = 0;
-        GLuint stencilAttachment = 0;
-        std::vector<bool> isLayeredColor; // 记录颜色附件分层状态
-        bool isLayeredDepth = false;
-        bool isLayeredStencil = false;
-    };
-    static ankerl::unordered_dense::map<GLuint, FramebufferState> fbStates;
-
-    FramebufferState& state = fbStates[framebuffer];
-    if (isColorAttachment) {
-        size_t index = attachment - GL_COLOR_ATTACHMENT0;
-        if (state.colorAttachments.size() <= index) {
-            state.colorAttachments.resize(index + 1, 0);
-        }
-        state.colorAttachments[index] = texture;
-        // 记录分层状态
-        if (state.isLayeredColor.size() <= index) {
-            state.isLayeredColor.resize(index + 1, false);
-            state.isLayeredColor[index] = isLayeredTarget(target);
-        }
-    } else if (attachment == GL_DEPTH_ATTACHMENT) {
-        state.depthAttachment = texture;
-        state.isLayeredDepth = isLayeredTarget(target);
-    } else if (attachment == GL_STENCIL_ATTACHMENT) {
-        state.stencilAttachment = texture;
-        state.isLayeredStencil = isLayeredTarget(target);
-    }
-
-    // 新增：分层一致性检查
-    bool hasLayeredAttachment = false;
-    bool hasNonLayeredAttachment = false;
-
-    for (size_t i = 0; i < state.colorAttachments.size(); i++) {
-      if (state.colorAttachments[i] != 0) {  // 只检查实际存在的附件
-        if (i < state.isLayeredColor.size()) {
-            if (state.isLayeredColor[i]) {
-                hasLayeredAttachment = true;
-            } else {
-                hasNonLayeredAttachment = true;
-            }
-        }
-      }
-    }
-
-    if (state.stencilAttachment != 0) {
-       if (state.isLayeredStencil) {
-          hasLayeredAttachment = true;
-       } else {
-          hasNonLayeredAttachment = true;
-       }
-    }
-
-    if (hasLayeredAttachment && hasNonLayeredAttachment) {
-       LOG_E("ERROR: Framebuffer %u has mixed layered and non-layered attachments", framebuffer);
     
-       // 输出详细附件信息
-       for (size_t i = 0; i < state.colorAttachments.size(); i++) {
-        if (state.colorAttachments[i] != 0) {
-            bool layered = (i < state.isLayeredColor.size()) ? state.isLayeredColor[i] : false;
-            LOG_E("  Color attachment %zu: texture %u (%s)", 
-                  i, state.colorAttachments[i], 
-                  layered ? "layered" : "non-layered");
-        }
-
-       }
+    // 附加纹理到指定附件
+    GLES.glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
     
-       if (state.depthAttachment != 0) {
-        LOG_E("  Depth attachment: texture %u (%s)", 
-              state.depthAttachment, 
-              state.isLayeredDepth ? "layered" : "non-layered");
-       }
-    
-       if (state.stencilAttachment != 0) {
-        LOG_E("  Stencil attachment: texture %u (%s)", 
-              state.stencilAttachment, 
-              state.isLayeredStencil ? "layered" : "non-layered");
-       }
-    }
-
-    // 6. 检查帧缓冲区完整性
-    GLenum status = GLES.glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        const char* errorMsg = "Unknown";
-        switch (status) {
-            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: errorMsg = "INCOMPLETE_ATTACHMENT"; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: errorMsg = "MISSING_ATTACHMENT"; break;
-            case GL_FRAMEBUFFER_UNSUPPORTED: errorMsg = "UNSUPPORTED_FORMAT"; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: errorMsg = "INCOMPLETE_LAYER_TARGETS"; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS: errorMsg = "INCONSISTENT_DIMENSIONS"; break;
-        }
-        LOG_E("Framebuffer %u incomplete: %s (0x%04X)", framebuffer, errorMsg, status);
-    }
-
-    // 7. 恢复原始绑定
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)prevFramebuffer);
-}
+    // 恢复之前绑定的帧缓冲区
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)prevFBO);
+} //重构去吧!
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
     LOG()
