@@ -233,7 +233,7 @@ void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment,
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     
     // 附加Renderbuffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
+    GLES.glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
     
     // 恢复之前绑定的Framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFramebuffer);
@@ -246,7 +246,7 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);   // 绑定目标 FBO
-    glFramebufferParameteri(GL_FRAMEBUFFER, pname, param); // 设置参数
+    GLES.glFramebufferParameteri(GL_FRAMEBUFFER, pname, param); // 设置参数
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);    // 恢复绑定
 }
 
@@ -256,7 +256,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
-    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, attachment, pname, params); // 查询参数
+    GLES.glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, attachment, pname, params); // 查询参数
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO); // 恢复绑定
 }
 
@@ -267,7 +267,7 @@ void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* p
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
-    glGetFramebufferParameteriv(GL_FRAMEBUFFER, pname, param); // 查询参数
+    GLES.glGetFramebufferParameteriv(GL_FRAMEBUFFER, pname, param); // 查询参数
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO); // 恢复绑定
 }
 
@@ -289,7 +289,7 @@ void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuff
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glClearBufferfv(buffer, drawbuffer, value);
+    GLES.glClearBufferfv(buffer, drawbuffer, value);
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }
 
@@ -299,7 +299,7 @@ void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuff
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glClearBufferiv(buffer, drawbuffer, value);
+    GLES.glClearBufferiv(buffer, drawbuffer, value);
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }
 
@@ -309,7 +309,7 @@ void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuf
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glClearBufferuiv(buffer, drawbuffer, value);
+    GLES.glClearBufferuiv(buffer, drawbuffer, value);
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 } //Depk
 
