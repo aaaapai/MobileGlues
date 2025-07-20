@@ -179,7 +179,9 @@ void InitGLESBaseExtensions() {
              "GL_ARB_fragment_shader "
              "GL_EXT_separate_shader_objects "
              "GL_ARB_separate_shader_objects "
-             "GL_KHR_no_error ";
+             "GL_KHR_no_error "
+             "GL_ARB_clear_texture"
+             "GL_ARB_texture_view";
 }
 
 void AppendExtension(const char* ext) {
@@ -269,14 +271,14 @@ const GLubyte * glGetString( GLenum name ) {
     switch (name) {
         case GL_VENDOR: {
             if(vendorString.empty()) {
-                std::string vendor = "Swung0x48, BZLZHH, Tungsten";
+                std::string vendor = "Swung0x48, BZLZHH, Tungsten, Dicksuck";
                 vendorString = vendor;
             }
             return (const GLubyte *)vendorString.c_str();
         }
         case GL_VERSION: {
             if (versionString.empty()) {
-                versionString = "4.0.0 MobileGlues ";
+                versionString = "4.0.0.0.0.0.0 MobileGlues ";
                 versionString += std::to_string(MAJOR) + "."
                                 +  std::to_string(MINOR) + "."
                                 +  std::to_string(REVISION);
@@ -306,9 +308,9 @@ const GLubyte * glGetString( GLenum name ) {
         }
         case GL_SHADING_LANGUAGE_VERSION:
             if (hardware->es_version < 310)
-                return (const GLubyte *) "4.00 MobileGlues with glslang and SPIRV-Cross";
+                return (const GLubyte *) "4.00 MobileGlues with glslang, SPIRV-Cross and shaderc";
             else
-                return (const GLubyte *) "4.50 MobileGlues with glslang and SPIRV-Cross";
+                return (const GLubyte *) "4.50 MobileGlues with glslang, SPIRV-Cross and shaderc";
         case GL_EXTENSIONS:
             return (const GLubyte *) GetExtensionsList().c_str();
         default:
@@ -338,15 +340,15 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
 
             switch (target) {
                 case GL_VENDOR:
-                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten";
+                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten, Dicksuck";
                     delimiter = ", ";
                     break;
                 case GL_VERSION:
-                    str = (const GLubyte*)"4.0.0 MobileGlues";
+                    str = (const GLubyte*)"4.0.0.0.0.0.0 MobileG鹿es";
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
-                    str = (const GLubyte*)"4.50 MobileGlues with glslang and SPIRV-Cross";
+                    str = (const GLubyte*)"4.50 MobileGlues with glslang, SPIRV-Cross and shaderc";
                     break;
                 case GL_EXTENSIONS:
                     str = glGetString(GL_EXTENSIONS);
