@@ -219,3 +219,97 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
 
     CHECK_GL_ERROR_NO_INIT
 }
+
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, 
+                                      GLenum renderbuffertarget, GLuint renderbuffer) {
+
+    LOG()
+    
+    // 保存当前绑定的Framebuffer
+    GLint prevFramebuffer;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
+    
+    // 绑定指定的Framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    
+    // 附加Renderbuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
+    
+    // 恢复之前绑定的Framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFramebuffer);
+}
+
+void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param) {
+
+    LOG()
+    
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);   // 绑定目标 FBO
+    glFramebufferParameteri(GL_FRAMEBUFFER, pname, param); // 设置参数
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);    // 恢复绑定
+}
+
+void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint* params) {
+
+    LOG()
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, attachment, pname, params); // 查询参数
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO); // 恢复绑定
+}
+
+void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* param) {
+
+    LOG()
+    
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
+    glGetFramebufferParameteriv(GL_FRAMEBUFFER, pname, param); // 查询参数
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO); // 恢复绑定
+}
+
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) {
+
+    LOG()
+    
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
+    glBindFramebuffer(target, framebuffer);         // 绑定目标 FBO
+    GLenum status = glCheckFramebufferStatus(target); // 检查状态
+    glBindFramebuffer(target, (GLuint)prevFBO);      // 恢复绑定
+    return status;
+}
+
+void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat* value) {
+
+    LOG()
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearBufferfv(buffer, drawbuffer, value);
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
+}
+
+void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint* value) {
+
+    LOG()
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearBufferiv(buffer, drawbuffer, value);
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
+}
+
+void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint* value) {
+
+    LOG()
+    GLint prevFBO;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearBufferuiv(buffer, drawbuffer, value);
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
+} //Depk
+
