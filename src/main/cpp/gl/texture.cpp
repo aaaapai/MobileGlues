@@ -36,6 +36,7 @@ int nlevel(int size, int level) {
 }
 
 ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+ankerl::unordered_dense::map<GLuint, GLenum> g_textureTargetMap;
 GLuint bound_texture = 0;
 
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
@@ -779,6 +780,8 @@ void glBindTexture(GLenum target, GLuint texture) {
     LOG()
     LOG_D("glBindTexture(%s, %d)", glEnumToString(target), texture)
     INIT_CHECK_GL_ERROR
+
+    g_textureTargetMap[texture] = target;
     GLES.glBindTexture(target, texture);
     CHECK_GL_ERROR_NO_INIT
 
@@ -794,6 +797,9 @@ void glBindTexture(GLenum target, GLuint texture) {
 void glDeleteTextures(GLsizei n, const GLuint *textures) {
     LOG()
     INIT_CHECK_GL_ERROR
+    for (GLsizei i = 0; i < n; ++i) {
+	g_textureTargetMap.erase(textures[i]);
+    }
     GLES.glDeleteTextures(n, textures);
     CHECK_GL_ERROR_NO_INIT
 
