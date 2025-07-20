@@ -16,8 +16,9 @@
 static EGLDisplay eglDisplay = EGL_NO_DISPLAY;
 static EGLSurface eglSurface = EGL_NO_SURFACE;
 static EGLContext eglContext = EGL_NO_CONTEXT;
+static EGLBoolean Initialize_result = EGL_FALSE;
 
-void init_target_egl() {
+void init_target_egl(void) {
 
     LOAD_EGL(eglGetProcAddress);
     LOAD_EGL(eglBindAPI);
@@ -60,29 +61,33 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (egl_eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+    Initialize_result = egl_eglInitialize(eglDisplay, NULL, NULL);
+    if (Initialize_result != EGL_TRUE) {
         LOG_E("eglInitialize failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
-    if (egl_eglBindAPI(EGL_OPENGL_ES_API) != EGL_TRUE) {
+    EGLBoolean BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
+    if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
-    if (egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound) != EGL_TRUE) {
+    EGLBoolean ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
+    if ( != EGL_TRUE) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     if (configsFound == 0) {
         configAttribs[6] = 0;
-        if (egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound) != EGL_TRUE) {
+        EGLBoolean configsFound_eglChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound):
+        if (configsFound_eglChooseConfig_result != EGL_TRUE) {
             LOG_E("Retry eglChooseConfig failed (0x%x)", egl_eglGetError());
             goto cleanup;
         }
         if (configsFound) {
-            LOG_D("Using config without alpha channel");
+            LOG_W("Using config without alpha channel");
         } else {
             LOG_E("No valid EGL config found");
             goto cleanup;
@@ -122,7 +127,7 @@ cleanup:
     LOG_E("EGL initialization failed");
 }
 
-void destroy_temp_egl_ctx() {
+void destroy_temp_egl_ctx(void) {
     LOAD_EGL(eglDestroySurface);
     LOAD_EGL(eglDestroyContext);
     LOAD_EGL(eglMakeCurrent);
