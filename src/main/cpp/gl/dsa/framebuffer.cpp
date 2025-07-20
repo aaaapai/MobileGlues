@@ -6,10 +6,12 @@
 
 #include "../log.h"
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 1
 
 extern GLint MAX_DRAW_BUFFERS;
+extern ankerl::unordered_dense::map<GLuint, GLenum> g_textureTargetMap;
 extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
 extern GLint getMaxDrawBuffers();
 
