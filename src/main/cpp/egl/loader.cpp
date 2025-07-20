@@ -12,11 +12,15 @@
 
 #define DEBUG 0
 
+#define EGL_OPENGL_ES3_BIT_KHR 0x00000040
 
 static EGLDisplay eglDisplay = EGL_NO_DISPLAY;
 static EGLSurface eglSurface = EGL_NO_SURFACE;
 static EGLContext eglContext = EGL_NO_CONTEXT;
 static EGLBoolean Initialize_result = EGL_FALSE;
+static EGLBoolean BindAPI_result = EGL_FALSE;
+static EGLBoolean ChooseConfig_result = EGL_FALSE;
+static EGLBoolean MakeCurrent_result = EGL_FALSE;
 
 void init_target_egl(void) {
 
@@ -43,8 +47,8 @@ void init_target_egl(void) {
             EGL_DEPTH_SIZE, 24,
             EGL_ALPHA_MASK_SIZE, 8,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
-            EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
             EGL_NONE
     };
 
@@ -67,13 +71,13 @@ void init_target_egl(void) {
         goto cleanup;
     }
 
-    EGLBoolean BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
+    BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
     if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
-    EGLBoolean ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
+    ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
     if ( != EGL_TRUE) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
@@ -81,8 +85,8 @@ void init_target_egl(void) {
 
     if (configsFound == 0) {
         configAttribs[6] = 0;
-        EGLBoolean configsFound_eglChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound):
-        if (configsFound_eglChooseConfig_result != EGL_TRUE) {
+        ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound):
+        if (ChooseConfig_result != EGL_TRUE) {
             LOG_E("Retry eglChooseConfig failed (0x%x)", egl_eglGetError());
             goto cleanup;
         }
@@ -106,6 +110,7 @@ void init_target_egl(void) {
         goto cleanup;
     }
 
+    MakeCurrent_result = egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
     if (egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) != EGL_TRUE) {
         LOG_E("eglMakeCurrent failed (0x%x)", egl_eglGetError());
         goto cleanup;
