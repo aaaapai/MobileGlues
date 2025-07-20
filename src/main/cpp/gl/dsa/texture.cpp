@@ -541,3 +541,141 @@ void glCompressedTextureSubImage1D(GLuint texture, GLint level,
         // 错误处理
     }
 }
+
+void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, 
+                      GLsizei bufSize, void *pixels) {
+
+    LOG()
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetTexImage(GL_TEXTURE_2D, level, format, type, pixels);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetCompressedTextureImage(GLuint texture, GLint level, 
+                                GLsizei bufSize, void *pixels) {
+
+    LOG()
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetCompressedTexImage(GL_TEXTURE_2D, level, pixels);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetTextureLevelParameteriv(GLuint texture, GLint level, 
+                                 GLenum pname, GLint *params) {
+
+    LOG()
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetTexLevelParameteriv(GL_TEXTURE_2D, level, pname, params);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetTextureLevelParameterfv(GLuint texture, GLint level, 
+                                 GLenum pname, GLfloat *params) {
+
+    LOG()
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetTexLevelParameterfv(GL_TEXTURE_2D, level, pname, params);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params) {
+
+    LOG()
+    
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetTexParameteriv(GL_TEXTURE_2D, pname, params);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params) {
+
+    LOG()
+    
+    GLint prevTex;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    GLES.glGetTexParameterfv(GL_TEXTURE_2D, pname, params);
+    
+    GLES.glBindTexture(GL_TEXTURE_2D, prevTex);
+}
+
+void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params) {
+
+    LOG()
+
+    // GLES doesn't have integer texture parameters, fall back to regular version
+    glGetTextureParameteriv(texture, pname, params);
+}
+
+void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params) {
+
+    LOG()
+
+    // GLES doesn't have integer texture parameters, fall back to regular version
+    GLint tmp;
+    glGetTextureParameteriv(texture, pname, &tmp);
+    *params = (GLuint)tmp;
+}
+
+
+/*
+void glTextureView(GLuint texture, GLenum target, GLuint origtexture, 
+                  GLenum internalformat, GLuint minlevel, GLuint numlevels, 
+                  GLuint minlayer, GLuint numlayers) {
+    // GLES 3.2 has glTextureView as a core function
+    GLES.glTextureView(texture, target, origtexture, internalformat, 
+                      minlevel, numlevels, minlayer, numlayers);
+}
+*/
+
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, 
+                       GLint yoffset, GLint zoffset, GLsizei width, 
+                       GLsizei height, GLsizei depth, GLenum format, 
+                       GLenum type, const void *data) {
+
+    LOG()
+
+    // For GLES, we need to bind the texture and use glTexSubImage
+    GLint prevTex;
+    GLenum target;
+    
+    // Determine texture target (simplified - in real code you'd need to query this)
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    if (prevTex == texture) {
+        target = GL_TEXTURE_2D;
+    } else {
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex);
+        if (prevTex == texture) {
+            target = GL_TEXTURE_3D;
+        } else {
+            // Handle other texture types as needed
+            target = GL_TEXTURE_2D;
+        }
+    }
+    
+    GLES.glBindTexture(target, texture);
+    GLES.glTexSubImage3D(target, level, xoffset, yoffset, zoffset, 
+                        width, height, depth, format, type, data);
+    GLES.glBindTexture(target, prevTex);
+}
