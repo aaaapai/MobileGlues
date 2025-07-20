@@ -377,3 +377,35 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
     // 恢复之前绑定的纹理
     GLES.glBindTexture(GL_TEXTURE_2D, (GLuint)prevTexture);
 }
+
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, 
+                        GLsizei width, GLsizei height) {
+    // 保存当前绑定的纹理
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    
+    // 绑定指定纹理
+    GLES.glBindTexture(GL_TEXTURE_2D, texture);
+    
+    // 创建不可变存储
+    GLES.glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
+    
+    // 恢复之前绑定的纹理
+    GLES.glBindTexture(GL_TEXTURE_2D, (GLuint)prevTexture);
+}
+
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, 
+                        GLsizei width, GLsizei height, GLsizei depth) {
+    // 保存当前绑定的纹理
+    GLint prevTexture;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
+    
+    // 绑定指定纹理
+    GLRS.glBindTexture(GL_TEXTURE_3D, texture);
+    
+    // 创建不可变存储
+    GLES.glTexStorage3D(GL_TEXTURE_3D, levels, internalformat, width, height, depth);
+    
+    // 恢复之前绑定的纹理
+    GLRS.glBindTexture(GL_TEXTURE_3D, (GLuint)prevTexture);
+}
