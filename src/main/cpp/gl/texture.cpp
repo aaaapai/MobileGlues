@@ -1031,10 +1031,7 @@ void glPixelStorei(GLenum pname, GLint param) {
     CHECK_GL_ERROR
 }
 
-#include <GLES3/gl32.h>
-#include <string.h> // 用于memcpy
-
-void glGetCompressedTexImageCompat(GLenum target, GLint level, void* pixels) {
+void glGetCompressedTexImage(GLenum target, GLint level, void* pixels) {
 
     LOG()
 
