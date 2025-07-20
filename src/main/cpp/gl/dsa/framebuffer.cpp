@@ -106,7 +106,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
      // 修改：正确处理分层纹理
     if (isLayeredTarget(target)) {
         // 分层纹理 - 使用 glFramebufferTexture
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
+        GLES.glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
         LOG_D("Attached layered texture (target=0x%04X)", target);
     } else {
         // 非分层纹理
@@ -135,6 +135,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
         // 记录分层状态
         if (state.isLayeredColor.size() <= index) {
             state.isLayeredColor.resize(index + 1, false);
+            state.isLayeredColor[index] = isLayeredTarget(target);
         }
     } else if (attachment == GL_DEPTH_ATTACHMENT) {
         state.depthAttachment = texture;
@@ -147,34 +148,52 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     // 新增：分层一致性检查
     bool hasLayeredAttachment = false;
     bool hasNonLayeredAttachment = false;
-    
-    for (bool layered : state.isLayeredColor) {
-        if (layered) hasLayeredAttachment = true;
-        else if (!layered && state.colorAttachments[i] != 0) 
-            hasNonLayeredAttachment = true;
-    }
-    
-    if (state.depthAttachment != 0) {
-        if (state.isLayeredDepth) hasLayeredAttachment = true;
-        else hasNonLayeredAttachment = true;
-    }
-    
-    if (state.stencilAttachment != 0) {
-        if (state.isLayeredStencil) hasLayeredAttachment = true;
-        else hasNonLayeredAttachment = true;
-    }
-    
-    // 混合使用分层和非分层附件会导致错误
-    if (hasLayeredAttachment && hasNonLayeredAttachment) {
-        LOG_E("ERROR: Mixed layered and non-layered attachments in FBO %u", framebuffer);
-        
-        // 记录详细附件信息
-        for (size_t i = 0; i < state.colorAttachments.size(); ++i) {
-            if (state.colorAttachments[i] != 0) {
-                LOG_E("  Color attachment %d: texture %u, layered: %s", 
-                      i, state.colorAttachments[i], state.isLayeredColor[i] ? "yes" : "no");
+
+    for (size_t i = 0; i < state.colorAttachments.size(); i++) {
+      if (state.colorAttachments[i] != 0) {  // 只检查实际存在的附件
+        if (i < state.isLayeredColor.size()) {
+            if (state.isLayeredColor[i]) {
+                hasLayeredAttachment = true;
+            } else {
+                hasNonLayeredAttachment = true;
             }
         }
+      }
+    }
+
+    if (state.stencilAttachment != 0) {
+       if (state.isLayeredStencil) {
+          hasLayeredAttachment = true;
+       } else {
+          hasNonLayeredAttachment = true;
+       }
+    }
+
+    if (hasLayeredAttachment && hasNonLayeredAttachment) {
+       LOG_E("ERROR: Framebuffer %u has mixed layered and non-layered attachments", framebuffer);
+    
+       // 输出详细附件信息
+       for (size_t i = 0; i < state.colorAttachments.size(); i++) {
+        if (state.colorAttachments[i] != 0) {
+            bool layered = (i < state.isLayeredColor.size()) ? state.isLayeredColor[i] : false;
+            LOG_E("  Color attachment %zu: texture %u (%s)", 
+                  i, state.colorAttachments[i], 
+                  layered ? "layered" : "non-layered");
+        }
+
+       }
+    
+       if (state.depthAttachment != 0) {
+        LOG_E("  Depth attachment: texture %u (%s)", 
+              state.depthAttachment, 
+              state.isLayeredDepth ? "layered" : "non-layered");
+       }
+    
+       if (state.stencilAttachment != 0) {
+        LOG_E("  Stencil attachment: texture %u (%s)", 
+              state.stencilAttachment, 
+              state.isLayeredStencil ? "layered" : "non-layered");
+       }
     }
 
     // 6. 检查帧缓冲区完整性
