@@ -205,7 +205,7 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs) {
 
     LOG_D("glDrawBuffers(%d, %p), [0]=0x%x", n, bufs, n ? bufs[0] : 0)
 
-    std::vector<GLenum> new_bufs(n);
+    GLenum new_bufs[n];
 
     for (int i = 0; i < n; i++) {
         if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + static_cast<GLuint>(getMaxDrawBuffers())) {
