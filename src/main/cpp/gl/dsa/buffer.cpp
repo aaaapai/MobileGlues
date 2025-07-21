@@ -608,3 +608,68 @@ void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer,
     glBindBuffer(GL_COPY_READ_BUFFER, prevReadBuf);
     glBindBuffer(GL_COPY_WRITE_BUFFER, prevWriteBuf);
 }
+
+GLboolean glUnmapNamedBuffer(GLuint buffer) {
+    // First, we need to check if the buffer exists and is mapped
+    GLint isMapped = GL_FALSE;
+    GLint currentlyBoundBuffer = 0;
+    GLenum target = 0;
+    
+    // Get the current binding for each possible target to restore later
+    GLES.glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentlyBoundBuffer);
+    
+    // Check if the buffer is mapped by temporarily binding it to ARRAY_BUFFER
+    GLES.glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GLES.glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_MAPPED, &isMapped);
+    
+    if (!isMapped) {
+        // Buffer wasn't mapped, restore previous binding and return error
+        GLES.glBindBuffer(GL_ARRAY_BUFFER, currentlyBoundBuffer);
+        return GL_FALSE;
+    }
+    
+    // For GLES, we need to find which target the buffer is bound to
+    // Since GLES doesn't have direct state access, we'll try common targets
+    
+    // Try to find which target the buffer is bound to
+    GLenum targets[] = {
+        GL_ARRAY_BUFFER,
+        GL_ELEMENT_ARRAY_BUFFER,
+        GL_COPY_READ_BUFFER,
+        GL_COPY_WRITE_BUFFER,
+        GL_PIXEL_PACK_BUFFER,
+        GL_PIXEL_UNPACK_BUFFER,
+        GL_TRANSFORM_FEEDBACK_BUFFER,
+        GL_UNIFORM_BUFFER,
+        // GLES 3.1+ targets
+        GL_ATOMIC_COUNTER_BUFFER,
+        GL_DISPATCH_INDIRECT_BUFFER,
+        GL_DRAW_INDIRECT_BUFFER,
+        GL_SHADER_STORAGE_BUFFER
+    };
+    
+    int foundTarget = 0;
+    for (size_t i = 0; i < sizeof(targets)/sizeof(targets[0]); i++) {
+        GLint boundBuffer = 0;
+        GLES.glGetIntegerv(targets[i], &boundBuffer);
+        if ((GLuint)boundBuffer == buffer) {
+            target = targets[i];
+            foundTarget = 1;
+            break;
+        }
+    }
+    
+    if (!foundTarget) {
+        // Couldn't find which target the buffer is bound to
+        GLES.glBindBuffer(GL_ARRAY_BUFFER, currentlyBoundBuffer);
+        return GL_FALSE;
+    }
+    
+    // Now unmap the buffer using the found target
+    GLboolean result = GLES.glUnmapBuffer(target);
+    
+    // Restore the original binding
+    GLES.glBindBuffer(GL_ARRAY_BUFFER, currentlyBoundBuffer);
+    
+    return result;
+}
