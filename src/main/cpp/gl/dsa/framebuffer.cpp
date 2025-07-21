@@ -18,6 +18,10 @@ void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
     LOG()
     LOG_D("glCreateFramebuffers, n = %d", n)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     // do actual gen to ES driver
@@ -28,6 +32,10 @@ void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
 void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
     LOG()
    LOG_D("glNamedFramebufferDrawBuffer, framebuffer = %u, buf = 0x%x", framebuffer, buf)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
@@ -43,6 +51,10 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 
     LOG()
     LOG_D("glNamedFramebufferDrawBuffers, framebuffer: %u, n: %d, bufs: %p", framebuffer, n, bufs)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // 保存当前绑定的帧缓冲区
     GLint prevFramebuffer;
@@ -64,6 +76,10 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     LOG()
     LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
           framebuffer, attachment, texture, level)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // 验证 attachment 参数是否合法
     if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
@@ -131,6 +147,11 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
     LOG_D("glNamedFramebufferTextureLayer: fb=%u, attach=0x%04X, tex=%u, level=%d, layer=%d", 
           framebuffer, attachment, texture, level, layer)
 
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     // 保存当前绑定状态（兼容GLES）
@@ -156,6 +177,11 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
 void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) {
     LOG()
     LOG_D("glNamedFramebufferReadBuffer: fb=%u, src=0x%04X", framebuffer, src)
+
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     INIT_CHECK_GL_ERROR
 
@@ -189,6 +215,11 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
           srcX0, srcY0, srcX1, srcY1,
           dstX0, dstY0, dstX1, dstY1,
           mask, filter)
+
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     INIT_CHECK_GL_ERROR
 
@@ -225,7 +256,11 @@ void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment,
                                       GLenum renderbuffertarget, GLuint renderbuffer) {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前绑定的Framebuffer
     GLint prevFramebuffer;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
@@ -243,7 +278,11 @@ void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment,
 void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param) {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);   // 绑定目标 FBO
@@ -254,6 +293,11 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint* params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
@@ -264,7 +308,11 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* param) {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  // 绑定目标 FBO
@@ -275,7 +323,11 @@ void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* p
 GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO); // 保存当前绑定的 FBO
     glBindFramebuffer(target, framebuffer);         // 绑定目标 FBO
@@ -287,6 +339,11 @@ GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) {
 void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat* value) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -297,6 +354,11 @@ void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuff
 void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint* value) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -307,6 +369,11 @@ void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuff
 void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint* value) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -317,6 +384,10 @@ void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuf
 void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum* attachments) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // Save the currently bound framebuffer
     GLint prevFramebuffer;
