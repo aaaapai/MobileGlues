@@ -242,7 +242,7 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
 
 void glGenTextures( GLsizei n, GLuint *textures ) {
     LOG()
-    LOG_D("glGenTextures, n = %d, textures = 0x%x", n, textures);
+    LOG_D("glGenTextures, n = %d, textures = %p", n, (void*)textures)
     GLES.glGenTextures(n, textures);
     CHECK_GL_ERROR
 }
@@ -329,7 +329,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
     tex.internal_format = internalFormat;
     GLenum transfer_format = format;
     GLenum transfer_type = type;
-    LOG_D("mg_glTexImage2D, target: %s, level: %d, internalFormat: %s->%s, width: %d, height: %d, border: %d, format: %s, type: %s, pixels: 0x%x",
+    LOG_D("mg_glTexImage2D, target: %s, level: %d, internalFormat: %s->%s, width: %d, height: %d, border: %d, format: %s, type: %s, pixels: %p",
           glEnumToString(target), level, glEnumToString(internalFormat), glEnumToString(internalFormat),
           width, height, border, glEnumToString(format), glEnumToString(type), pixels)
     internal_convert(reinterpret_cast<GLenum *>(&internalFormat), &type, &format);
@@ -346,7 +346,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
         }
     }
 
-    LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
+    LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: %p",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
           width,height,border,glEnumToString(format),glEnumToString(type), pixels)
     GLenum rtarget = map_tex_target(target);
@@ -728,7 +728,7 @@ void glGetTexLevelParameteriv(GLenum target, GLint level,GLenum pname, GLint *pa
 
 void glTexParameteriv(GLenum target, GLenum pname, const GLint* params) {
     LOG_D("glTexParameteriv, target: %s, pname: %s, params[0]: %s",
-          params, glEnumToString(pname), params ? glEnumToString(params[0]) : "0")
+          glEnumToString(params), glEnumToString(pname), params ? glEnumToString(params[0]) : "0")
 
     if (pname == GL_TEXTURE_SWIZZLE_RGBA) {
         LOG_D("find GL_TEXTURE_SWIZZLE_RGBA, now use glTexParameteri")
@@ -758,7 +758,7 @@ void glTexParameteriv(GLenum target, GLenum pname, const GLint* params) {
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) {
     LOG()
 
-    LOG_D("glTexSubImage2D, target = %s, level = %d, xoffset = %d, yoffset = %d, width = %d, height = %d, format = %s, type = %s, pixels = 0x%x",
+    LOG_D("glTexSubImage2D, target = %s, level = %d, xoffset = %d, yoffset = %d, width = %d, height = %d, format = %s, type = %s, pixels = %p",
             glEnumToString(target), level, xoffset, yoffset, width, height, glEnumToString(format),
           glEnumToString(type), pixels)
 
@@ -821,7 +821,7 @@ void glGenerateTextureMipmap(GLuint texture) {
 
 void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void* pixels) {
     LOG()
-    LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = 0x%x",
+    LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = %p",
           glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
 
     GLint prevFBO;
@@ -887,17 +887,19 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
 
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels) {
     LOG()
-    LOG_D("glReadPixels, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=0x%x",
+    LOG_D("glReadPixels, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=%p",
           x, y, width, height, format, type, pixels)
 
+#if GLOBAL_DEBUG || DEBUG
     static int count = 0;
     GLenum prevFormat = format;
+#endif
 
     if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
         format = GL_RGBA;
         type = GL_UNSIGNED_BYTE;
     }
-    LOG_D("glReadPixels converted, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=0x%x",
+    LOG_D("glReadPixels converted, x=%d, y=%d, width=%d, height=%d, format=0x%x, type=0x%x, pixels=%p",
           x, y, width, height, format, type, pixels)
     GLES.glReadPixels(x, y, width, height, format, type, pixels);
 
