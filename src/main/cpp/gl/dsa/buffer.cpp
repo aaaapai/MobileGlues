@@ -57,6 +57,11 @@ static GLenum get_binding_query(GLenum target) {
 void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // Save the currently bound buffer to restore later
     GLint prev_buffer;
     GLenum prev_target;
@@ -146,6 +151,10 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
     LOG_D("glNamedBufferSubData, buffer = %d, offset = %d, size = %d, data = 0x%x",
           buffer, offset, size, data)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -158,6 +167,10 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
     LOG()
     LOG_D("glCreateBuffers, n = %d", n)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     INIT_CHECK_GL_ERROR
 
@@ -173,6 +186,11 @@ void glCreateBuffers(GLsizei n, GLuint* buffers) {
 void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length) {
     LOG()
     LOG_D("glFlushMappedNamedBufferRange, buffer = %d, offset = %d, length = %d", buffer, offset, length)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -186,6 +204,11 @@ void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr le
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
     LOG()
     LOG_D("glGetNamedBufferParameteriv, buffer = %d, pname = %s", buffer, glEnumToString(pname))
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -199,6 +222,11 @@ void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params) {
     LOG()
     LOG_D("glGetNamedBufferParameteri64v, buffer = %d, pname = %s", buffer, glEnumToString(pname))
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -212,6 +240,11 @@ void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params)
 void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void* *params) {
     LOG()
     LOG_D("glGetNamedBufferPointerv, buffer = %d, pname = %s", buffer, glEnumToString(pname))
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_WRITE_BUFFER)
@@ -226,6 +259,11 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
     LOG()
     LOG_D("glGetNamedBufferSubData, buffer: %u, offset: %lld, size: %lld, data: %p", 
           buffer, (long long)offset, (long long)size, data)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
 
     INIT_CHECK_GL_ERROR
 
@@ -274,6 +312,11 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access)
     LOG()
     LOG_D("glMapNamedBuffer, buffer: %u, access: 0x%X", buffer, access);
 
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 获取缓冲区大小
     GLint size = 0;
     LOG_D("glMapNamedBuffer调用已实现的glGetNamedBufferParameteriv函数")
@@ -304,6 +347,11 @@ void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, G
     LOG()
     LOG_D("glMapNamedBufferRange, buffer = %d, offset = %d, length = %d, access = 0x%x",
           buffer, offset, length, access)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     SAVE_BUFFER_CTX(GL_COPY_READ_BUFFER)
@@ -321,6 +369,11 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
           glEnumToString(target), glEnumToString(internalformat),
           glEnumToString(format), glEnumToString(type), data)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
 
     // Find the currently bound buffer for this target
     GLuint buffer = find_bound_buffer(get_binding_query(target));
@@ -396,6 +449,10 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat,
           buffer, glEnumToString(internalformat), 
           glEnumToString(format), glEnumToString(type), data)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 直接使用 glClearBufferData 的 GLES3 等效实现
     GLint prev_binding = 0;
     glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_binding);
@@ -453,6 +510,10 @@ void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const
     LOG()
     LOG_D("glClearBufferSubData, target = 0x%x, offset = %d, size = %d, data = %p", target, offset, size, data)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevBuf;
     glGetIntegerv(GetBufferBindingTarget(target), &prevBuf);
     
@@ -473,6 +534,11 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
     LOG_D("glClearNamedBufferSubData(buffer=%u, internalformat=%s, offset=%ld, size=%zd, format=%s, type=%s, data=%p)",
           buffer, glEnumToString(internalformat), 
           offset, size, glEnumToString(format), glEnumToString(type), data)
+
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     INIT_CHECK_GL_ERROR
 
@@ -539,6 +605,11 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbi
     LOG()
     LOG_D("glNamedBufferStorage: buffer = %u, size = %lld, data = %p, flags = 0x%X", buffer, (long long)size, data, flags)
 
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     INIT_CHECK_GL_ERROR
 
     // 保存当前绑定状态并绑定目标缓冲区
@@ -591,6 +662,10 @@ void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer,
     LOG()
     LOG_D("glCopyNamedBufferSubData, readBuffer = %u, writeBuffer = %u, readOffset = %d, writeOffset = %d, size = %d", readBuffer, writeBuffer, readOffset, writeOffset, size)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前绑定状态
     GLint prevReadBuf = 0, prevWriteBuf = 0;
     glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevReadBuf);
@@ -610,6 +685,13 @@ void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer,
 }
 
 GLboolean glUnmapNamedBuffer(GLuint buffer) {
+
+    LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // First, we need to check if the buffer exists and is mapped
     GLint isMapped = GL_FALSE;
     GLint currentlyBoundBuffer = 0;
