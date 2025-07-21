@@ -26,24 +26,38 @@ void start_log() {
 #endif
 }
 
-extern "C" void write_log(std::string_view format, auto&&... args) {
+
+void write_log(const char* format, ...) {
 #ifndef __APPLE__
-    if (!file.is_open()) return;
-    
-    file << std::vformat(format, std::make_format_args(args...)) << "\n";
-    file.flush();
-    
+    if (file == nullptr) {
+        return;
+    }
+    va_list args;
+    va_start(args, format);
+    vfprintf(file, format, args);
+    va_end(args);
+    fprintf(file, "\n");
+    fflush(file);
+
 #if FORCE_SYNC_WITH_LOG_FILE == 1
-    sync();
+    int fd = fileno(file);
+    fsync(fd);
 #endif
 #endif
 }
 
-extern "C" void write_log_n(std::string_view format, auto&&... args) {
+
+void write_log_n(const char* format, ...) {
 #ifndef __APPLE__
-    if (!file.is_open()) return;
-    file << std::vformat(format, std::make_format_args(args...));
-    file.flush();
+    if (file == NULL) {
+        return;
+    }
+    va_list args;
+    va_start(args, format);
+    vfprintf(file, format, args);
+    va_end(args);
+    // Todo: close file
+    fflush(file);
 #endif
 }
 
