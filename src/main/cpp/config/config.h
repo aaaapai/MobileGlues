@@ -14,7 +14,7 @@ extern std::string glsl_cache_file_path;
 
 extern int initialized;
 
-char* concatenate(std::string str1, std::string str2);
+std::string concatenate(std::string str1, std::string str2);
 
 int check_path();
 
