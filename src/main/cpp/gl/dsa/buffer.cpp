@@ -55,6 +55,8 @@ static GLenum get_binding_query(GLenum target) {
     CHECK_GL_ERROR_NO_INIT
 
 void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage) {
+
+    LOG()
     // Save the currently bound buffer to restore later
     GLint prev_buffer;
     GLenum prev_target;
