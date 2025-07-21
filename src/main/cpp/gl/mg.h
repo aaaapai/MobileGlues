@@ -7,7 +7,7 @@
 
 typedef unsigned int uint;
 
-#include <string>
+#include <string.h>
 #include <cstring>
 #include <cstdlib>
 #include <string_view>
@@ -67,9 +67,8 @@ GLenum pname_convert(GLenum pname);
 
 GLenum map_tex_target(GLenum target);
 
-void write_log(std::string_view format, auto&&... args);
-
-void write_log_n(std::string_view format, auto&&... args);
+void write_log(const char *format, ...);
+void write_log_n(const char *format, ...);
 
 void start_log();
 
