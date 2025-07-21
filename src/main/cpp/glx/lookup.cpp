@@ -55,59 +55,6 @@ void *glXGetProcAddress(const char *name) {
     LOG()
     std::string real_func_name = handle_multidraw_func_name(std::string(name));
 
-    static const ankerl::unordered_dense::set<std::string> dsa_blacklist = {
-        "glCreateTextures",
-        "glTextureParameteri",
-        "glTextureParameterIiv",
-        "glTextureParameterIuiv",
-        "glBindTextureUnit",
-        "glBindSamplers",
-        "glCopyTextureSubImage1D",
-        "glCopyTextureSubImage2D",
-        "glCopyTextureSubImage3D",
-        "glTextureParameteriv",
-        "glTextureSubImage2D",
-        "glClearTexSubImage",
-        "glGetTextureParameterIuiv",
-        "glGetTextureParameterIiv",
-        "glGetTextureParameterfv",
-        "glGetTextureParameteriv",
-        "glGetTextureLevelParameterfv",
-        "glGetTextureLevelParameteriv",
-        "glGetCompressedTextureImage",
-        "glGetTextureImage",
-        "glCompressedTextureSubImage1D",
-        "glCompressedTextureSubImage2D",
-        "glCompressedTextureSubImage3D",
-        "glTextureSubImage3D",
-        "glTextureStorage3DMultisample",
-        "glTextureStorage2DMultisample",
-        "glTextureStorage3D",
-        "glTextureStorage2D",
-        "glCreateFramebuffers",
-        "glNamedFramebufferRenderbuffer",
-        "glNamedFramebufferDrawBuffer",
-        "glNamedFramebufferDrawBuffers",
-        "glNamedFramebufferTexture",
-        "glNamedFramebufferTextureLayer",
-        "glNamedFramebufferReadBuffer",
-        "glBlitNamedFramebuffer",
-        "glNamedFramebufferParameteri",
-        "glGetNamedFramebufferAttachmentParameteriv",
-        "glGetNamedFramebufferParameteriv",
-        "glCheckNamedFramebufferStatus",
-        "glClearNamedFramebufferiv",
-        "glClearNamedFramebufferuiv",
-        "glNamedBufferSubData",
-        "glCreateBuffers"
-    };
-    if (!global_settings.ext_dsa) {
-       if (dsa_blacklist.count(real_func_name)) {
-          LOG_D("Blocked DSA function: %s", real_func_name.c_str());
-          return nullptr;  // 直接返回 nullptr，禁用该函数
-       }
-    }
-
 #ifdef __APPLE__
     return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
 #else
