@@ -66,6 +66,10 @@ struct gl_state_s {
 typedef struct gl_state_s *gl_state_t;
 extern gl_state_t gl_state;
 
+void write_log(std::string_view format, auto&&... args);
+
+void write_log_n(std::string_view format, auto&&... args);
+
 GLenum pname_convert(GLenum pname);
 
 GLenum map_tex_target(GLenum target);
