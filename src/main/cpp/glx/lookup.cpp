@@ -51,32 +51,6 @@ std::string handle_multidraw_func_name(std::string name) {
     return namestr;
 }
 
-void* glXGetProcAddress(const char* name) {
-    LOG();
-    std::string real_func_name = handle_multidraw_func_name(std::string(name));
-
-    // DSA 函数黑名单
-    static const std::unordered_set<std::string> dsa_blacklist = {
-        "glNamedBufferSubData",
-        "glTextureParameteri",
-        "glCreateTextures",
-        // 添加其他 DSA 函数...
-    };
-
-    // 检查是否在黑名单中
-    
-
-#ifdef __APPLE__
-    return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
-#else
-    void* proc = dlsym(RTLD_DEFAULT, real_func_name.c_str());
-    if (!proc) {
-        LOG_W("Failed to get OpenGL function: %s", real_func_name.c_str());
-    }
-    return proc;
-#endif
-}
-
 void *glXGetProcAddress(const char *name) {
     LOG()
     std::string real_func_name = handle_multidraw_func_name(std::string(name));
