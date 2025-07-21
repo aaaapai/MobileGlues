@@ -19,7 +19,7 @@ std::string concatenate(std::string str1, std::string str2);
 int check_path();
 
 int config_refresh();
-int config_get_int(const std::string& name)
+int config_get_int(const std::string& name);
 std::string config_get_string(std::string name);
 void config_cleanup();
 
