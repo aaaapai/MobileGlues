@@ -1,3 +1,7 @@
+//
+// Created by BZLZHH on 2025/1/27.
+//
+
 #include <unistd.h>
 #include <fstream>
 #include <format>
@@ -13,21 +17,21 @@ FUNC_GL_STATE_SIZEI(proxy_height)
 FUNC_GL_STATE_ENUM(proxy_intformat)
 
 #ifndef __APPLE__
-static std::ofstream log_file;
+std::ofstream file;
 #endif
 
 void start_log() {
 #ifndef __APPLE__
-    log_file.open(log_file_path, std::ios::app);
+    file.open(log_file_path, std::ios::app);
 #endif
 }
 
 void write_log(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
-    if (!log_file.is_open()) return;
+    if (!file.is_open()) return;
     
-    log_file << std::vformat(format, std::make_format_args(args...)) << "\n";
-    log_file.flush();
+    file << std::vformat(format, std::make_format_args(args...)) << "\n";
+    file.flush();
     
 #if FORCE_SYNC_WITH_LOG_FILE == 1
     sync();
@@ -37,17 +41,17 @@ void write_log(std::string_view format, auto&&... args) {
 
 void write_log_n(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
-    if (!log_file.is_open()) return;
-    log_file << std::vformat(format, std::make_format_args(args...));
-    log_file.flush();
+    if (!file.is_open()) return;
+    file << std::vformat(format, std::make_format_args(args...));
+    file.flush();
 #endif
 }
 
 void clear_log() {
 #ifndef __APPLE__
-    log_file.open(log_file_path, std::ios::trunc);
-    if (log_file.is_open()) {
-        log_file.close();
+    file.open(log_file_path, std::ios::trunc);
+    if (file.is_open()) {
+        file.close();
     }
 #endif
 }
