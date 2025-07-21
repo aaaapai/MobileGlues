@@ -1,8 +1,6 @@
-//
-// Created by BZLZHH on 2025/1/27.
-//
-
 #include <unistd.h>
+#include <fstream>
+#include <format>
 #include "mg.h"
 
 #define DEBUG 0
@@ -15,66 +13,52 @@ FUNC_GL_STATE_SIZEI(proxy_height)
 FUNC_GL_STATE_ENUM(proxy_intformat)
 
 #ifndef __APPLE__
-FILE* file;
+static std::ofstream log_file;
 #endif
 
 void start_log() {
 #ifndef __APPLE__
-    file = fopen(log_file_path, "a");
+    log_file.open(log_file_path, std::ios::app);
 #endif
 }
 
-void write_log(const char* format, ...) {
+void write_log(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
-    if (file == nullptr) {
-        return;
-    }
-    va_list args;
-    va_start(args, format);
-    vfprintf(file, format, args);
-    va_end(args);
-    fprintf(file, "\n");
-    fflush(file);
+    if (!log_file.is_open()) return;
+    
+    log_file << std::vformat(format, std::make_format_args(args...)) << "\n";
+    log_file.flush();
+    
 #if FORCE_SYNC_WITH_LOG_FILE == 1
-    int fd = fileno(file);
-    fsync(fd);
+    sync();
 #endif
-    // Todo: close file
-    //fclose(file);
 #endif
 }
 
-void write_log_n(const char* format, ...) {
+void write_log_n(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
-    if (file == NULL) {
-        return;
-    }
-    va_list args;
-    va_start(args, format);
-    vfprintf(file, format, args);
-    va_end(args);
-    // Todo: close file
-    fflush(file);
+    if (!log_file.is_open()) return;
+    log_file << std::vformat(format, std::make_format_args(args...));
+    log_file.flush();
 #endif
 }
 
 void clear_log() {
 #ifndef __APPLE__
-    file = fopen(log_file_path, "w");
-    if (file == nullptr) {
-        return;
+    log_file.open(log_file_path, std::ios::trunc);
+    if (log_file.is_open()) {
+        log_file.close();
     }
-    fclose(file);
 #endif
 }
 
-GLenum pname_convert(GLenum pname){
+GLenum pname_convert(GLenum pname) {
     switch (pname) {
-        // TODO: Realize GL_TEXTURE_LOD_BIAS for other devices.
         case GL_TEXTURE_LOD_BIAS:
             return GL_TEXTURE_LOD_BIAS_QCOM;
+        default:
+            return pname;
     }
-    return pname;
 }
 
 GLenum map_tex_target(GLenum target) {
