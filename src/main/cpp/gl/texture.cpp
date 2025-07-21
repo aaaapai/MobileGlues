@@ -728,7 +728,7 @@ void glGetTexLevelParameteriv(GLenum target, GLint level,GLenum pname, GLint *pa
 
 void glTexParameteriv(GLenum target, GLenum pname, const GLint* params) {
     LOG_D("glTexParameteriv, target: %s, pname: %s, params[0]: %s",
-          glEnumToString(params), glEnumToString(pname), params ? glEnumToString(params[0]) : "0")
+          params, glEnumToString(pname), params ? glEnumToString(params[0]) : "0")
 
     if (pname == GL_TEXTURE_SWIZZLE_RGBA) {
         LOG_D("find GL_TEXTURE_SWIZZLE_RGBA, now use glTexParameteri")
