@@ -392,7 +392,7 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
         const GLuint sampler = samplers ? samplers[i] : 0;
         
         if (s_samplerState.boundSamplers[unit] != sampler) {
-            if (s_samplerState.activeUnit != unit) {
+            if (static_cast<GLuint>(s_samplerState.activeUnit) != unit) {
                 GLES.glActiveTexture(GL_TEXTURE0 + unit);
                 s_samplerState.activeUnit = unit;
             }
@@ -796,7 +796,7 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset,
     
     // Determine texture target (simplified - in real code you'd need to query this)
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
-    if (prevTex == texture) {
+    if (static_cast<GLuint>(prevTex) == texture) {
         target = GL_TEXTURE_2D;
     } else {
         GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex);
