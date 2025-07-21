@@ -83,7 +83,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     }
 
     // 验证 attachment 参数是否合法
-    if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+    if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < static_cast<GLint>(GL_COLOR_ATTACHMENT0) + getMaxDrawBuffers()) {
         // 有效的颜色附件
     } else if (attachment == GL_DEPTH_ATTACHMENT || 
                attachment == GL_STENCIL_ATTACHMENT || 
