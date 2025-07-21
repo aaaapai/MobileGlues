@@ -25,9 +25,13 @@ typedef unsigned int uint;
 #include "glsl/glsl_for_es.h"
 #include "../config/config.h"
 
-void write_log(std::string_view format, auto&&... args);
 
-void write_log_n(std::string_view format, auto&&... args);
+// For C++ code (including templates), don't use extern "C"
+template<typename T>
+class MyTemplateClass {
+    void write_log(std::string_view format, auto&&... args);
+    void write_log_n(std::string_view format, auto&&... args);
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,10 +69,6 @@ struct gl_state_s {
 };
 typedef struct gl_state_s *gl_state_t;
 extern gl_state_t gl_state;
-
-void write_log(std::string_view format, auto&&... args);
-
-void write_log_n(std::string_view format, auto&&... args);
 
 GLenum pname_convert(GLenum pname);
 
