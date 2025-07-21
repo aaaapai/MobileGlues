@@ -314,3 +314,20 @@ void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuf
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 } //Depk
 
+void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum* attachments) {
+
+    LOG()
+
+    // Save the currently bound framebuffer
+    GLint prevFramebuffer;
+    GLES.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
+    
+    // Bind our target framebuffer
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    
+    // Use the core GLES function to invalidate
+    GLES.glInvalidateFramebuffer(GL_FRAMEBUFFER, numAttachments, attachments);
+    
+    // Restore the previous framebuffer binding
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, prevFramebuffer);
+} //dick
