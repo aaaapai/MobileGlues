@@ -59,73 +59,71 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 
 }
 
-void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, 
-                               GLuint texture, GLint level) 
-{
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 
     LOG()
-    LOG_D("glNamedFramebufferTexture(fb=%u, attach=0x%04X, tex=%u, level=%d)",
+    LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
           framebuffer, attachment, texture, level)
 
-    // 验证帧缓冲对象合法性 (默认帧缓冲不可修改)
-    if (framebuffer == 0) {
-        LOG_E("Cannot modify default framebuffer (0) with glNamedFramebufferTexture");
+    // 验证 attachment 参数是否合法
+    if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+        // 有效的颜色附件
+    } else if (attachment == GL_DEPTH_ATTACHMENT || 
+               attachment == GL_STENCIL_ATTACHMENT || 
+               attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
+        // 有效的深度/模板附件
+    } else {
+        LOG_E("ERROR: Invalid attachment parameter: 0x%04X", attachment);
         return;
     }
 
-    // 验证附件类型合法性
-    GLint maxColorAttachments;
-    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
-    
-    const GLenum validAttachments[] = {
-        GL_DEPTH_ATTACHMENT,
-        GL_STENCIL_ATTACHMENT,
-        GL_DEPTH_STENCIL_ATTACHMENT
-    };
-    const size_t numValidAttachments = sizeof(validAttachments) / sizeof(validAttachments[0]);
-
-    GLboolean validAttachment = GL_FALSE;
-    
-    // 检查颜色附件范围
-    if (attachment >= GL_COLOR_ATTACHMENT0 && 
-        attachment < GL_COLOR_ATTACHMENT0 + maxColorAttachments) {
-        validAttachment = GL_TRUE;
+    // 检查 framebuffer 是否为 0（默认帧缓冲区）
+    if (framebuffer == 0) {
+        LOG_D("Default framebuffer (0) cannot be modified with glNamedFramebufferTexture");
+        return;
     }
-    // 检查深度/模板附件
-    else {
-        for (size_t i = 0; i < numValidAttachments; ++i) {
-            if (attachment == validAttachments[i]) {
-                validAttachment = GL_TRUE;
-                break;
+
+    // 绑定帧缓冲区到当前目标（假设 GL_DRAW_FRAMEBUFFER 为最常见目标）
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+
+    // 更新帧缓冲区附件信息
+    struct framebuffer_t* fb = bound_framebuffer;  // 显式使用 struct 前缀
+    if (fb) {
+        if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + MAX_DRAW_BUFFERS) {
+            // 处理颜色附件
+            GLuint index = attachment - GL_COLOR_ATTACHMENT0;
+            if (index >= MAX_DRAW_BUFFERS) {
+                LOG_D("Color attachment index out of bounds: %u", index);
+                return;
             }
+
+            if (!fb->draw_attachment) {
+                fb->draw_attachment = new struct attachment_t[MAX_DRAW_BUFFERS];  // 同样显式使用 struct
+            }
+
+            fb->draw_attachment[index].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            fb->draw_attachment[index].texture = texture;
+            fb->draw_attachment[index].level = level;
+        } else {
+            // 处理深度/模板附件
+            if (!fb->read_attachment) {
+                fb->read_attachment = new struct attachment_t;  // 显式使用 struct
+            }
+
+            fb->read_attachment->textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            fb->read_attachment->texture = texture;
+            fb->read_attachment->level = level;
         }
     }
 
-    if (!validAttachment) {
-        LOG_E("Invalid attachment: 0x%04X", attachment);
-        return;
-    }
+    // 实际调用 GLES 函数
+    GLES.glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
 
-    // 保存当前帧缓冲绑定状态
-    GLint prevDrawFBO, prevReadFBO;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
-    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFBO);
-
-    // 绑定目标帧缓冲 (同时绑定到 DRAW 和 READ 目标)
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-    // 使用 GLES 核心函数附加纹理
-    GLES.glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture, level);
-
-    // 检查帧缓冲完整性 (调试用)
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    // 检查帧缓冲区完整性
+    GLenum status = GLES.glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        LOG_W("Framebuffer incomplete after attachment: 0x%04X", status);
+        LOG_D("Framebuffer not complete after attachment: 0x%04X", status);
     }
-
-    // 恢复原始帧缓冲绑定状态
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)prevDrawFBO);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)prevReadFBO);
 }
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
