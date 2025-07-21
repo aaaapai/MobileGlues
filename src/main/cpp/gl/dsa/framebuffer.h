@@ -42,6 +42,7 @@ GLAPI GLAPIENTRY void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenu
 GLAPI GLAPIENTRY GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
 GLAPI GLAPIENTRY void glClearNamedFramebufferiv (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value);
 GLAPI GLAPIENTRY void glClearNamedFramebufferuiv (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value);
+GLAPI GLAPIENTRY void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum* attachments);
 
 #ifdef __cplusplus
 }
