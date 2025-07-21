@@ -50,6 +50,8 @@ GLAPI GLAPIENTRY void glNamedBufferStorage (GLuint buffer, GLsizeiptr size, cons
 
 GLAPI GLAPIENTRY void glCopyNamedBufferSubData (GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
 
+GLAPI GLAPIENTRY GLboolean glUnmapNamedBuffer(GLuint buffer);
+
 #ifdef __cplusplus
 }
 #endif
