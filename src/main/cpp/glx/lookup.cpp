@@ -100,7 +100,7 @@ void *glXGetProcAddress(const char *name) {
         "glClearNamedFramebufferuiv",
         "glNamedBufferSubData",
         "glCreateBuffers"
-    }
+    };
     if (!global_settings.ext_dsa) {
        if (dsa_blacklist.count(real_func_name)) {
           LOG_D("Blocked DSA function: %s", real_func_name.c_str());
