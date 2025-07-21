@@ -26,13 +26,6 @@ typedef unsigned int uint;
 #include "../config/config.h"
 
 
-// For C++ code (including templates), don't use extern "C"
-template<typename T>
-class MyTemplateClass {
-    void write_log(std::string_view format, auto&&... args);
-    void write_log_n(std::string_view format, auto&&... args);
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -73,6 +66,10 @@ extern gl_state_t gl_state;
 GLenum pname_convert(GLenum pname);
 
 GLenum map_tex_target(GLenum target);
+
+void write_log(std::string_view format, auto&&... args);
+
+void write_log_n(std::string_view format, auto&&... args);
 
 void start_log();
 
