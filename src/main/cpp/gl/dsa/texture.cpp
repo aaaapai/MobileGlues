@@ -60,6 +60,10 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
     LOG()
     LOG_D("glCreateTextures, target = 0x%x, n = %d, textures = %p", target, n, textures)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLES.glGenTextures(n, textures);
     
     for (GLsizei i = 0; i < n; i++) {
@@ -77,6 +81,10 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
     LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // 保存当前绑定状态
     GLint prevBinding = 0;
@@ -144,6 +152,10 @@ void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params) {
     LOG()
     LOG_D("glTextureParameterIiv, texture = %u, pname = 0x%x, params = %p", texture, pname, params)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
     
@@ -157,6 +169,10 @@ void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params) {
 void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params) {
     LOG()
     LOG_D("glTextureParameterIuiv, texture = %u, pname = 0x%x, params = %p", texture, pname, params)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
@@ -212,6 +228,10 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
     LOG()
     LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture)
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     if (texture != 0) {
         GLenum target = GetTextureTarget(texture);
         GLES.glActiveTexture(GL_TEXTURE0 + unit);
@@ -231,6 +251,10 @@ void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param) {
     LOG()
     LOG_D("glTextureParameteriv, tex: %u, pname: %s, param: %d", 
           texture, glEnumToString(pname), param ? *param : 0)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // 获取纹理目标类型（默认为2D纹理）
     GLenum target = GL_TEXTURE_2D;
@@ -264,7 +288,11 @@ void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
     LOG()
     LOG_D("glCopyTextureSubImage2D, tex: %d, level: %d, xoff: %d, yoff: %d", 
           texture, level, xoffset, yoffset)
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTexture;
     GLenum target = GL_TEXTURE_2D;
     
@@ -291,7 +319,11 @@ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
     LOG()
     LOG_D("glCopyTextureSubImage3D, tex: %d, level: %d, zoff: %d",
           texture, level, zoffset)
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
     GLES.glBindTexture(GL_TEXTURE_3D, texture);
@@ -309,6 +341,10 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
     LOG()
     LOG_D("glCopyTextureSubImage1D, tex: %d, level: %d, xoff: %d, width: %d",
           texture, level, xoffset, width)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     GLint prevTexture;
     GLenum target = GL_TEXTURE_1D;
@@ -335,6 +371,10 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
 
     LOG()
     LOG_D("glBindSamplers, first: %u, count: %d, samplers: %p", first, count, samplers)
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
 
     // 快速参数检查
     if (count < 0 || first + count > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
@@ -366,7 +406,11 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
 
     LOG()
     LOG_D("glTextureSubImage2D, texture = %u, level = %d, xoffset = %d, yoffset = %d, width = %d, height = %d, format = 0x%x, type = 0x%x, pixels = %p", texture, level, xoffset, yoffset, width, height, format, type, pixels)
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前绑定的纹理以便后续恢复
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
@@ -386,7 +430,11 @@ void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat,
                         GLsizei width, GLsizei height) {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前绑定的纹理
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
@@ -405,6 +453,11 @@ void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat,
                         GLsizei width, GLsizei height, GLsizei depth) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前绑定的纹理
     GLint prevTexture;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTexture);
@@ -423,6 +476,11 @@ void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum inter
                                   GLsizei width, GLsizei height, GLboolean fixedsamplelocations) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 绑定纹理目标为GL_TEXTURE_2D_MULTISAMPLE
     GLES.glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
     
@@ -441,7 +499,11 @@ void glTextureStorage3DMultisample(
 {
 
     LOG()
-    
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 使用 2D 纹理数组模拟 3D 纹理，每个 slice 存储一个样本
     GLES.glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
     
@@ -470,6 +532,11 @@ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
                         GLenum format, GLenum type, const void *pixels) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     // 保存当前错误状态
     GLenum prevError = GLES.glGetError();
     
@@ -494,6 +561,11 @@ void glCompressedTextureSubImage3D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLenum prevError = GLES.glGetError();
     
     GLES.glBindTexture(GL_TEXTURE_3D, texture);
@@ -513,6 +585,11 @@ void glCompressedTextureSubImage2D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLenum prevError = GLES.glGetError();
     
     GLES.glBindTexture(GL_TEXTURE_2D, texture);
@@ -531,6 +608,11 @@ void glCompressedTextureSubImage1D(GLuint texture, GLint level,
                                   GLenum format, GLsizei imageSize, const void *data) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLenum prevError = GLES.glGetError();
     
     // 注意: OpenGL ES 不直接支持 1D 纹理，通常使用 2D 纹理模拟
@@ -550,6 +632,11 @@ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                       GLsizei bufSize, void *pixels) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
@@ -563,6 +650,11 @@ void glGetCompressedTextureImage(GLuint texture, GLint level,
                                 GLsizei bufSize, void *pixels) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
@@ -576,6 +668,11 @@ void glGetTextureLevelParameteriv(GLuint texture, GLint level,
                                  GLenum pname, GLint *params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
@@ -589,6 +686,11 @@ void glGetTextureLevelParameterfv(GLuint texture, GLint level,
                                  GLenum pname, GLfloat *params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
     
@@ -601,6 +703,11 @@ void glGetTextureLevelParameterfv(GLuint texture, GLint level,
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
@@ -614,6 +721,11 @@ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params) {
 void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
     
     GLint prevTex;
     GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
@@ -628,6 +740,11 @@ void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params) {
 
     LOG()
 
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
+
     // GLES doesn't have integer texture parameters, fall back to regular version
     glGetTextureParameteriv(texture, pname, params);
 }
@@ -635,6 +752,11 @@ void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params) {
 void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params) {
 
     LOG()
+
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
 
     // GLES doesn't have integer texture parameters, fall back to regular version
     GLint tmp;
@@ -659,6 +781,10 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset,
                        GLenum type, const void *data) {
 
     LOG()
+    if (!global_settings.ext_dsa) {
+        return;
+    }
+
 
     // For GLES, we need to bind the texture and use glTexSubImage
     GLint prevTex;
