@@ -54,6 +54,91 @@ static GLenum get_binding_query(GLenum target) {
     glBindBuffer(GL_COPY_WRITE_BUFFER, prevbuf); \
     CHECK_GL_ERROR_NO_INIT
 
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage) {
+    // Save the currently bound buffer to restore later
+    GLint prev_buffer;
+    GLenum prev_target;
+    GLenum binding_point = GL_ARRAY_BUFFER; // Default fallback target
+    
+    // Map desktop OpenGL targets to GLES 3.2 supported targets
+    // These are the supported targets in GLES 3.2
+    GLenum supported_targets[] = {
+        GL_ARRAY_BUFFER,
+        GL_ELEMENT_ARRAY_BUFFER,
+        GL_COPY_READ_BUFFER,
+        GL_COPY_WRITE_BUFFER,
+        GL_PIXEL_PACK_BUFFER,
+        GL_PIXEL_UNPACK_BUFFER,
+        GL_TRANSFORM_FEEDBACK_BUFFER,
+        GL_UNIFORM_BUFFER
+    };
+    
+    // For unsupported targets, we'll use ARRAY_BUFFER as fallback with warning
+    int target_supported = 0;
+    for (unsigned int i = 0; i < sizeof(supported_targets)/sizeof(GLenum); i++) {
+        if (supported_targets[i] == binding_point) {
+            target_supported = 1;
+            break;
+        }
+    }
+    
+    if (!target_supported) {
+        // For truly unsupported targets that can't be reasonably mapped
+        fprintf(stderr, "Warning: Target not directly supported in GLES 3.2. Using GL_ARRAY_BUFFER as fallback.\n");
+        binding_point = GL_ARRAY_BUFFER;
+    }
+    
+    // Get the current binding for our target to restore later
+    switch (binding_point) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_ARRAY_BUFFER;
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_ELEMENT_ARRAY_BUFFER;
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_COPY_READ_BUFFER;
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_COPY_WRITE_BUFFER;
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_PIXEL_PACK_BUFFER;
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_PIXEL_UNPACK_BUFFER;
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_TRANSFORM_FEEDBACK_BUFFER;
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prev_buffer);
+            prev_target = GL_UNIFORM_BUFFER;
+            break;
+        default:
+            // Shouldn't get here due to our fallback logic
+            prev_buffer = 0;
+            prev_target = GL_ARRAY_BUFFER;
+            break;
+    }
+    
+    // Bind our target buffer to the appropriate target
+    glBindBuffer(binding_point, buffer);
+    
+    // Create and initialize the buffer's data store
+    glBufferData(binding_point, size, data, usage);
+    
+    // Restore the previously bound buffer
+    glBindBuffer(prev_target, prev_buffer);
+}
+
 void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data) {
     LOG()
     LOG_D("glNamedBufferSubData, buffer = %d, offset = %d, size = %d, data = 0x%x",
