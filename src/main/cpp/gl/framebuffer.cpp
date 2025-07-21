@@ -79,7 +79,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= getMaxDrawBuffers()) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
@@ -120,7 +120,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
         GLenum format = 0; // Not used for framebuffer attachment
         internal_convert(&convertedFormat, &type, &format);
         
-        if (convertedFormat != internalFormat) {
+        if (convertedFormat != static_cast<GLuint>(internalFormat)) {
             LOG_D("Falling back from 0x%x to 0x%x due to format not supported", 
                  internalFormat, convertedFormat);
             
@@ -190,10 +190,10 @@ void glDrawBuffer(GLenum buffer) {
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
-                   buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
+                   buffer < GL_COLOR_ATTACHMENT0 + static_cast<GLuint>(maxAttachments)) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
-                buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
+                buffers[i] = (static_cast<GLuint>(i) == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         }
@@ -205,10 +205,10 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs) {
 
     LOG_D("glDrawBuffers(%d, %p), [0]=0x%x", n, bufs, n ? bufs[0] : 0)
 
-    GLenum new_bufs[n];
+    std::vector<GLenum> new_bufs(n);
 
     for (int i = 0; i < n; i++) {
-        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + static_cast<GLuint>(getMaxDrawBuffers())) {
             GLenum target_attachment = GL_COLOR_ATTACHMENT0 + i;
             new_bufs[i] = target_attachment;
             rebind_framebuffer(bufs[i], target_attachment);
