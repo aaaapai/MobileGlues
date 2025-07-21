@@ -23,7 +23,7 @@ FILE* file;
 
 void start_log() {
 #ifndef __APPLE__
-    file = fopen(log_file_path, "a");
+    file = fopen(log_file_path.c_str(), "a");
 #endif
 }
 
@@ -64,7 +64,7 @@ void write_log_n(const char* format, ...) {
 
 void clear_log() {
 #ifndef __APPLE__
-    file = fopen(log_file_path, "w");
+    file = fopen(log_file_path.c_str(), "w");
     if (file == nullptr) {
         return;
     }
