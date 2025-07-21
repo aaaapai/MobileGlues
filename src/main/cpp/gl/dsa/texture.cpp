@@ -231,10 +231,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
     LOG()
     LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture)
 
+/*
     if (!global_settings.ext_dsa) {
         return;
     }
-
+*/
     if (texture != 0) {
         GLenum target = GetTextureTarget(texture);
         GLES.glActiveTexture(GL_TEXTURE0 + unit);
