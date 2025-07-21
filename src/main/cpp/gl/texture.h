@@ -18,7 +18,7 @@ extern "C" {
 struct texture_t {
     GLenum target;
     GLuint texture;
-    GLenum internal_format;
+    GLenum internal_format = 0;
     GLenum format;
     GLint swizzle_param[4];
 };
