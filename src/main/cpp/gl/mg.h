@@ -25,6 +25,10 @@ typedef unsigned int uint;
 #include "glsl/glsl_for_es.h"
 #include "../config/config.h"
 
+void write_log(std::string_view format, auto&&... args);
+
+void write_log_n(std::string_view format, auto&&... args);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,10 +71,6 @@ GLenum pname_convert(GLenum pname);
 GLenum map_tex_target(GLenum target);
 
 void start_log();
-
-void write_log(std::string_view format, auto&&... args);
-
-void write_log_n(std::string_view format, auto&&... args);
 
 void clear_log();
 
