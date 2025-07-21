@@ -20,6 +20,7 @@
 #include "../mg.h"
 #include "../framebuffer.h"
 #include "../pixel.h"
+#include "../../config/settings.h"
 
 #define DEBUG 1
 
