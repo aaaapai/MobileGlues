@@ -6,6 +6,7 @@
 
 #include "../log.h"
 #include "../config/settings.h"
+#include "../../config/settings.h"
 #include <ankerl/unordered_dense.h>
 
 #define DEBUG 1
