@@ -430,7 +430,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
 
     // Fill the buffer with the pattern
     if (data) {
-        for (size_t i = 0; i < size; i += elem_size) {
+        for (size_t i = 0; i < static_cast<size_t>(size); i += elem_size) {
             memcpy((char*)ptr + i, data, elem_size);
         }
     } else {
