@@ -20,7 +20,7 @@ int check_path();
 
 int config_refresh();
 int config_get_int(std::string name);
-char* config_get_string(std::string name);
+std::string config_get_string(std::string name);
 void config_cleanup();
 
 #ifdef __cplusplus
