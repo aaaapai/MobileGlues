@@ -2,6 +2,7 @@
 // Created by BZLZHH on 2025/1/27.
 //
 
+#include <stdarg.h>
 #include <unistd.h>
 #include <fstream>
 #include <format>
@@ -17,19 +18,19 @@ FUNC_GL_STATE_SIZEI(proxy_height)
 FUNC_GL_STATE_ENUM(proxy_intformat)
 
 #ifndef __APPLE__
-std::ofstream file;
+FILE* file;
 #endif
 
 void start_log() {
 #ifndef __APPLE__
-    file.open(log_file_path, std::ios::app);
+    file = fopen(log_file_path, "a");
 #endif
 }
 
 
 void write_log(const char* format, ...) {
 #ifndef __APPLE__
-    if (file == nullptr) {
+    if (!file.is_open()) {
         return;
     }
     va_list args;
@@ -63,10 +64,11 @@ void write_log_n(const char* format, ...) {
 
 void clear_log() {
 #ifndef __APPLE__
-    file.open(log_file_path, std::ios::trunc);
-    if (file.is_open()) {
-        file.close();
+    file = fopen(log_file_path, "w");
+    if (file == nullptr) {
+        return;
     }
+    fclose(file);
 #endif
 }
 
