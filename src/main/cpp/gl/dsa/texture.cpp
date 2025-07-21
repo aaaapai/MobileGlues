@@ -83,9 +83,11 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     LOG()
     LOG_D("glTextureParameteri, texture = %u, pname = 0x%x, param = %d", texture, pname, param)
 
+/*
     if (!global_settings.ext_dsa) {
         return;
     }
+*/
 
     // 保存当前绑定状态
     GLint prevBinding = 0;
