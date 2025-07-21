@@ -183,6 +183,8 @@ void init_settings() {
           global_settings.ext_gl43 ? "true" : "false")
     LOG_V("[MobileGlues] Setting: enableExtTimerQuery          = %s", 
           global_settings.ext_timer_query ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableExtDSA          = %s", 
+          global_settings.ext_dsa ? "true" : "false")
     LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", 
           static_cast<int>(global_settings.max_glsl_cache_size / 1024 / 1024))
     LOG_V("[MobileGlues] Setting: multidrawMode          = %s", draw_mode_str.c_str())
