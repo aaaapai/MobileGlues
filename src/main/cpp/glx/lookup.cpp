@@ -12,6 +12,7 @@
 #include "../gl/log.h"
 #include "../gl/envvars.h"
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
@@ -50,13 +51,12 @@ std::string handle_multidraw_func_name(std::string name) {
     return namestr;
 }
 
-
-void* glXGetProcAddress(const char* name) {
-    LOG();
+void *glXGetProcAddress(const char *name) {
+    LOG()
     std::string real_func_name = handle_multidraw_func_name(std::string(name));
 
     // DSA 函数黑名单
-    static const std::unordered_set<std::string> dsa_blacklist = {
+    static const ankerl::unordered_dense::set<std::string> dsa_blacklist = {
         "glCreateTextures",
         "glTextureParameteri",
         "glTextureParameterIiv",
@@ -100,41 +100,8 @@ void* glXGetProcAddress(const char* name) {
         "glClearNamedFramebufferiv",
         "glClearNamedFramebufferuiv",
         "glNamedBufferSubData",
-        "glCreateBuffers",
-        "glFlushMappedNamedBufferRange",
-        "glGetNamedBufferParameteriv",
-        "glGetNamedBufferParameteri64v",
-        "glGetNamedBufferPointerv",
-        "glGetNamedBufferSubData",
-        "glMapNamedBuffer",
-        "glMapNamedBufferRange",
-        "glClearBufferData",
-        "glClearNamedBufferData",
-        "glClearBufferSubData",
-        "glClearNamedBufferSubData",
-        "glNamedBufferStorage",
-        "glCopyNamedBufferSubData"
-    };
-
-    // 检查是否在黑名单中
-    if (dsa_blacklist.count(real_func_name)) {
-        LOG_D("Blocked DSA function: %s", real_func_name.c_str());
-        return nullptr;  // 直接返回 nullptr，禁用该函数
+        "glCreateBuffers"
     }
-
-#ifdef __APPLE__
-    return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
-#else
-    void* proc = dlsym(RTLD_DEFAULT, real_func_name.c_str());
-    if (!proc) {
-        LOG_W("Failed to get OpenGL function: %s", real_func_name.c_str());
-    }
-    return proc;
-#endif
-}
-void *glXGetProcAddress(const char *name) {
-    LOG()
-    std::string real_func_name = handle_multidraw_func_name(std::string(name));
 #ifdef __APPLE__
     return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
 #else
