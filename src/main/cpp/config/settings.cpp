@@ -36,6 +36,7 @@ void init_settings() {
     bool enableExtGL43 = success ? (config_get_int("enableExtGL43") != 0) : false;
     bool enableExtComputeShader = success ? (config_get_int("enableExtComputeShader") != 0) : false;
     bool enableExtTimerQuery = success ? (config_get_int("enableExtTimerQuery") != 0) : false;
+    bool enableExtDSA = success ? (config_get_int("enableExtDSA") != 0) : false;
     multidraw_mode_t multidrawMode = success ? static_cast<multidraw_mode_t>(config_get_int("multidrawMode")) : multidraw_mode_t::Auto;
     AngleDepthClearFixMode angleDepthClearFixMode = success ? static_cast<AngleDepthClearFixMode>(config_get_int("angleDepthClearFixMode")) : AngleDepthClearFixMode::Disabled;
 
@@ -73,6 +74,7 @@ void init_settings() {
         enableExtGL43 = false;
         enableExtComputeShader = false;
         enableExtTimerQuery = true;
+	enableExtDSA = false;
         maxGlslCacheSize = 0;
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
@@ -150,6 +152,7 @@ void init_settings() {
     global_settings.ext_gl43 = enableExtGL43;
     global_settings.ext_compute_shader = enableExtComputeShader;
     global_settings.ext_timer_query = enableExtTimerQuery;
+    global_settings.ext_dsa = enableExtDSA;
     global_settings.max_glsl_cache_size = maxGlslCacheSize;
     global_settings.multidraw_mode = multidrawMode;
     global_settings.angle_depth_clear_fix_mode = angleDepthClearFixMode;
