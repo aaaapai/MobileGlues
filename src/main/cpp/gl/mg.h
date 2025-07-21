@@ -7,8 +7,10 @@
 
 typedef unsigned int uint;
 
+#include <string>
 #include <cstring>
 #include <cstdlib>
+#include <string_view>
 
 #ifndef __APPLE__
 #include <malloc.h>
@@ -66,9 +68,9 @@ GLenum map_tex_target(GLenum target);
 
 void start_log();
 
-void write_log(const char *format, ...);
+void write_log(std::string_view format, auto&&... args);
 
-void write_log_n(const char *format, ...);
+void write_log_n(std::string_view format, auto&&... args);
 
 void clear_log();
 
