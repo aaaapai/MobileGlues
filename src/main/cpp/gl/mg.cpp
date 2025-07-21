@@ -30,7 +30,7 @@ void start_log() {
 
 void write_log(const char* format, ...) {
 #ifndef __APPLE__
-    if (!file.is_open()) {
+    if (file == nullptr) {
         return;
     }
     va_list args;
@@ -50,7 +50,7 @@ void write_log(const char* format, ...) {
 
 void write_log_n(const char* format, ...) {
 #ifndef __APPLE__
-    if (file == NULL) {
+    if (file == nullptr) {
         return;
     }
     va_list args;
