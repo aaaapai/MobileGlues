@@ -26,7 +26,7 @@ void start_log() {
 #endif
 }
 
-void write_log(std::string_view format, auto&&... args) {
+extern "C" void write_log(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
     if (!file.is_open()) return;
     
@@ -39,7 +39,7 @@ void write_log(std::string_view format, auto&&... args) {
 #endif
 }
 
-void write_log_n(std::string_view format, auto&&... args) {
+extern "C" void write_log_n(std::string_view format, auto&&... args) {
 #ifndef __APPLE__
     if (!file.is_open()) return;
     file << std::vformat(format, std::make_format_args(args...));
