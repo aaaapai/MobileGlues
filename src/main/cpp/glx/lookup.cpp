@@ -12,6 +12,7 @@
 #include "../gl/log.h"
 #include "../gl/envvars.h"
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
@@ -39,6 +40,9 @@ std::string handle_multidraw_func_name(std::string name) {
         case multidraw_mode_t::Compute:
             namestr += "_compute";
             break;
+        case multidraw_mode_t::DeepSeekOne:
+            namestr += "_deepseek_one";
+            break;
         default:
             LOG_W("get_multidraw_func() cannot determine multidraw emulation mode!")
             return {};
@@ -50,6 +54,7 @@ std::string handle_multidraw_func_name(std::string name) {
 void *glXGetProcAddress(const char *name) {
     LOG()
     std::string real_func_name = handle_multidraw_func_name(std::string(name));
+
 #ifdef __APPLE__
     return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
 #else

@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_PIXEL_H
 #define MOBILEGLUES_PIXEL_H
 
-#include "gl.h"
+#include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
 
@@ -29,6 +29,10 @@ typedef struct {
 
 #define widthalign(width, align) ((((uintptr_t)(width))+((uintptr_t)(align)-1))&(~((uintptr_t)(align)-1)))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 GLsizei gl_sizeof(GLenum type);
 
 GLsizei pixel_sizeof(GLenum format, GLenum type);
@@ -39,5 +43,9 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst,
                    GLuint width, GLuint height,
                    GLenum src_format, GLenum src_type,
                    GLenum dst_format, GLenum dst_type, GLuint stride, GLuint align);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //MOBILEGLUES_PIXEL_H

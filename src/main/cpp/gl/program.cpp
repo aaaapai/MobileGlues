@@ -91,10 +91,10 @@ void glLinkProgram(GLuint program) {
 
     LOG_D("glLinkProgram(%d)", program)
     if (!shaderInfo.converted.empty() && shaderInfo.frag_data_changed) {
-        GLES.glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
+        glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
         GLES.glCompileShader(shaderInfo.id);
         GLint status = 0;
-        GLES.glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
+        glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
         if(status!=GL_TRUE) {
             char tmp[500];
             GLES.glGetShaderInfoLog(shaderInfo.id, 500, nullptr, tmp);
@@ -130,6 +130,7 @@ void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
 void glUseProgram(GLuint program) {
     LOG()
     LOG_D("glUseProgram(%d)", program)
+
     if (program != gl_state->current_program) {
         gl_state->current_program = program;
         GLES.glUseProgram(program);

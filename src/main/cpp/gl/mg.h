@@ -7,21 +7,24 @@
 
 typedef unsigned int uint;
 
+#include <string.h>
 #include <cstring>
 #include <cstdlib>
+#include <string_view>
 
 #ifndef __APPLE__
 #include <malloc.h>
 #include <android/log.h>
 #endif
 
-#include "gl.h"
+#include "GL/gl.h"
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
 #include "../includes.h"
 #include "glsl/glsl_for_es.h"
 #include "../config/config.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,9 +75,11 @@ extern gl_state_t gl_state;
 
 GLenum pname_convert(GLenum pname);
 GLenum map_tex_target(GLenum target);
+
 void start_log();
 void write_log(const char *format, ...);
 void write_log_n(const char *format, ...);
+
 void clear_log();
 
 #ifdef __cplusplus

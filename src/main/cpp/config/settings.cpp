@@ -36,6 +36,7 @@ void init_settings() {
     bool enableExtGL43 = success ? (config_get_int("enableExtGL43") != 0) : false;
     bool enableExtComputeShader = success ? (config_get_int("enableExtComputeShader") != 0) : false;
     bool enableExtTimerQuery = success ? (config_get_int("enableExtTimerQuery") != 0) : false;
+    bool enableExtDSA = success ? (config_get_int("enableExtDSA") != 0) : false;
     multidraw_mode_t multidrawMode = success ? static_cast<multidraw_mode_t>(config_get_int("multidrawMode")) : multidraw_mode_t::Auto;
     AngleDepthClearFixMode angleDepthClearFixMode = success ? static_cast<AngleDepthClearFixMode>(config_get_int("angleDepthClearFixMode")) : AngleDepthClearFixMode::Disabled;
 
@@ -73,6 +74,7 @@ void init_settings() {
         enableExtGL43 = false;
         enableExtComputeShader = false;
         enableExtTimerQuery = true;
+	enableExtDSA = false;
         maxGlslCacheSize = 0;
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
@@ -150,6 +152,7 @@ void init_settings() {
     global_settings.ext_gl43 = enableExtGL43;
     global_settings.ext_compute_shader = enableExtComputeShader;
     global_settings.ext_timer_query = enableExtTimerQuery;
+    global_settings.ext_dsa = enableExtDSA;
     global_settings.max_glsl_cache_size = maxGlslCacheSize;
     global_settings.multidraw_mode = multidrawMode;
     global_settings.angle_depth_clear_fix_mode = angleDepthClearFixMode;
@@ -162,6 +165,7 @@ void init_settings() {
         case multidraw_mode_t::PreferMultidrawIndirect: draw_mode_str = "Multidraw indirect"; break;
         case multidraw_mode_t::DrawElements: draw_mode_str = "DrawElements"; break;
         case multidraw_mode_t::Compute: draw_mode_str = "Compute"; break;
+	case multidraw_mode_t::DeepSeekOne: draw_mode_str = "DeepSeek的方案1"; break;
         case multidraw_mode_t::Auto: draw_mode_str = "Auto"; break;
         default:
             draw_mode_str = "(Unknown)";
@@ -179,6 +183,8 @@ void init_settings() {
           global_settings.ext_gl43 ? "true" : "false")
     LOG_V("[MobileGlues] Setting: enableExtTimerQuery          = %s", 
           global_settings.ext_timer_query ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableExtDSA          = %s", 
+          global_settings.ext_dsa ? "true" : "false")
     LOG_V("[MobileGlues] Setting: maxGlslCacheSize       = %i", 
           static_cast<int>(global_settings.max_glsl_cache_size / 1024 / 1024))
     LOG_V("[MobileGlues] Setting: multidrawMode          = %s", draw_mode_str.c_str())
@@ -188,11 +194,12 @@ void init_settings() {
 
 void init_settings_post() {
     bool multidraw = g_gles_caps.GL_EXT_multi_draw_indirect;
-    bool basevertex = g_gles_caps.GL_OES_draw_elements_base_vertex ||
-                     (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || 
-                     (g_gles_caps.major > 3);
-    bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || 
-                    (g_gles_caps.major > 3);
+    bool basevertex =
+            g_gles_caps.GL_OES_draw_elements_base_vertex ||
+            (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || (g_gles_caps.major > 3);
+    bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool drawelements = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool deepseek_one = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
 
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
@@ -203,10 +210,13 @@ void init_settings_post() {
             } else if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
                 LOG_V("    -> BaseVertex (Preferred not supported, falling back)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
+	    }
             break;
         case multidraw_mode_t::PreferBaseVertex:
             LOG_V("multidrawMode = PreferBaseVertex")
@@ -219,9 +229,12 @@ void init_settings_post() {
             } else if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
                 LOG_V("    -> Indirect (Preferred not supported, falling back)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
             }
             break;
         case multidraw_mode_t::DrawElements:
@@ -233,6 +246,11 @@ void init_settings_post() {
             LOG_V("multidrawMode = Compute")
             global_settings.multidraw_mode = multidraw_mode_t::Compute;
             LOG_V("    -> Compute (OK)")
+            break;
+	case multidraw_mode_t::DeepSeekOne:
+            LOG_V("multidrawMode = DeepSeek的方案1")
+            global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+            LOG_V("    -> DeepSeek的方案1 (OK)")
             break;
         case multidraw_mode_t::Auto:
         default:
@@ -246,10 +264,13 @@ void init_settings_post() {
             } else if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
                 LOG_V("    -> BaseVertex (Auto detected)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Auto detected)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Auto detected)")
+	    }
             break;
     }
 }

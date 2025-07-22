@@ -1,11 +1,11 @@
 //
-// Created by hanji on 2025/2/3.
+// Created by hanji on 2025/2/3.A
 //
 
 #ifndef MOBILEGLUES_PROGRAM_H
 #define MOBILEGLUES_PROGRAM_H
 
-#include "gl.h"
+#include "GL/gl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +18,10 @@ GLAPI GLAPIENTRY void glUseProgram(GLuint program);
 GLAPI GLAPIENTRY GLuint glCreateProgram();
 GLAPI GLAPIENTRY void glAttachShader(GLuint program, GLuint shader);
 GLAPI GLAPIENTRY GLuint glCreateShader(GLenum shaderType);
+
+GLAPI GLAPIENTRY GLint glGetUniformLocation(GLuint program, const GLchar *name);
+
+GLAPI GLAPIENTRY void glUseProgram (GLuint program);
 
 #ifdef __cplusplus
 }
