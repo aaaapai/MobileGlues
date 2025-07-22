@@ -15,14 +15,6 @@ void readDataComponents(const void* data, GLenum type, T* out, size_t maxCompone
 extern "C" {
 #endif
 
-struct texture_t {
-    GLenum target;
-    GLuint texture;
-    GLenum internal_format = 0;
-    GLenum format;
-    GLint swizzle_param[4];
-};
-
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
 int nlevel(int size, int level);
 static int is_depth_format(GLenum format);
@@ -62,4 +54,14 @@ GLAPI GLAPIENTRY void glGetnCompressedTexImage(GLenum target, GLint level, GLsiz
 }
 #endif
 
-#endif
+struct texture_t {
+    GLenum target;
+    GLuint texture;
+    GLenum internal_format = 0;
+    GLenum format;
+    GLint swizzle_param[4];
+    GLsizei width;
+    GLsizei height;
+};
+
+extern std::unordered_map<GLuint, texture_t> g_textures;

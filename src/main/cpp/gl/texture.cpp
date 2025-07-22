@@ -326,6 +326,8 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width, GLsizei height,GLint border, GLenum format, GLenum type,const GLvoid* pixels) {
     LOG()
     auto& tex = g_textures[bound_texture];
+    tex.width = width;
+    tex.height = height;
     tex.internal_format = internalFormat;
     GLenum transfer_format = format;
     GLenum transfer_type = type;
@@ -779,8 +781,13 @@ void glBindTexture(GLenum target, GLuint texture) {
     LOG()
     LOG_D("glBindTexture(%s, %d)", glEnumToString(target), texture)
     INIT_CHECK_GL_ERROR
-
-    GLES.glBindTexture(target, texture);
+    if (hardware->emulate_texture_buffer && target == GL_TEXTURE_BUFFER) {
+        GLES.glActiveTexture(GL_TEXTURE0 + 15);
+        GLES.glBindTexture(GL_TEXTURE_2D, texture);
+		GLES.glActiveTexture(GL_TEXTURE0 + gl_state->current_tex_unit);
+    } else {
+        GLES.glBindTexture(target, texture);
+    }
     CHECK_GL_ERROR_NO_INIT
 
     g_textures[texture] = {
@@ -817,6 +824,19 @@ void glGenerateTextureMipmap(GLuint texture) {
     glBindTexture(target, texture);
     glGenerateMipmap(target);
     glBindTexture(target, currentTexture);
+}
+
+void glActiveTexture(GLenum texture) {
+    LOG()
+    LOG_D("glActiveTexture, texture = %s", glEnumToString(texture))
+    if (texture < GL_TEXTURE0) {
+        LOG_E("Invalid texture enum: %s", glEnumToString(texture))
+        return;
+    }
+
+	set_gl_state_current_tex_unit(texture - GL_TEXTURE0);
+    GLES.glActiveTexture(texture);
+    CHECK_GL_ERROR
 }
 
 void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void* pixels) {

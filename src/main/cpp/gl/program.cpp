@@ -10,8 +10,13 @@
 #include <cstring>
 #include <iostream>
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
+#include "drawing.h"
 
 #define DEBUG 0
+
+extern std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
 
 char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
     std::string shaderCode(esslSource);
@@ -34,11 +39,6 @@ char* updateLayoutLocation(const char* esslSource, GLuint color, const char* nam
 void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
     LOG()
     LOG_D("glBindFragDataLocation(%d, %d, %s)", program, color, name)
-//    if (g_gles_caps.GL_EXT_blend_func_extended) {
-//        GLES.glBindFragDataLocationEXT(program, color, name);
-//    } else {
-//        LOG_W("Warning: No GL_EXT_blend_func_extended, skipping glBindFragDataLocation...");
-//    }
 
     if (strlen(name) > 8 && strncmp(name, "outColor", 8) == 0) {
         const char* numberStr = name + 8;
@@ -130,8 +130,36 @@ void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
 void glUseProgram(GLuint program) {
     LOG()
     LOG_D("glUseProgram(%d)", program)
-    
-    GLES.glUseProgram(program);
 
+    if (program != gl_state->current_program) {
+        gl_state->current_program = program;
+        GLES.glUseProgram(program);
+        CHECK_GL_ERROR
+    }
+}
+
+void glAttachShader(GLuint program, GLuint shader) {
+    LOG()
+    LOG_D("glAttachShader(%u, %u)", program, shader)
+    if (hardware->emulate_texture_buffer && shader_map_is_sampler_buffer_emulated[shader])
+        program_map_is_sampler_buffer_emulated[program] = true;
+
+    GLES.glAttachShader(program, shader);
     CHECK_GL_ERROR
+}
+
+extern ankerl::unordered_dense::map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
+
+GLuint glCreateProgram() {
+    LOG()
+    LOG_D("glCreateProgram")
+    GLuint program = GLES.glCreateProgram();
+    if (hardware->emulate_texture_buffer) {
+        program_map_is_sampler_buffer_emulated[program] = false;
+        if (g_samplerCacheForSamplerBuffer.find(program) != g_samplerCacheForSamplerBuffer.end()) {
+            g_samplerCacheForSamplerBuffer.erase(program);  
+        }
+    }
+    CHECK_GL_ERROR
+    return program;
 }

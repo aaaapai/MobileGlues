@@ -4,6 +4,7 @@
 
 #include "buffer.h"
 #include "ankerl/unordered_dense.h"
+#include "texture.h"
 
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
@@ -18,6 +19,9 @@ unordered_map<GLuint, GLuint> g_gen_buffers;
 unordered_map<GLuint, GLuint> g_gen_arrays;
 
 unordered_map<GLenum, GLuint> g_bound_buffers;
+
+unordered_map<GLuint, size_t> g_buffer_datasize;
+
 GLuint bound_array = 0;
 // fake array - fake ibo
 unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
@@ -62,6 +66,18 @@ GLuint find_bound_array() {
 
 void update_vao_ibo_binding(GLuint vao, GLuint ibo) {
     g_element_array_buffer_per_vao[vao] = ibo;
+}
+
+void set_buffer_data_size(GLuint buffer, size_t size) {
+    g_buffer_datasize[buffer] = size;
+}
+
+size_t get_buffer_data_size(GLuint buffer) {
+    auto it = g_buffer_datasize.find(buffer);
+    if (it != g_buffer_datasize.end())
+        return it->second;
+    else
+        return 0;
 }
 
 GLuint find_bound_buffer(GLenum key) {
@@ -289,10 +305,79 @@ void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLs
     CHECK_GL_ERROR
 }
 
+size_t get_internal_format_size(GLenum internalformat) {
+    switch (internalformat) {
+    case GL_R8: return 1;
+    case GL_R8I:
+    case GL_R8UI: return 1;
+    case GL_R16: return 2;
+    case GL_R16I:
+    case GL_R16UI:
+    case GL_R16F: return 2;
+    case GL_R32I:
+    case GL_R32UI:
+    case GL_R32F: return 4;
+
+    case GL_RG8: return 2;
+    case GL_RG8I:
+    case GL_RG8UI: return 2;
+    case GL_RG16: return 4;
+    case GL_RG16I:
+    case GL_RG16UI:
+    case GL_RG16F: return 4;
+    case GL_RG32I:
+    case GL_RG32UI:
+    case GL_RG32F: return 8;
+
+    case GL_RGB8: return 3;
+    case GL_RGB8I:
+    case GL_RGB8UI: return 3;
+    case GL_RGB16: return 6;
+    case GL_RGB16I:
+    case GL_RGB16UI:
+    case GL_RGB16F: return 6;
+    case GL_RGB32I:
+    case GL_RGB32UI:
+    case GL_RGB32F: return 12;
+
+    case GL_RGBA8: return 4;
+    case GL_RGBA8I:
+    case GL_RGBA8UI: return 4;
+    case GL_RGBA16: return 8;
+    case GL_RGBA16I:
+    case GL_RGBA16UI:
+    case GL_RGBA16F: return 8;
+    case GL_RGBA32I:
+    case GL_RGBA32UI:
+    case GL_RGBA32F: return 16;
+
+    case GL_DEPTH_COMPONENT16: return 2;
+    case GL_DEPTH_COMPONENT24: return 3;
+    case GL_DEPTH_COMPONENT32: return 4;
+    case GL_DEPTH_COMPONENT32F: return 4;
+    case GL_DEPTH24_STENCIL8: return 4;
+    case GL_DEPTH32F_STENCIL8: return 5;
+
+    case GL_STENCIL_INDEX8: return 1;
+
+    case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+    case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: return 8; 
+    case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+    case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: return 16;
+
+    default:
+        LOG_E("Unknown internal format size for %s", glEnumToString(internalformat));
+        return 0;
+    }
+}
+
+extern std::string bufSampelerName;
 // Todo: any glGet* related to this function?
 void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
     LOG()
     LOG_D("glTexBuffer, target = %s, internalformat = %s, buffer = %d", glEnumToString(target), glEnumToString(internalformat), buffer)
+    if (target != GL_TEXTURE_BUFFER) return;
+
     if (!has_buffer(buffer) || buffer == 0) {
         GLES.glTexBuffer(target, internalformat, buffer);
         CHECK_GL_ERROR
@@ -304,6 +389,108 @@ void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
         modify_buffer(buffer, real_buffer);
         CHECK_GL_ERROR
     }
+
+    if (hardware->emulate_texture_buffer) {
+        LOG_D("Emulating glTexBuffer");
+
+        GLint boundTexture = 0;
+        GLint prev_pixel_buffer_binding = 0;
+
+        GLES.glActiveTexture(GL_TEXTURE0 + 15);
+
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
+        LOG_D("Current GL_TEXTURE_BINDING_BUFFER = %d", boundTexture);
+        GLES.glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prev_pixel_buffer_binding);
+        LOG_D("Previous GL_PIXEL_UNPACK_BUFFER_BINDING = %d", prev_pixel_buffer_binding);
+
+        if (!boundTexture) {
+            LOG_D("No texture bound to GL_TEXTURE_BUFFER, skipping emulation.");
+            return;
+        }
+
+        GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, real_buffer);
+        LOG_D("Bound GL_PIXEL_UNPACK_BUFFER to buffer %u", real_buffer);
+
+        GLint bufferSize;
+        GLES.glGetBufferParameteriv(GL_PIXEL_UNPACK_BUFFER, GL_BUFFER_SIZE, &bufferSize);
+        LOG_D("Buffer size = %d bytes", bufferSize);
+
+        GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        GLES.glBindTexture(GL_TEXTURE_2D, boundTexture);
+        LOG_D("Binding texture %u to GL_TEXTURE_2D", boundTexture);
+
+        const GLuint MAX_WIDTH = 8192;
+        GLuint pixelSize = get_internal_format_size(internalformat);
+        GLuint numElements = bufferSize / pixelSize;
+
+        GLuint width = numElements;
+        GLuint height = 1;
+
+        if (width > MAX_WIDTH) {
+            width = MAX_WIDTH;
+            height = (numElements + MAX_WIDTH - 1) / MAX_WIDTH;
+        }
+
+        GLint prev_alignment, prev_row_length, prev_skip_pixels, prev_skip_rows;
+        GLES.glGetIntegerv(GL_UNPACK_ALIGNMENT, &prev_alignment);
+        GLES.glGetIntegerv(GL_UNPACK_ROW_LENGTH, &prev_row_length);
+        GLES.glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &prev_skip_pixels);
+        GLES.glGetIntegerv(GL_UNPACK_SKIP_ROWS, &prev_skip_rows);
+
+        // why do these 2 params not work
+        //GLES.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        //GLES.glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+        GLES.glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        GLES.glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+
+        // TODO: Optimize the glTexImage2D call
+        GLES.glTexImage2D(
+            GL_TEXTURE_2D, 0, internalformat,
+            width, height, 0,
+            GL_RED_INTEGER, GL_BYTE, nullptr
+        );
+
+        GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, real_buffer);
+
+        for (GLuint row = 0; row < height; ++row) {
+            void* offset = (void*)(row * width * pixelSize);
+            GLES.glTexSubImage2D(GL_TEXTURE_2D, 0,
+                0, row, width, 1,
+                GL_RED_INTEGER, GL_BYTE,
+                offset);
+        }
+
+        GLES.glPixelStorei(GL_UNPACK_ALIGNMENT, prev_alignment);
+        GLES.glPixelStorei(GL_UNPACK_ROW_LENGTH, prev_row_length);
+        GLES.glPixelStorei(GL_UNPACK_SKIP_PIXELS, prev_skip_pixels);
+        GLES.glPixelStorei(GL_UNPACK_SKIP_ROWS, prev_skip_rows);
+
+        auto& tex = g_textures[boundTexture];
+        tex.width = width;
+        tex.height = height;
+        tex.internal_format = internalformat;
+
+        LOG_D("Called glTexImage2D with internalformat = 0x%X", internalformat);
+
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        LOG_D("Set texture parameters: MIN_FILTER=NEAREST, MAG_FILTER=NEAREST, WRAP_S/T=CLAMP_TO_EDGE");
+
+        GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, prev_pixel_buffer_binding);
+
+        GLES.glActiveTexture(GL_TEXTURE0 + gl_state->current_tex_unit);
+
+        LOG_D("Restored bindings: GL_PIXEL_UNPACK_BUFFER=%d", prev_pixel_buffer_binding);
+
+        CHECK_GL_ERROR;
+        return;
+    }
+
     GLES.glTexBuffer(target, internalformat, real_buffer);
     CHECK_GL_ERROR
 }
@@ -335,6 +522,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
           glEnumToString(target), size, data, glEnumToString(usage))
     GLES.glBufferData(target, size, data, usage);
+	set_buffer_data_size(find_bound_buffer(target), size);
     CHECK_GL_ERROR
 }
 

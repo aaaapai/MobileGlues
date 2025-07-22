@@ -370,7 +370,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
 std::string replace_line_starting_with(const std::string& glslCode, const std::string& starting, const std::string& substitution = "") {
     std::string result;
     size_t length = glslCode.size();
-    size_t start = 0;  // 当前保留块的起始位置
+    size_t start = 0;
     size_t current = 0;
 
     auto append_chunk = [&](size_t end) {
@@ -490,6 +490,61 @@ static size_t find_insertion_point(const std::string& glsl) {
     return insertion_point;
 }
 
+void process_sampler_buffer(std::string& source) { // a simplized version, should be rewritten in the future
+    if (source.find("isamplerBuffer") == std::string::npos) {
+        return;
+    }
+
+    size_t pos = 0;
+    while ((pos = source.find("isamplerBuffer", pos)) != std::string::npos) {
+        source.replace(pos, 14, "isampler2D");
+        pos += 11;
+    }
+
+    std::regex pattern(R"(texelFetch\s*\(\s*(\w+)\s*,\s*([^)]+?)\s*\))");
+    source = std::regex_replace(
+        source,
+        pattern,
+        "texelFetch($1, ivec2(($2) % u_BufferTexWidth, ($2) / u_BufferTexWidth), 0)"
+    );
+
+    const char* boundaryProtection = R"(
+ivec2 bufferCoords(int index) {
+    int width = u_BufferTexWidth;
+    int x = index % width;
+    int y = index / width;
+    if (y >= u_BufferTexHeight) {
+        y = u_BufferTexHeight - 1;
+        x = width - 1;
+    }
+    return ivec2(x, y);
+}
+)";
+
+    source = std::regex_replace(
+        source,
+        std::regex("texelFetch\\((\\w+)\\s*,\\s*ivec2\\(([^)]+)\\)\\s*,\\s*0\\)"),
+        "texelFetch($1, bufferCoords($2), 0)"
+    );
+
+    size_t insertion_point = find_insertion_point(source);
+    if (insertion_point != std::string::npos) {
+        source.insert(insertion_point, boundaryProtection);
+    }
+
+    const char* uniformDecl = R"(
+uniform int u_BufferTexWidth;
+uniform int u_BufferTexHeight;
+)";
+
+    insertion_point = find_insertion_point(source);
+    if (insertion_point != std::string::npos) {
+        insertion_point = source.find('\n', insertion_point);
+        if (insertion_point != std::string::npos) {
+            source.insert(insertion_point + 1, uniformDecl);
+        }
+    }
+}
 
 static void inject_textureQueryLod(std::string& glsl) {
     const std::regex defRegex(R"(vec2\s+mg_textureQueryLod\s*\()", std::regex::ECMAScript);
@@ -622,6 +677,11 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
 
     // MobileGlues macros injection
     inject_mg_macro_definition(ret);
+
+    if (hardware->emulate_texture_buffer) {
+        // Sampler buffer processing
+        process_sampler_buffer(ret);
+    }
 
     return ret;
 }

@@ -7,14 +7,18 @@
 
 #include "GL/gl.h"
 #include "log.h"
+#include "program.h"
 #include "../gles/loader.h"
 #include "../includes.h"
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
+#include <unordered_map>
 
 #define DEBUG 0
 
 struct shader_t shaderInfo;
+
+std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
 
 bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
@@ -40,6 +44,10 @@ bool is_direct_shader(const char *glsl)
     return es3_ability;
 }
 
+bool check_if_sampler_buffer_used(std::string str) {
+    return str.find("samplerBuffer") != std::string::npos;
+}
+
 void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, const GLint *length) {    
     LOG()
     shaderInfo.id = 0;
@@ -57,57 +65,44 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
                 glsl_src += string[i];
         }
     } else {
-        for (int i=0; i < count; i++)
+        for (int i = 0; i < count; i++) {
             glsl_src += string[i];
+        }
     }
 
-//    char* source = nullptr;
-//    char* converted = nullptr;
-//    source = (char*)malloc(l+1);
-//    memset(source, 0, l+1);
-//    if(length) {
-//        for (int i=0; i<count; i++) {
-//            if(length[i] >= 0)
-//                strncat(source, string[i], length[i]);
-//            else
-//                strcat(source, string[i]);
-//        }
-//    } else {
-//        for (int i=0; i<count; i++)
-//            strcat(source, string[i]);
-//    }
-    if (GLES.glShaderSource) {
-        if(is_direct_shader(glsl_src.c_str())){
-            LOG_D("[INFO] [Shader] Direct shader source: ")
-            LOG_D("%s", glsl_src.c_str())
-            essl_src = glsl_src;
-        } else {
-            int glsl_version = getGLSLVersion(glsl_src.c_str());
-            LOG_D("[INFO] [Shader] Shader source: ")
-            LOG_D("%s", glsl_src.c_str())
-            GLint shaderType;
-            GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
-            essl_src = getCachedESSL(glsl_src.c_str(), hardware->es_version);
-            if (essl_src.empty())
-                essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version);
-            if (essl_src.empty()) {
-                LOG_E("Failed to convert shader %d.", shader)
-                return;
-            }
-            LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
-        }
-        if (!essl_src.empty()) {
-            shaderInfo.id = shader;
-            shaderInfo.converted = essl_src;
-            const char* s[] = { essl_src.c_str() };
-            GLES.glShaderSource(shader, count, s, nullptr);
-        }
-        else
-            LOG_E("Failed to convert glsl.")
-        CHECK_GL_ERROR
+    bool is_sampler_buffer_emulated = 
+        hardware->emulate_texture_buffer && check_if_sampler_buffer_used(glsl_src);
+
+    if(is_direct_shader(glsl_src.c_str())){
+        LOG_D("[INFO] [Shader] Direct shader source: ")
+        LOG_D("%s", glsl_src.c_str())
+        essl_src = glsl_src;
     } else {
-        LOG_E("No GLES.glShaderSource")
+        int glsl_version = getGLSLVersion(glsl_src.c_str());
+        LOG_D("[INFO] [Shader] Shader source: ")
+        LOG_D("%s", glsl_src.c_str())
+        GLint shaderType;
+        GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
+        essl_src = getCachedESSL(glsl_src.c_str(), hardware->es_version);
+        if (essl_src.empty())
+            essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version);
+        if (essl_src.empty()) {
+            LOG_E("Failed to convert shader %d.", shader)
+            return;
+        }
+        LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
     }
+    if (!essl_src.empty()) {
+        shaderInfo.id = shader;
+        shaderInfo.converted = essl_src;
+        const char* s[] = { essl_src.c_str() };
+        GLES.glShaderSource(shader, count, s, nullptr);
+        if (hardware->emulate_texture_buffer)
+            shader_map_is_sampler_buffer_emulated[shader] = is_sampler_buffer_emulated;
+    }
+    else
+        LOG_E("Failed to convert glsl.")
+    CHECK_GL_ERROR
 }
 
 void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
@@ -121,4 +116,14 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
         *params = GL_TRUE;
     }
     CHECK_GL_ERROR
+}
+
+GLuint glCreateShader(GLenum shaderType) {
+    LOG()
+    LOG_D("glCreateShader(%s)", glEnumToString(shaderType))
+    GLuint shader = GLES.glCreateShader(shaderType);
+    if (shader != 0 && hardware->emulate_texture_buffer)
+        shader_map_is_sampler_buffer_emulated[shader] = false;
+    CHECK_GL_ERROR
+    return shader;
 }
