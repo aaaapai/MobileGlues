@@ -22,7 +22,7 @@
 #include "../pixel.h"
 #include "../../config/settings.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 extern GLuint bound_texture;
