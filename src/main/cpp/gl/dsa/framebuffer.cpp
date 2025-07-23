@@ -9,7 +9,7 @@
 #include "../../config/settings.h"
 #include <ankerl/unordered_dense.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 extern GLint MAX_DRAW_BUFFERS;
 extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
