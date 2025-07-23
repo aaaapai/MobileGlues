@@ -64,4 +64,4 @@ struct texture_t {
     GLsizei height;
 };
 
-extern std::unordered_map<GLuint, texture_t> g_textures;
+extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
