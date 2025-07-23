@@ -366,7 +366,7 @@ size_t get_internal_format_size(GLenum internalformat) {
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: return 16;
 
     default:
-        LOG_E("Unknown internal format size for %s", glEnumToString(internalformat));
+        LOG_E("ERROR: Unknown internal format size for %s", glEnumToString(internalformat));
         return 0;
     }
 }
