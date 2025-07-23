@@ -152,7 +152,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
                     attach[attachment - GL_COLOR_ATTACHMENT0].texture = fallbackTex;
                 }
             } else {
-                LOG_E("Fallback to format 0x%x failed", convertedFormat);
+                LOG_E("ERROR: Fallback to format 0x%x failed", convertedFormat);
                 GLES.glDeleteTextures(1, &fallbackTex);
             }
         }
