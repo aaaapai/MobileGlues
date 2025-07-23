@@ -102,7 +102,7 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
 
         case GL_COMPRESSED_RED_RGTC1:
         case GL_COMPRESSED_RG_RGTC2:
-            LOG_E("GL_COMPRESSED_RED_RGTC1 or GL_COMPRESSED_RG_RGTC2 is not supported!")
+            LOG_E("ERROR: GL_COMPRESSED_RED_RGTC1 or GL_COMPRESSED_RG_RGTC2 is not supported!")
             break;
 
         case GL_SRGB8:
