@@ -68,7 +68,7 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
         size_t glslLen  = strlen(shaderInfo.frag_data_changed_converted) + 1;
         origin_glsl = (char *)malloc(glslLen);
         if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for frag_data_changed_converted\n")
+            LOG_E("ERROR: Memory reallocation failed for frag_data_changed_converted\n")
             return;
         }
         strcpy(origin_glsl, shaderInfo.frag_data_changed_converted);
@@ -76,7 +76,7 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
         size_t glslLen  = shaderInfo.converted.length() + 1;
         origin_glsl = (char *)malloc(glslLen);
         if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for converted\n")
+            LOG_E("ERROR: Memory reallocation failed for converted\n")
             return;
         }
         strcpy(origin_glsl, shaderInfo.converted.c_str());
