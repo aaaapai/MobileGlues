@@ -454,7 +454,7 @@ void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
         GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, real_buffer);
 
         for (GLuint row = 0; row < height; ++row) {
-            void* offset = (void*)(row * width * pixelSize);
+            void* offset = reinterpret_cast<void*>(static_cast<uintptr_t>(row * width * pixelSize));
             GLES.glTexSubImage2D(GL_TEXTURE_2D, 0,
                 0, row, width, 1,
                 GL_RED_INTEGER, GL_BYTE,
