@@ -12,14 +12,13 @@
 #include "../includes.h"
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
 struct shader_t shaderInfo;
 
-template <typename Key, typename Value>
-using unordered_map = ankerl::unordered_dense::map<Key, Value>;
-unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
 
 bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
