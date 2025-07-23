@@ -109,6 +109,30 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     LOG()
     LOG_D("glDrawArrays(), mode = %s, first = %d, count = %u", glEnumToString(mode), first, count)
 
+    if (count <= 0) {
+        LOG_W("Invalid count: %d, skipping draw", count)
+        return;
+    }
+
+    if (first < 0) {
+        LOG_W("Negative first: %d, resetting to 0", first);
+        first = 0;
+    }
+
+    GLint maxVertices;
+    GLES.glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &maxVertices);
+    if (first + count > maxVertices) {
+        int safeCount = maxVertices - first;
+        if (safeCount > 0) {
+            LOG_W("Vertex range %d+%d exceeds max %d, clamping to %d", 
+                  first, count, maxVertices, safeCount)
+            count = safeCount;
+        } else {
+            LOG_W("Invalid vertex range %d+%d, skipping", first, count)
+            return;
+        }
+    }
+
     LIST_RECORD(glDrawArrays, {}, mode, first, count)
 
     // TODO: deal with draw in list later
@@ -129,7 +153,9 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
         GLES.glDrawArrays(mode, first, count);
 
     SET_PREV_PROGRAM
-    GLES.glBindVertexArray(0);
+    if (!DisplayListManager::isCalling()) {
+        GLES.glBindVertexArray(0);
+    }
     CHECK_GL_ERROR_NO_INIT
 }
 
@@ -152,6 +178,20 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
     LOG()
     LOG_D("glDrawElements, mode: %d, count: %d, type: %d, indices: %p", mode, count, type, indices)
+
+    if (count <= 0) {
+        LOG_W("Invalid count: %d, skipping draw", count)
+        return;
+    }
+
+
+    GLint maxIndex;
+    GLES.glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &maxIndex);
+    if (count > maxIndex) {
+        LOG_W("Count %d exceeds max indices %d, clamping", count, maxIndex)
+        count = maxIndex;
+    }
+
     prepareForDraw();
     //LOAD_GLES_FUNC(glGetError)
     //GLenum pre_err = GLES.glGetError();
