@@ -5,6 +5,8 @@
 #include "drawing.h"
 #include "buffer.h"
 #include "framebuffer.h"
+#include "fpe/fpe.hpp"
+#include "fpe/list.h"
 
 #include "mg.h"
 #include "texture.h"
