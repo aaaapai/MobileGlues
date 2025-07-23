@@ -60,7 +60,7 @@ struct texture_t {
     GLenum internal_format = 0;
     GLenum format;
     GLint swizzle_param[4];
-    GLsizei width;
+    GLsizei width = 0;
     GLsizei height;
 };
 
