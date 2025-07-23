@@ -172,7 +172,7 @@ static GLuint createShader(GLenum type, const char* source) {
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        LOG_E("Shader compilation failed: %s", infoLog);
+        LOG_E("ERROR: Shader compilation failed: %s", infoLog);
     }
     return shader;
 }
@@ -192,7 +192,7 @@ static GLuint createProgram(const char* vsSource, const char* fsSource) {
     if (!success) {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, NULL, infoLog);
-        LOG_E("Program linking failed: %s", infoLog);
+        LOG_E("ERROR: Program linking failed: %s", infoLog);
     }
     
     GLES.glDeleteShader(vs);
