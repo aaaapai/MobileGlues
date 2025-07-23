@@ -65,3 +65,5 @@ struct texture_t {
 };
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+
+#endif
