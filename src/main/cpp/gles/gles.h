@@ -539,6 +539,9 @@ GL_FUNC_TYPEDEF(void, glFramebufferTexture3DOES, GLenum target, GLenum attachmen
 name##_PTR name;
 
 struct gles_func_t {
+    GL_FUNC_DECL(glMultiDrawElementsEXT)
+    GL_FUNC_DECL(glMultiDrawElementsBaseVertexEXT)
+    GL_FUNC_DECL(glMultiDrawElementsBaseVertexOES)
     GL_FUNC_DECL(glActiveTexture)
     GL_FUNC_DECL(glAttachShader)
     GL_FUNC_DECL(glBindAttribLocation)
