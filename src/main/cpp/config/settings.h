@@ -24,6 +24,7 @@ extern "C" {
         Compute,
         DeepSeekOne,
         DeepSeekTwo,
+        Native,
         MaxValue
     };
 
