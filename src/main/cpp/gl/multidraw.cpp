@@ -35,6 +35,9 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
             case multidraw_mode_t::DeepSeekTwo:
                 func_ptr = mg_glMultiDrawElements_deepseek_two;
                 break;
+            case multidraw_mode_t::Native:
+                func_ptr = mg_glMultiDrawElements_native;
+                break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
                 break;
@@ -70,6 +73,9 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 break;
             case multidraw_mode_t::DeepSeekTwo:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
+                break;
+            case multidraw_mode_t::Native:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_Native;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
