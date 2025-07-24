@@ -44,6 +44,7 @@ static const char *lib_ext[] = {
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
+        "libGLES_meow",
         "libGLESv3",
         nullptr
 };
@@ -206,13 +207,13 @@ void InitGLESCapabilities() {
 
     if (global_settings.ext_gl43) {
         AppendExtension("OpenGL43");
-        AppendExtension("OpenGL44");
-        AppendExtension("OpenGL45");
-        AppendExtension("OpenGL46");
 
     }
 
     if (global_settings.ext_dsa) {
+	AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
         //AppendExtension("GL_EXT_direct_state_access");
         //AppendExtension("GL_ARB_direct_state_access");
     }
@@ -226,6 +227,9 @@ void init_target_gles() {
     init_gl_state();
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
+    INIT_GLES_FUNC(glMultiDrawElementsEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexOES)
     INIT_GLES_FUNC(glQueryCounterEXT)
     INIT_GLES_FUNC(glActiveTexture)
     INIT_GLES_FUNC(glAttachShader)
