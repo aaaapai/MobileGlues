@@ -113,14 +113,14 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
             fb->draw_attachment[index].level = level;
         } else if (attachment == GL_DEPTH_ATTACHMENT) {
             if (!fb->read_attachment) fb->read_attachment = new attachment_t;
-            fb->read_attachment->textarget = textarget;
-            fb->read_attachment[index]->texture = texture;
-            fb->read_attachment[index]->level = level;
+            fb->read_attachment.textarget = textarget;
+            fb->read_attachment[index].texture = texture;
+            fb->read_attachment[index].level = level;
         } else if (attachment == GL_STENCIL_ATTACHMENT) {
             if (!fb->read_attachment) fb->read_attachment = new attachment_t;
-            fb->read_attachment->textarget = textarget;
-            fb->read_attachment[index]->texture = texture;
-            fb->read_attachment[index]->level = level;
+            fb->read_attachment.textarget = textarget;
+            fb->read_attachment[index].texture = texture;
+            fb->read_attachment[index].level = level;
         }
     }
 
