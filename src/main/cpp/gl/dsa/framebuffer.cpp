@@ -81,6 +81,9 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
         return;
     }
 
+    GLint prevFBO;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFBO);
+
     // 获取实际纹理目标
     GLenum textarget = GL_TEXTURE_2D;
     if (texture != 0) {
@@ -102,14 +105,14 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     if (fb) {
         if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + MAX_DRAW_BUFFERS) {
             GLuint index = attachment - GL_COLOR_ATTACHMENT0;
-            if (!fb->draw_attachment[index]) {
-                fb->draw_attachment[index] = new attachment_t;
+            if (!fb->draw_attachment) {
+                fb->draw_attachment = new struct attachment_t[MAX_DRAW_BUFFERS];
             }
             fb->draw_attachment[index]->textarget = textarget;
             fb->draw_attachment[index].texture = texture;
             fb->draw_attachment[index].level = level;
         } else if (attachment == GL_DEPTH_ATTACHMENT) {
-            if (!fb->read_attachment) fb->draw_attachment = new attachment_t;
+            if (!fb->read_attachment) fb->read_attachment = new attachment_t;
             fb->read_attachment->textarget = textarget;
             fb->read_attachment[index].texture = texture;
             fb->read_attachment[index].level = level;
