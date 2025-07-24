@@ -228,7 +228,6 @@ void init_target_gles() {
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
     INIT_GLES_FUNC(glMultiDrawElementsEXT)
-    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexOES)
     INIT_GLES_FUNC(glQueryCounterEXT)
     INIT_GLES_FUNC(glActiveTexture)
