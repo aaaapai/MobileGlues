@@ -16,6 +16,9 @@
 extern "C" {
 #endif
 
+GL_FUNC_TYPEDEF(void, glMultiDrawElementsEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
+GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
+GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexOES, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
 GL_FUNC_TYPEDEF(void, glQueryCounterEXT, GLuint id, GLenum target)
 GL_FUNC_TYPEDEF(void, glActiveTexture, GLenum texture)
 GL_FUNC_TYPEDEF(void, glAttachShader, GLuint program, GLuint shader)
