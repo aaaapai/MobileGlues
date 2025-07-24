@@ -166,6 +166,7 @@ void init_settings() {
         case multidraw_mode_t::DrawElements: draw_mode_str = "DrawElements"; break;
         case multidraw_mode_t::Compute: draw_mode_str = "Compute"; break;
 	case multidraw_mode_t::DeepSeekOne: draw_mode_str = "DeepSeek的方案1"; break;
+	case multidraw_mode_t::DeepSeekTwo: draw_mode_str = "DeepSeek的方案2"; break;
         case multidraw_mode_t::Auto: draw_mode_str = "Auto"; break;
         default:
             draw_mode_str = "(Unknown)";
@@ -200,6 +201,7 @@ void init_settings_post() {
     bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
     bool drawelements = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
     bool deepseek_one = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool deepseek_two = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
 
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
@@ -216,6 +218,9 @@ void init_settings_post() {
             } else if (deepseek_one) {
                 global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
                 LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
+	    } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Preferred not supported, falling back)")
 	    }
             break;
         case multidraw_mode_t::PreferBaseVertex:
@@ -235,7 +240,10 @@ void init_settings_post() {
             } else if (deepseek_one) {
                 global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
                 LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
-            }
+            } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Preferred not supported, falling back)")
+	    }
             break;
         case multidraw_mode_t::DrawElements:
             LOG_V("multidrawMode = DrawElements")
@@ -251,6 +259,11 @@ void init_settings_post() {
             LOG_V("multidrawMode = DeepSeek的方案1")
             global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
             LOG_V("    -> DeepSeek的方案1 (OK)")
+            break;
+	case multidraw_mode_t::DeepSeekTwo:
+            LOG_V("multidrawMode = DeepSeek的方案2")
+            global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+            LOG_V("    -> DeepSeek的方案2 (OK)")
             break;
         case multidraw_mode_t::Auto:
         default:
@@ -270,6 +283,9 @@ void init_settings_post() {
             } else if (deepseek_one) {
                 global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
                 LOG_V("    -> DeepSeek的方案1 (Auto detected)")
+	    } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Auto detected)")
 	    }
             break;
     }
