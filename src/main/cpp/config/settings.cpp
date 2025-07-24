@@ -274,7 +274,7 @@ void init_settings_post() {
             LOG_V("    -> DeepSeek的方案2 (OK)")
             break;
 	case multidraw_mode_t::Native:
-            LOG_V("multidrawMode = DeepSeek的方案2")
+            LOG_V("multidrawMode = 摆烂")
             global_settings.multidraw_mode = multidraw_mode_t::Native;
             LOG_V("    -> 懒得模拟 (OK)")
             break;
