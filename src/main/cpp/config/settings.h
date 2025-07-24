@@ -23,6 +23,7 @@ extern "C" {
         DrawElements,
         Compute,
         DeepSeekOne,
+        DeepSeekTwo,
         MaxValue
     };
 
