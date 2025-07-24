@@ -32,6 +32,9 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
             case multidraw_mode_t::DeepSeekOne:
                 func_ptr = mg_glMultiDrawElements_deepseek_one;
                 break;
+            case multidraw_mode_t::DeepSeekTwo:
+                func_ptr = mg_glMultiDrawElements_deepseek_two;
+                break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
                 break;
@@ -63,6 +66,9 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 func_ptr = mg_glMultiDrawElementsBaseVertex_compute;
                 break;
             case multidraw_mode_t::DeepSeekOne:
+                func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
+                break;
+            case multidraw_mode_t::DeepSeekTwo:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
                 break;
             default:
@@ -645,4 +651,41 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
     }
 
     CHECK_GL_ERROR
+}
+
+//(批处理+实例化)
+void mg_glMultiDrawElements_deepseek_two(
+    GLenum mode, const GLsizei* counts, GLenum type, 
+    const void* const* indices, GLsizei primcount) 
+{
+    // 1. 合并所有索引到单个IBO
+    static GLuint megaIBO = 0;
+    static size_t totalIndices = 0;
+    
+    if (!megaIBO) {
+        // 计算总索引数
+        for (GLsizei i = 0; i < primcount; ++i) {
+            totalIndices += counts[i];
+        }
+        
+        // 创建并填充IBO
+        GLES.glGenBuffers(1, &megaIBO);
+        GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, megaIBO);
+        GLES.glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+                    totalIndices * sizeof(GLuint), 
+                    NULL, GL_STATIC_DRAW);
+        
+        // 分段填充索引数据
+        GLuint offset = 0;
+        for (GLsizei i = 0; i < primcount; ++i) {
+            GLES.glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 
+                           offset, 
+                           counts[i] * sizeof(GLuint),
+                           indices[i]);
+            offset += counts[i] * sizeof(GLuint);
+        }
+    }
+    
+    // 2. 使用实例化绘制
+    GLES.glDrawElementsInstanced(mode, totalIndices, type, 0, primcount);
 }
