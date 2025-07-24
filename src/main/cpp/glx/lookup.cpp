@@ -46,6 +46,9 @@ std::string handle_multidraw_func_name(std::string name) {
         case multidraw_mode_t::DeepSeekTwo:
             namestr += "_deepseek_two";
             break;
+        case multidraw_mode_t::Native:
+            namestr += "_native";
+            break;
         default:
             LOG_W("get_multidraw_func() cannot determine multidraw emulation mode!")
             return {};
