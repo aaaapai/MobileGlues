@@ -614,7 +614,7 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei *count,
 void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts, 
                                                 GLenum type, const void* const* indices, 
                                                 GLsizei primcount, const GLint* basevertex) {
-    LOG();
+    LOG()
 
     // Process 4 elements at a time using NEON
     GLsizei i = 0;
@@ -656,7 +656,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
 //(批处理+实例化)
 void mg_glMultiDrawElements_deepseek_two(
     GLenum mode, const GLsizei* counts, GLenum type, 
-    const void* const* indices, GLsizei primcount) 
+    const void* const* indices, GLsizei primcount)
 {
     // 1. 合并所有索引到单个IBO
     static GLuint megaIBO = 0;
@@ -689,3 +689,22 @@ void mg_glMultiDrawElements_deepseek_two(
     // 2. 使用实例化绘制
     GLES.glDrawElementsInstanced(mode, totalIndices, type, 0, primcount);
 }
+
+void mg_glMultiDrawElements_native(
+    GLenum mode, const GLsizei* counts, GLenum type, 
+    const void* const* indices, GLsizei primcount)
+{
+    LOG()
+
+    GLES.glMultiDrawElementsEXT(mode, counts, type, indices, primcount);
+}
+
+void mg_glMultiDrawElementsBaseVertex_native(GLenum mode, GLsizei* counts, 
+                                                GLenum type, const void* const* indices, 
+                                                GLsizei primcount, const GLint* basevertex)
+{
+    LOG()
+
+    GLES.glMultiDrawElementsBaseVertexEXT(mode, counts, type, indices, primcount, basevertex);
+}
+
