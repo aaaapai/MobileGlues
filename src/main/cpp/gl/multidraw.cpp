@@ -75,7 +75,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_Native;
+                func_ptr = mg_glMultiDrawElementsBaseVertex_native;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
