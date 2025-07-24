@@ -3,6 +3,7 @@
 //
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <string.h>
 #include "loader.h"
 #include "../includes.h"
