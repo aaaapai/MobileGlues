@@ -48,6 +48,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode,
 GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
 GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
 GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_deepseek_two(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
+GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_native(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex);
 
 GLAPI GLAPIENTRY void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
@@ -57,6 +58,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElements_drawelements(GLenum mode, const GLs
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_deepseek_two(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
+GLAPI GLAPIENTRY void mg_glMultiDrawElements_native(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 
 #ifdef __cplusplus
 }
