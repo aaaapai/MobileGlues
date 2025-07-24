@@ -102,9 +102,9 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     
     struct framebuffer_t* fb = bound_framebuffer;  // 显式使用 struct 前缀
+    GLuint index = attachment - GL_COLOR_ATTACHMENT0;
     if (fb) {
         if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + MAX_DRAW_BUFFERS) {
-            GLuint index = attachment - GL_COLOR_ATTACHMENT0;
             if (!fb->draw_attachment) {
                 fb->draw_attachment = new struct attachment_t[MAX_DRAW_BUFFERS];
             }
