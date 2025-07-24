@@ -102,10 +102,10 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
     if (fb) {
         if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + MAX_DRAW_BUFFERS) {
             GLuint index = attachment - GL_COLOR_ATTACHMENT0;
-            if (!fb->draw_attachments[index]) {
-                fb->draw_attachments[index] = new attachment_t;
+            if (!fb->draw_attachment[index]) {
+                fb->draw_attachment[index] = new attachment_t;
             }
-            fb->draw_attachments[index]->textarget = textarget;
+            fb->draw_attachment[index]->textarget = textarget;
             fb->draw_attachment[index].texture = texture;
             fb->draw_attachment[index].level = level;
         } else if (attachment == GL_DEPTH_ATTACHMENT) {
