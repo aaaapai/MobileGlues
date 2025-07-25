@@ -44,7 +44,6 @@ static const char *lib_ext[] = {
 
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
-        "libGLES_meow",
         "libGLESv3",
         nullptr
 };
