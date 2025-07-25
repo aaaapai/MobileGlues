@@ -205,6 +205,8 @@ void InitGLESCapabilities() {
     }
 
     if (global_settings.ext_gl43) {
+	AppendExtension("OpenGL41");
+        AppendExtension("OpenGL42");
         AppendExtension("OpenGL43");
 
     }
