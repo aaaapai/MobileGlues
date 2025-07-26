@@ -174,7 +174,7 @@ inline GLenum GetBufferBindingTarget(GLenum target) {
          : target == GL_UNIFORM_BUFFER ? GL_UNIFORM_BUFFER_BINDING
          : GL_ARRAY_BUFFER_BINDING;
 }
-void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
+extern "C" void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
 
     LOG()
     LOG_D("glClearBufferSubData, target = 0x%x, offset = %d, size = %d, data = %p", target, offset, size, data)
