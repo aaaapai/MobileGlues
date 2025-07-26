@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_FRAMEBUFFER_H
 #define MOBILEGLUES_FRAMEBUFFER_H
 
-#include "GL/gl.h"
+#include <GL/gl.h>
 
 struct attachment_t {
     GLenum textarget;
