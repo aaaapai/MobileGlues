@@ -15,7 +15,7 @@
 #include <cassert>
 #include <arm_neon.h>
 #include <thread>
-#include <GLES3/gl3.h>
+#include <GLES/gl3.h>
 #include "../includes.h"
 #include <GL/gl.h>
 #include <GL/glcorearb.h>
