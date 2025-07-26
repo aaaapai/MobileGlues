@@ -5,7 +5,7 @@
 #ifndef MOBILEGLUES_TEXTURE_H
 #define MOBILEGLUES_TEXTURE_H
 
-#include "GL/gl.h"
+#include <GL/gl.h>
 #include "ankerl/unordered_dense.h"
 
 template<typename T>
@@ -65,5 +65,7 @@ struct texture_t {
 };
 
 extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
+
+GLenum mgGetTexTarget(GLuint id);
 
 #endif

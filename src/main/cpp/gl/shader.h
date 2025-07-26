@@ -4,7 +4,7 @@
 #ifndef MOBILEGLUES_SHADER_H
 #define MOBILEGLUES_SHADER_H
 
-#include "GL/gl.h"
+#include <GL/gl.h>
 #include <string>
 #include <ankerl/unordered_dense.h>
 #include "texture.h"

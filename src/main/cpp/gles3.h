@@ -6,7 +6,7 @@
 #define FOLD_CRAFT_LAUNCHER_GLES3_H
 
 #include <GLES3/gl3.h>
-#include "GL/gl.h"
+#include <GL/gl.h>
 
 struct es3_functions_t
 {
