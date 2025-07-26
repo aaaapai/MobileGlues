@@ -169,7 +169,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     CHECK_GL_ERROR
 } //DeepSeek
 
-void GLES_glClearBufferSubData(GLenum target, GLenum internalformat, 
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
                               GLintptr offset, GLsizeiptr size, 
                               GLenum format, GLenum type, 
                               const void *data) {
