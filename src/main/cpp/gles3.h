@@ -5,7 +5,7 @@
 #ifndef FOLD_CRAFT_LAUNCHER_GLES3_H
 #define FOLD_CRAFT_LAUNCHER_GLES3_H
 
-#include <GLES3/gl3.h>
+#include <GLES/gl3.h>
 #include <GL/gl.h>
 
 struct es3_functions_t
