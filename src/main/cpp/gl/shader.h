@@ -6,6 +6,8 @@
 
 #include <GL/gl.h>
 #include <string>
+#include <ankerl/unordered_dense.h>
+#include "texture.h"
 
 struct shader_t {
     GLuint id;
@@ -29,5 +31,6 @@ GLAPI GLAPIENTRY void glGetShaderiv(GLuint shader, GLenum pname, GLint *params);
 }
 #endif
 
+extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
 
 #endif //FOLD_CRAFT_LAUNCHER_GL_LOADER_H

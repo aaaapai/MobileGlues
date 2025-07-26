@@ -15,8 +15,11 @@
 
 #define DEBUG 0
 
-extern std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
-std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
+template <typename Key, typename Value>
+using unordered_map = ankerl::unordered_dense::map<Key, Value>;
+
+extern ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
 
 char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
     std::string shaderCode(esslSource);
@@ -65,7 +68,7 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
         size_t glslLen  = strlen(shaderInfo.frag_data_changed_converted) + 1;
         origin_glsl = (char *)malloc(glslLen);
         if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for frag_data_changed_converted\n")
+            LOG_E("ERROR: Memory reallocation failed for frag_data_changed_converted\n")
             return;
         }
         strcpy(origin_glsl, shaderInfo.frag_data_changed_converted);
@@ -73,7 +76,7 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name) {
         size_t glslLen  = shaderInfo.converted.length() + 1;
         origin_glsl = (char *)malloc(glslLen);
         if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for converted\n")
+            LOG_E("ERROR: Memory reallocation failed for converted\n")
             return;
         }
         strcpy(origin_glsl, shaderInfo.converted.c_str());
@@ -91,10 +94,10 @@ void glLinkProgram(GLuint program) {
 
     LOG_D("glLinkProgram(%d)", program)
     if (!shaderInfo.converted.empty() && shaderInfo.frag_data_changed) {
-        GLES.glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
+        glShaderSource(shaderInfo.id, 1, (const GLchar * const*) &shaderInfo.frag_data_changed_converted, nullptr);
         GLES.glCompileShader(shaderInfo.id);
         GLint status = 0;
-        GLES.glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
+        glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
         if(status!=GL_TRUE) {
             char tmp[500];
             GLES.glGetShaderInfoLog(shaderInfo.id, 500, nullptr, tmp);
@@ -130,6 +133,7 @@ void glGetProgramiv(GLuint program, GLenum pname, GLint *params) {
 void glUseProgram(GLuint program) {
     LOG()
     LOG_D("glUseProgram(%d)", program)
+
     if (program != gl_state->current_program) {
         gl_state->current_program = program;
         GLES.glUseProgram(program);

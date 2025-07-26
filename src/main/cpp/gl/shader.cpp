@@ -12,13 +12,13 @@
 #include "../includes.h"
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
 struct shader_t shaderInfo;
 
-std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
 
 bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
@@ -87,7 +87,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
         if (essl_src.empty())
             essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version);
         if (essl_src.empty()) {
-            LOG_E("Failed to convert shader %d.", shader)
+            LOG_E("ERROR: Failed to convert shader %d.", shader)
             return;
         }
         LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
@@ -101,7 +101,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
             shader_map_is_sampler_buffer_emulated[shader] = is_sampler_buffer_emulated;
     }
     else
-        LOG_E("Failed to convert glsl.")
+        LOG_E("ERROR: Failed to convert glsl.")
     CHECK_GL_ERROR
 }
 
