@@ -28,6 +28,7 @@ extern "C" {
 	GLAPI void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 	GLAPI void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
 	GLAPI void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data);
+        GLAPI void APIENTRY glClearBufferSubData (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
 	GLAPI void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data);
 	GLAPI void* glMapNamedBuffer(GLuint buffer, GLenum access);
 	GLAPI void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
@@ -122,6 +123,7 @@ extern "C" {
 	GLAPI void glCreateProgramPipelines(GLsizei n, GLuint* pipelines);
 
 	/* Query object functions */
+
 	GLAPI void glCreateQueries(GLenum target, GLsizei n, GLuint* ids);
 	GLAPI void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 	GLAPI void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
