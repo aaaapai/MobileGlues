@@ -169,6 +169,11 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     CHECK_GL_ERROR
 } //DeepSeek
 
+inline GLenum GetBufferBindingTarget(GLenum target) {
+    return target == GL_ELEMENT_ARRAY_BUFFER ? GL_ELEMENT_ARRAY_BUFFER_BINDING
+         : target == GL_UNIFORM_BUFFER ? GL_UNIFORM_BUFFER_BINDING
+         : GL_ARRAY_BUFFER_BINDING;
+}
 void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
 
     LOG()
