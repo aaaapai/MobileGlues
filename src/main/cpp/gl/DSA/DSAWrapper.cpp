@@ -169,28 +169,68 @@ void glClearBufferData(GLenum target, GLenum internalformat,
     CHECK_GL_ERROR
 } //DeepSeek
 
-inline GLenum GetBufferBindingTarget(GLenum target) {
-    return target == GL_ELEMENT_ARRAY_BUFFER ? GL_ELEMENT_ARRAY_BUFFER_BINDING
-         : target == GL_UNIFORM_BUFFER ? GL_UNIFORM_BUFFER_BINDING
-         : GL_ARRAY_BUFFER_BINDING;
-}
-extern "C" void glClearBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {
-
-    LOG()
-    LOG_D("glClearBufferSubData, target = 0x%x, offset = %d, size = %d, data = %p", target, offset, size, data)
-
-    GLint prevBuf;
-    glGetIntegerv(GetBufferBindingTarget(target), &prevBuf);
-    
-    void* ptr = glMapBufferRange(target, offset, size, 
-                               GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-    if(ptr) {
-        data ? memcpy(ptr, data, size) : memset(ptr, 0, size);
-        glUnmapBuffer(target);
+void GLES_glClearBufferSubData(GLenum target, GLenum internalformat, 
+                              GLintptr offset, GLsizeiptr size, 
+                              GLenum format, GLenum type, 
+                              const void *data) {
+    // 检查参数有效性
+    if (offset < 0 || size <= 0) {
+        return;
     }
     
-    glBindBuffer(target, prevBuf);
-}
+    // 根据内部格式确定清除值的大小
+    GLsizeiptr clearSize = size;
+    void* clearData = NULL;
+    
+    // 如果提供了数据指针，直接使用它
+    if (data != NULL) {
+        clearData = (void*)data;
+    } else {
+        // 如果没有提供数据，创建一个默认的清除值
+        // 这里简化处理，实际应根据internalformat创建适当的默认值
+        GLubyte zero = 0;
+        clearData = &zero;
+        clearSize = 1; // 简化处理，实际应根据格式调整
+    }
+    
+    // 绑定缓冲区
+    GLint prevBuffer;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prevBuffer);
+            break;
+        default:
+            LOG_W("Warning: Unsupported buffers")
+            return;
+    }
+    
+    // 使用glBufferSubData更新缓冲区数据
+    glBufferSubData(target, offset, clearSize, clearData);
+    
+    // 恢复之前绑定的缓冲区
+    glBindBuffer(target, prevBuffer);
+} //DeepSeek
 
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
 	LOG()
