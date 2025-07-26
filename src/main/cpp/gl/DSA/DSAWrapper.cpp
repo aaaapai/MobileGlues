@@ -104,7 +104,7 @@ void glClearBufferData(GLenum target, GLenum internalformat,
           glEnumToString(format), glEnumToString(type), data)
 
     // Find the currently bound buffer for this target
-    GLuint buffer = find_bound_buffer(get_binding_query(target));
+    GLuint buffer = find_bound_buffer(GetBindingQuery(target, false));
     if (!buffer) {
         LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
         return;
