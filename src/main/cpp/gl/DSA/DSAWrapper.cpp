@@ -82,7 +82,7 @@ void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	auto it = bufferBindingStack.find(target);
 	if (it == bufferBindingStack.end() || it->second.empty()) {
-		LOG_D("[Restore] no saved binding for target 0x%X", target);
+	LOG_D("[Restore] no saved binding for target 0x%X", target);
 		return;
 	}
 
@@ -325,7 +325,7 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access) {
 	if (!mappedData) {
 		LOG_E("Failed to map buffer %u", buffer);
 	} else {
-		LOG_D("Mapped buffer %u successfully", buffer);
+	LOG_D("Mapped buffer %u successfully", buffer);
 	}
 	return mappedData;
 }
@@ -345,7 +345,7 @@ GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
 	if (!mappedData) {
 		LOG_E("Failed to map buffer range for buffer %u", buffer);
 	} else {
-		LOG_D("Mapped buffer range for buffer %u successfully", buffer);
+	LOG_D("Mapped buffer range for buffer %u successfully", buffer);
 	}
 	return mappedData;
 }
@@ -365,7 +365,7 @@ GLboolean glUnmapNamedBuffer(GLuint buffer) {
 	if (result == GL_FALSE) {
 		LOG_E("Failed to unmap buffer %u", buffer);
 	} else {
-		LOG_D("Unmapped buffer %u successfully", buffer);
+	LOG_D("Unmapped buffer %u successfully", buffer);
 	}
 	return result;
 }
@@ -447,7 +447,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 
 // framebuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> framebufferBindingStack;
-void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_FRAMEBUFFER) {
+void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -455,10 +455,10 @@ void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_FRAMEBU
 	LOG_D("[TempBind] target=0x%X, prev=%u -> bind=%u", target, prev, framebufferID);
 	glBindFramebuffer(target, framebufferID);
 }
-void restoreTemporaryFramebufferBinding(GLenum target = GL_FRAMEBUFFER) {
+void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
 	auto it = framebufferBindingStack.find(target);
 	if (it == framebufferBindingStack.end() || it->second.empty()) {
-		LOG_D("[Restore] no saved binding for target 0x%X", target);
+	LOG_D("[Restore] no saved binding for target 0x%X", target);
 		return;
 	}
 	GLuint toRestore = it->second.back();
@@ -497,7 +497,7 @@ void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenu
 	LOG_D("glNamedFramebufferRenderbuffer, framebuffer: %u, attachment: 0x%X, renderbuffertarget: 0x%X, renderbuffer: %u", framebuffer, attachment, renderbuffertarget, renderbuffer);
 	
 	temporarilyBindFramebuffer(framebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
+	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Attached renderbuffer %u to framebuffer %u with attachment 0x%X", renderbuffer, framebuffer, attachment);
@@ -508,7 +508,7 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 	LOG_D("glNamedFramebufferParameteri, framebuffer: %u, pname: 0x%X, param: %d", framebuffer, pname, param);
 	
 	temporarilyBindFramebuffer(framebuffer);
-	glFramebufferParameteri(GL_FRAMEBUFFER, pname, param);
+	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, pname, param);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Set framebuffer parameter 0x%X to %d for framebuffer %u", pname, param, framebuffer);
@@ -523,7 +523,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture, level);
+	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
@@ -538,7 +538,7 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, level, layer);
+	glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, texture, level, layer);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Attached texture %u to framebuffer %u with attachment 0x%X at level %d and layer %d", texture, framebuffer, attachment, level, layer);
@@ -590,7 +590,7 @@ void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glInvalidateFramebuffer(GL_FRAMEBUFFER, numAttachments, attachments);
+	glInvalidateFramebuffer(GL_DRAW_FRAMEBUFFER, numAttachments, attachments);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Invalidated framebuffer %u with %d attachments", framebuffer, numAttachments);
@@ -605,7 +605,7 @@ void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachme
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glInvalidateSubFramebuffer(GL_FRAMEBUFFER, numAttachments, attachments, x, y, width, height);
+	glInvalidateSubFramebuffer(GL_DRAW_FRAMEBUFFER, numAttachments, attachments, x, y, width, height);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Invalidated sub-data of framebuffer %u with %d attachments at (%d, %d) with size (%d, %d)", framebuffer, numAttachments, x, y, width, height);
@@ -705,7 +705,7 @@ void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint* p
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glGetFramebufferParameteriv(GL_FRAMEBUFFER, pname, param);
+	glGetFramebufferParameteriv(GL_DRAW_FRAMEBUFFER, pname, param);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Retrieved framebuffer parameter 0x%X for framebuffer %u", pname, framebuffer);
@@ -720,7 +720,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 		return;
 	}
 	temporarilyBindFramebuffer(framebuffer);
-	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, attachment, pname, params);
+	glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, attachment, pname, params);
 	restoreTemporaryFramebufferBinding();
 	
 	LOG_D("Retrieved framebuffer attachment parameter 0x%X for framebuffer %u and attachment 0x%X", pname, framebuffer, attachment);
@@ -739,7 +739,7 @@ void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 void restoreTemporaryRenderbufferBinding() {
 	auto it = renderbufferBindingStack.find(GL_RENDERBUFFER);
 	if (it == renderbufferBindingStack.end() || it->second.empty()) {
-		LOG_D("[Restore] no saved binding for GL_RENDERBUFFER");
+	LOG_D("[Restore] no saved binding for GL_RENDERBUFFER");
 		return;
 	}
 	GLuint toRestore = it->second.back();
@@ -820,7 +820,9 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint*
 
 // texture
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> textureBindingStack;
-void temporarilyBindTexture(GLuint textureID, GLenum target = GL_TEXTURE_2D) {
+
+void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
+	GLenum target = possibleTarget ? possibleTarget : mgGetTexTarget(textureID);
 	GLenum bindingQuery = GetBindingQuery(target, true);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -828,28 +830,34 @@ void temporarilyBindTexture(GLuint textureID, GLenum target = GL_TEXTURE_2D) {
 	LOG_D("[TempBind] target=0x%X, prev=%u -> bind=%u", target, prev, textureID);
 	glBindTexture(target, textureID);
 }
-void restoreTemporaryTextureBinding(GLenum target = GL_TEXTURE_2D) {
-	auto it = textureBindingStack.find(target);
-	if (it == textureBindingStack.end() || it->second.empty()) {
+
+void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
+	GLenum target = possibleTarget ? possibleTarget : mgGetTexTarget(textureID);
+	auto stackIt = textureBindingStack.find(target);
+	if (stackIt == textureBindingStack.end() || stackIt->second.empty()) {
 		LOG_D("[Restore] no saved binding for target 0x%X", target);
 		return;
 	}
-	GLuint toRestore = it->second.back();
-	it->second.pop_back();
+
+	GLuint toRestore = stackIt->second.back();
+	stackIt->second.pop_back();
 	LOG_D("[Restore] target=0x%X, bind back to %u", target, toRestore);
 	glBindTexture(target, toRestore);
-	if (it->second.empty())
-		textureBindingStack.erase(it);
+
+	if (stackIt->second.empty()) {
+		textureBindingStack.erase(stackIt);
+	}
 }
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
 	LOG()
-	LOG_D("glCreateTextures, target: 0x%X, n: %d, textures: %p", target, n, textures);
-	
+		LOG_D("glCreateTextures, target: 0x%X, n: %d, textures: %p", target, n, textures);
+
 	if (n <= 0 || !textures) {
 		LOG_E("Invalid parameters for glCreateTextures");
 		return;
 	}
+
 	for (GLsizei i = 0; i < n; ++i) {
 		GLuint texID = 0;
 		glGenTextures(1, &texID);
@@ -857,367 +865,231 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
 			LOG_E("Failed to create texture at index %d", i);
 			continue;
 		}
-		temporarilyBindTexture(texID, target); // after binding, the texture object should be created
-		restoreTemporaryTextureBinding(target);
+		glBindTexture(target, texID);
+		// temporarilyBindTexture(texID, target);
+		// restoreTemporaryTextureBinding(texID, target);
 		textures[i] = texID;
 	}
-	
+
 	LOG_D("Created %d textures successfully", n);
 }
 
 void glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer) {
 	LOG()
-	LOG_D("glTextureBuffer, texture: %u, internalformat: 0x%X, buffer: %u", texture, internalformat, buffer);
-	
+		LOG_D("glTextureBuffer, texture: %u, internalformat: 0x%X, buffer: %u", texture, internalformat, buffer);
+
 	if (texture == 0 || buffer == 0) {
 		LOG_E("Invalid parameters for glTextureBuffer");
 		return;
 	}
+
 	temporarilyBindTexture(texture);
 	glTexBuffer(GL_TEXTURE_BUFFER, internalformat, buffer);
-	restoreTemporaryTextureBinding();
-	
+	restoreTemporaryTextureBinding(texture);
+
 	LOG_D("Set buffer for texture %u with internal format 0x%X", texture, internalformat);
 }
 
 void glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
 	LOG()
-	LOG_D("glTextureBufferRange, texture: %u, internalformat: 0x%X, buffer: %u, offset: %lld, size: %lld", texture, internalformat, buffer, offset, size);
-	
+		LOG_D("glTextureBufferRange, texture: %u, internalformat: 0x%X, buffer: %u, offset: %lld, size: %lld",
+			texture, internalformat, buffer, offset, size);
+
 	if (texture == 0 || buffer == 0 || size <= 0 || offset < 0) {
 		LOG_E("Invalid parameters for glTextureBufferRange");
 		return;
 	}
+
 	temporarilyBindTexture(texture);
 	glTexBufferRange(GL_TEXTURE_BUFFER, internalformat, buffer, offset, size);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set buffer range for texture %u with internal format 0x%X and size %lld at offset %lld", texture, internalformat, size, offset);
+	restoreTemporaryTextureBinding(texture);
+
+	LOG_D("Set buffer range for texture %u with internal format 0x%X and size %lld at offset %lld",
+		texture, internalformat, size, offset);
 }
 
+#define TEXTURE_OP_FUNC_BEGIN(func_name) \
+    LOG() \
+    LOG_D(#func_name ", texture: %u", texture); \
+    if (texture == 0) { \
+        LOG_E("Invalid texture ID for " #func_name); \
+        return; \
+    } \
+    GLenum target = mgGetTexTarget(texture); \
+    temporarilyBindTexture(texture);
+
+#define TEXTURE_OP_FUNC_END \
+    restoreTemporaryTextureBinding(texture);
+
 void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width) {
-	LOG()
-	LOG_D("glTextureStorage1D, texture: %u, levels: %d, internalformat: 0x%X, width: %d", texture, levels, internalformat, width);
-	
-	if (texture == 0 || levels <= 0 || width <= 0) {
-		LOG_E("Invalid parameters for glTextureStorage1D");
-		return;
-	}
-	temporarilyBindTexture(texture, GL_TEXTURE_1D);
-	glTexStorage1D(GL_TEXTURE_1D, levels, internalformat, width);
-	restoreTemporaryTextureBinding(GL_TEXTURE_1D);
-	
-	LOG_D("Set storage for texture %u with internal format 0x%X and size %d", texture, internalformat, width);
+	TEXTURE_OP_FUNC_BEGIN(glTextureStorage1D)
+		glTexStorage1D(target, levels, internalformat, width);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set 1D storage for texture %u with internal format 0x%X and width %d", texture, internalformat, width);
 }
 
 void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) {
-	LOG()
-	LOG_D("glTextureStorage2D, texture: %u, levels: %d, internalformat: 0x%X, width: %d, height: %d", texture, levels, internalformat, width, height);
-	
-	if (texture == 0 || levels <= 0 || width <= 0 || height <= 0) {
-		LOG_E("Invalid parameters for glTextureStorage2D");
-		return;
-	}
-	temporarilyBindTexture(texture, GL_TEXTURE_2D);
-	glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
-	restoreTemporaryTextureBinding(GL_TEXTURE_2D);
-	
-	LOG_D("Set storage for texture %u with internal format 0x%X and size (%d, %d)", texture, internalformat, width, height);
+	TEXTURE_OP_FUNC_BEGIN(glTextureStorage2D)
+		glTexStorage2D(target, levels, internalformat, width, height);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set 2D storage for texture %u with internal format 0x%X and size (%d, %d)",
+			texture, internalformat, width, height);
 }
 
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) {
-	LOG()
-	LOG_D("glTextureStorage3D, texture: %u, levels: %d, internalformat: 0x%X, width: %d, height: %d, depth: %d", texture, levels, internalformat, width, height, depth);
-	
-	if (texture == 0 || levels <= 0 || width <= 0 || height <= 0 || depth <= 0) {
-		LOG_E("Invalid parameters for glTextureStorage3D");
-		return;
-	}
-	temporarilyBindTexture(texture, GL_TEXTURE_3D);
-	glTexStorage3D(GL_TEXTURE_3D, levels, internalformat, width, height, depth);
-	restoreTemporaryTextureBinding(GL_TEXTURE_3D);
-	
-	LOG_D("Set storage for texture %u with internal format 0x%X and size (%d, %d, %d)", texture, internalformat, width, height, depth);
+	TEXTURE_OP_FUNC_BEGIN(glTextureStorage3D)
+		glTexStorage3D(target, levels, internalformat, width, height, depth);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set 3D storage for texture %u with internal format 0x%X and size (%d, %d, %d)",
+			texture, internalformat, width, height, depth);
 }
 
 void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) {
-	LOG()
-	LOG_D("glTextureStorage2DMultisample, texture: %u, samples: %d, internalformat: 0x%X, width: %d, height: %d, fixedsamplelocations: %d", texture, samples, internalformat, width, height, fixedsamplelocations);
-	
-	if (texture == 0 || samples <= 0 || width <= 0 || height <= 0) {
-		LOG_E("Invalid parameters for glTextureStorage2DMultisample");
-		return;
-	}
-	temporarilyBindTexture(texture, GL_TEXTURE_2D_MULTISAMPLE);
-	glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalformat, width, height, fixedsamplelocations);
-	restoreTemporaryTextureBinding(GL_TEXTURE_2D_MULTISAMPLE);
-	
-	LOG_D("Set multisample storage for texture %u with internal format 0x%X and size (%d, %d)", texture, internalformat, width, height);
+	TEXTURE_OP_FUNC_BEGIN(glTextureStorage2DMultisample)
+		glTexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set 2D multisample storage for texture %u with internal format 0x%X and size (%d, %d)",
+			texture, internalformat, width, height);
 }
 
 void glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations) {
-	LOG()
-	LOG_D("glTextureStorage3DMultisample, texture: %u, samples: %d, internalformat: 0x%X, width: %d, height: %d, depth: %d, fixedsamplelocations: %d", texture, samples, internalformat, width, height, depth, fixedsamplelocations);
-	
-	if (texture == 0 || samples <= 0 || width <= 0 || height <= 0 || depth <= 0) {
-		LOG_E("Invalid parameters for glTextureStorage3DMultisample");
-		return;
-	}
-	temporarilyBindTexture(texture, GL_TEXTURE_3D);
-	glTexStorage3DMultisample(GL_TEXTURE_3D, samples, internalformat, width, height, depth, fixedsamplelocations);
-	restoreTemporaryTextureBinding(GL_TEXTURE_3D);
-	
-	LOG_D("Set multisample storage for texture %u with internal format 0x%X and size (%d, %d, %d)", texture, internalformat, width, height, depth);
+	TEXTURE_OP_FUNC_BEGIN(glTextureStorage3DMultisample)
+		glTexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set 3D multisample storage for texture %u with internal format 0x%X and size (%d, %d, %d)",
+			texture, internalformat, width, height, depth);
 }
 
 void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels) {
-	LOG()
-	LOG_D("glTextureSubImage1D, texture: %u, level: %d, xoffset: %d, width: %d, format: 0x%X, type: 0x%X, pixels: %p", texture, level, xoffset, width, format, type, pixels);
-	
-	if (texture == 0 || width <= 0 || xoffset < 0 || !pixels) {
-		LOG_E("Invalid parameters for glTextureSubImage1D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexSubImage1D(GL_TEXTURE_1D, level, xoffset, width, format, type, pixels);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated sub-image of texture %u at level %d with size %d at offset %d", texture, level, width, xoffset);
+	TEXTURE_OP_FUNC_BEGIN(glTextureSubImage1D)
+		glTexSubImage1D(target, level, xoffset, width, format, type, pixels);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated 1D sub-image of texture %u at level %d with size %d at offset %d",
+			texture, level, width, xoffset);
 }
 
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {
-	LOG()
-	LOG_D("glTextureSubImage2D, texture: %u, level: %d, xoffset: %d, yoffset: %d, width: %d, height: %d, format: 0x%X, type: 0x%X, pixels: %p", texture, level, xoffset, yoffset, width, height, format, type, pixels);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || xoffset < 0 || yoffset < 0 || !pixels) {
-		LOG_E("Invalid parameters for glTextureSubImage2D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, pixels);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated sub-image of texture %u at level %d with size (%d, %d) at offset (%d, %d)", texture, level, width, height, xoffset, yoffset);
+	TEXTURE_OP_FUNC_BEGIN(glTextureSubImage2D)
+		glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated 2D sub-image of texture %u at level %d with size (%d, %d) at offset (%d, %d)",
+			texture, level, width, height, xoffset, yoffset);
 }
 
 void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels) {
-	LOG()
-	LOG_D("glTextureSubImage3D, texture: %u, level: %d, xoffset: %d, yoffset: %d, zoffset: %d, width: %d, height: %d, depth: %d, format: 0x%X, type: 0x%X, pixels: %p", texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || depth <= 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || !pixels) {
-		LOG_E("Invalid parameters for glTextureSubImage3D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated sub-image of texture %u at level %d with size (%d, %d, %d) at offset (%d, %d, %d)", texture, level, width, height, depth, xoffset, yoffset, zoffset);
+	TEXTURE_OP_FUNC_BEGIN(glTextureSubImage3D)
+		glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated 3D sub-image of texture %u at level %d with size (%d, %d, %d) at offset (%d, %d, %d)",
+			texture, level, width, height, depth, xoffset, yoffset, zoffset);
 }
 
 void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void* data) {
-	LOG()
-	LOG_D("glCompressedTextureSubImage1D, texture: %u, level: %d, xoffset: %d, width: %d, format: 0x%X, imageSize: %d, data: %p", texture, level, xoffset, width, format, imageSize, data);
-	
-	if (texture == 0 || width <= 0 || xoffset < 0 || !data || imageSize <= 0) {
-		LOG_E("Invalid parameters for glCompressedTextureSubImage1D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCompressedTexSubImage1D(GL_TEXTURE_1D, level, xoffset, width, format, imageSize, data);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated compressed sub-image of texture %u at level %d with size %d at offset %d", texture, level, width, xoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCompressedTextureSubImage1D)
+		glCompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated compressed 1D sub-image of texture %u at level %d with size %d at offset %d",
+			texture, level, width, xoffset);
 }
 
 void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data) {
-	LOG()
-	LOG_D("glCompressedTextureSubImage2D, texture: %u, level: %d, xoffset: %d, yoffset: %d, width: %d, height: %d, format: 0x%X, imageSize: %d, data: %p", texture, level, xoffset, yoffset, width, height, format, imageSize, data);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || xoffset < 0 || yoffset < 0 || !data || imageSize <= 0) {
-		LOG_E("Invalid parameters for glCompressedTextureSubImage2D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, imageSize, data);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated compressed sub-image of texture %u at level %d with size (%d, %d) at offset (%d, %d)", texture, level, width, height, xoffset, yoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCompressedTextureSubImage2D)
+		glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated compressed 2D sub-image of texture %u at level %d with size (%d, %d) at offset (%d, %d)",
+			texture, level, width, height, xoffset, yoffset);
 }
 
 void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void* data) {
-	LOG()
-	LOG_D("glCompressedTextureSubImage3D, texture: %u, level: %d, xoffset: %d, yoffset: %d, zoffset: %d, width: %d, height: %d, depth: %d, format: 0x%X, imageSize: %d, data: %p", texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || depth <= 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || !data || imageSize <= 0) {
-		LOG_E("Invalid parameters for glCompressedTextureSubImage3D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCompressedTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Updated compressed sub-image of texture %u at level %d with size (%d, %d, %d) at offset (%d, %d, %d)", texture, level, width, height, depth, xoffset, yoffset, zoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCompressedTextureSubImage3D)
+		glCompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Updated compressed 3D sub-image of texture %u at level %d with size (%d, %d, %d) at offset (%d, %d, %d)",
+			texture, level, width, height, depth, xoffset, yoffset, zoffset);
 }
 
 void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) {
-	LOG()
-	LOG_D("glCopyTextureSubImage1D, texture: %u, level: %d, xoffset: %d, x: %d, y: %d, width: %d", texture, level, xoffset, x, y, width);
-	
-	if (texture == 0 || width <= 0 || xoffset < 0 || x < 0 || y < 0) {
-		LOG_E("Invalid parameters for glCopyTextureSubImage1D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCopyTexSubImage1D(GL_TEXTURE_1D, level, xoffset, x, y, width);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Copied sub-image to texture %u at level %d with size %d at offset %d", texture, level, width, xoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCopyTextureSubImage1D)
+		glCopyTexSubImage1D(target, level, xoffset, x, y, width);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Copied 1D sub-image to texture %u at level %d with size %d at offset %d",
+			texture, level, width, xoffset);
 }
 
 void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
-	LOG()
-	LOG_D("glCopyTextureSubImage2D, texture: %u, level: %d, xoffset: %d, yoffset: %d, x: %d, y: %d, width: %d, height: %d", texture, level, xoffset, yoffset, x, y, width, height);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || xoffset < 0 || x < 0 || y < 0 || yoffset < 0) {
-		LOG_E("Invalid parameters for glCopyTextureSubImage2D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCopyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, x, y, width, height);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Copied sub-image to texture %u at level %d with size (%d, %d) at offset (%d, %d)", texture, level, width, height, xoffset, yoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCopyTextureSubImage2D)
+		glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Copied 2D sub-image to texture %u at level %d with size (%d, %d) at offset (%d, %d)",
+			texture, level, width, height, xoffset, yoffset);
 }
 
 void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
-	LOG()
-	LOG_D("glCopyTextureSubImage3D, texture: %u, level: %d, xoffset: %d, yoffset: %d, zoffset: %d, x: %d, y: %d, width: %d, height: %d", texture, level, xoffset, yoffset, zoffset, x, y, width, height);
-	
-	if (texture == 0 || width <= 0 || height <= 0 || xoffset < 0 || x < 0 || y < 0 || zoffset < 0 || yoffset < 0) {
-		LOG_E("Invalid parameters for glCopyTextureSubImage3D");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glCopyTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, x, y, width, height);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Copied sub-image to texture %u at level %d with size (%d, %d) at offset (%d, %d)", texture, level, width, height, xoffset, yoffset);
+	TEXTURE_OP_FUNC_BEGIN(glCopyTextureSubImage3D)
+		glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Copied 3D sub-image to texture %u at level %d with size (%d, %d) at offset (%d, %d)",
+			texture, level, width, height, xoffset, yoffset);
 }
 
 void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param) {
-	LOG()
-	LOG_D("glTextureParameterf, texture: %u, pname: 0x%X, param: %f", texture, pname, param);
-	
-	if (texture == 0) {
-		LOG_E("Invalid texture ID for glTextureParameterf");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameterf(GL_TEXTURE_2D, pname, param);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set float parameter 0x%X for texture %u to %f", pname, texture, param);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameterf)
+		glTexParameterf(target, pname, param);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set float parameter 0x%X for texture %u to %f", pname, texture, param);
 }
 
 void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* param) {
-	LOG()
-	LOG_D("glTextureParameterfv, texture: %u, pname: 0x%X, param: %p", texture, pname, param);
-	
-	if (texture == 0 || !param) {
-		LOG_E("Invalid parameters for glTextureParameterfv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameterfv(GL_TEXTURE_2D, pname, param);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set float vector parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameterfv)
+		glTexParameterfv(target, pname, param);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set float vector parameter 0x%X for texture %u", pname, texture);
 }
 
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
-	LOG()
-	LOG_D("glTextureParameteri, texture: %u, pname: 0x%X, param: %d", texture, pname, param);
-	
-	if (texture == 0) {
-		LOG_E("Invalid texture ID for glTextureParameteri");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameteri(GL_TEXTURE_2D, pname, param);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set integer parameter 0x%X for texture %u to %d", pname, texture, param);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameteri)
+		glTexParameteri(target, pname, param);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set integer parameter 0x%X for texture %u to %d", pname, texture, param);
 }
 
 void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint* params) {
-	LOG()
-	LOG_D("glTextureParameterIiv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glTextureParameterIiv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameterIiv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set integer vector parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameterIiv)
+		glTexParameterIiv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set integer vector parameter 0x%X for texture %u", pname, texture);
 }
 
 void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint* params) {
-	LOG()
-	LOG_D("glTextureParameterIuiv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glTextureParameterIuiv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameterIuiv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set unsigned integer vector parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameterIuiv)
+		glTexParameterIuiv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set unsigned integer vector parameter 0x%X for texture %u", pname, texture);
 }
 
 void glTextureParameteriv(GLuint texture, GLenum pname, const GLint* param) {
-	LOG()
-	LOG_D("glTextureParameteriv, texture: %u, pname: 0x%X, param: %p", texture, pname, param);
-	
-	if (texture == 0 || !param) {
-		LOG_E("Invalid parameters for glTextureParameteriv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glTexParameteriv(GL_TEXTURE_2D, pname, param);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Set integer vector parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glTextureParameteriv)
+		glTexParameteriv(target, pname, param);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Set integer vector parameter 0x%X for texture %u", pname, texture);
 }
 
 void glGenerateTextureMipmap(GLuint texture) {
-	LOG()
-	LOG_D("glGenerateTextureMipmap, texture: %u", texture);
-	
-	if (texture == 0) {
-		LOG_E("Invalid texture ID for glGenerateTextureMipmap");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Generated mipmap for texture %u", texture);
+	TEXTURE_OP_FUNC_BEGIN(glGenerateTextureMipmap)
+		glGenerateMipmap(target);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Generated mipmap for texture %u", texture);
 }
 
 void glBindTextureUnit(GLuint unit, GLuint texture) {
 	LOG()
-	LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture);
-	
+		LOG_D("glBindTextureUnit, unit: %u, texture: %u", unit, texture);
+
 	if (unit >= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS || texture == 0) {
 		LOG_E("Invalid parameters for glBindTextureUnit");
 		return;
 	}
+
 	GLenum target = mgGetTexTarget(texture);
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(target, texture);
@@ -1225,123 +1097,59 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 }
 
 void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels) {
-	LOG()
-	LOG_D("glGetTextureImage, texture: %u, level: %d, format: 0x%X, type: 0x%X, bufSize: %d, pixels: %p", texture, level, format, type, bufSize, pixels);
-	
-	if (texture == 0 || bufSize <= 0 || !pixels) {
-		LOG_E("Invalid parameters for glGetTextureImage");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexImage(GL_TEXTURE_2D, level, format, type, pixels);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved texture image from texture %u at level %d", texture, level);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureImage)
+		glGetTexImage(target, level, format, type, pixels);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved texture image from texture %u at level %d", texture, level);
 }
 
 void glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void* pixels) {
-	LOG()
-	LOG_D("glGetCompressedTextureImage, texture: %u, level: %d, bufSize: %d, pixels: %p", texture, level, bufSize, pixels);
-	
-	if (texture == 0 || bufSize <= 0 || !pixels) {
-		LOG_E("Invalid parameters for glGetCompressedTextureImage");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetCompressedTexImage(GL_TEXTURE_2D, level, pixels);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved compressed texture image from texture %u at level %d", texture, level);
+	TEXTURE_OP_FUNC_BEGIN(glGetCompressedTextureImage)
+		glGetCompressedTexImage(target, level, pixels);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved compressed texture image from texture %u at level %d", texture, level);
 }
 
 void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat* params) {
-	LOG()
-	LOG_D("glGetTextureLevelParameterfv, texture: %u, level: %d, pname: 0x%X, params: %p", texture, level, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureLevelParameterfv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexLevelParameterfv(GL_TEXTURE_2D, level, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved texture level parameter 0x%X for texture %u at level %d", pname, texture, level);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureLevelParameterfv)
+		glGetTexLevelParameterfv(target, level, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved texture level parameter 0x%X for texture %u at level %d", pname, texture, level);
 }
 
 void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint* params) {
-	LOG()
-	LOG_D("glGetTextureLevelParameteriv, texture: %u, level: %d, pname: 0x%X, params: %p", texture, level, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureLevelParameteriv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, level, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved texture level parameter 0x%X for texture %u at level %d", pname, texture, level);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureLevelParameteriv)
+		glGetTexLevelParameteriv(target, level, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved texture level parameter 0x%X for texture %u at level %d", pname, texture, level);
 }
 
 void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params) {
-	LOG()
-	LOG_D("glGetTextureParameterfv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureParameterfv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexParameterfv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved texture parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureParameterfv)
+		glGetTexParameterfv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved texture parameter 0x%X for texture %u", pname, texture);
 }
 
 void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint* params) {
-	LOG()
-	LOG_D("glGetTextureParameterIiv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureParameterIiv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexParameterIiv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved integer texture parameter 0x%X for texture %u", pname, texture);
-}	
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureParameterIiv)
+		glGetTexParameterIiv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved integer texture parameter 0x%X for texture %u", pname, texture);
+}
 
 void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint* params) {
-	LOG()
-	LOG_D("glGetTextureParameterIuiv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureParameterIuiv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexParameterIuiv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved unsigned integer texture parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureParameterIuiv)
+		glGetTexParameterIuiv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved unsigned integer texture parameter 0x%X for texture %u", pname, texture);
 }
 
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
-	LOG()
-	LOG_D("glGetTextureParameteriv, texture: %u, pname: 0x%X, params: %p", texture, pname, params);
-	
-	if (texture == 0 || !params) {
-		LOG_E("Invalid parameters for glGetTextureParameteriv");
-		return;
-	}
-	temporarilyBindTexture(texture);
-	glGetTexParameteriv(GL_TEXTURE_2D, pname, params);
-	restoreTemporaryTextureBinding();
-	
-	LOG_D("Retrieved integer texture parameter 0x%X for texture %u", pname, texture);
+	TEXTURE_OP_FUNC_BEGIN(glGetTextureParameteriv)
+		glGetTexParameteriv(target, pname, params);
+	TEXTURE_OP_FUNC_END
+		LOG_D("Retrieved integer texture parameter 0x%X for texture %u", pname, texture);
 }
 
 // vertex array
@@ -1688,119 +1496,115 @@ void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintpt
 	popQueryBufferBinding(prev);
 }
 
-// transform feedback, similar to vertex array
-static thread_local GLint prevTFBO = 0;
-void temporarilyBindTransformFeedback(GLint tfboID) {
-	if (prevTFBO == tfboID) {
-		return;
-	}
-	LOG_D("[TempBind] TFBO: %u -> bind=%u", prevTFBO, tfboID);
-	glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevTFBO);
-	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, tfboID);
-}
-void restoreTemporaryTransformFeedbackBinding() {
-	if (prevTFBO == 0) {
-		return;
-	}
-	LOG_D("[Restore] TFBO: bind back to %u", prevTFBO);
-	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, prevTFBO);
-	prevTFBO = 0;
+// ���� �޸���� Transform Feedback Fallback ����
+
+static thread_local std::vector<GLint> g_xfbBindingStack;
+
+// Push�����浱ǰ�󶨵� XFB ���󣬲� bind �� xfb
+static void pushXFB(GLuint xfb) {
+	GLint prev = 0;
+	glGetIntegerv(GL_TRANSFORM_FEEDBACK_BINDING, &prev);
+	g_xfbBindingStack.push_back(prev);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, xfb);
 }
 
-void glCreateTransformFeedbacks(GLsizei n, GLuint* ids) {
-	LOG()
-	LOG_D("glCreateTransformFeedbacks, n: %d, ids: %p", n, ids);
-	
+// Pop���ָ��ϲ��
+static void popXFB() {
+	assert(!g_xfbBindingStack.empty());
+	GLint prev = g_xfbBindingStack.back();
+	g_xfbBindingStack.pop_back();
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, (GLuint)prev);
+}
+
+// glCreateTransformFeedbacks��fallback ֻ�� gen
+GLAPI void glCreateTransformFeedbacks(GLsizei n, GLuint* ids) {
+	LOG();
+	LOG_D("glCreateTransformFeedbacks, n=%d, ids=%p", n, ids);
 	if (n <= 0 || !ids) {
 		LOG_E("Invalid parameters for glCreateTransformFeedbacks");
 		return;
 	}
-	for (GLsizei i = 0; i < n; ++i) {
-		GLuint tfboID = 0;
-		glGenBuffers(1, &tfboID);
-		if (tfboID == 0) {
-			LOG_E("Failed to create transform feedback buffer at index %d", i);
-			continue;
-		}
-		temporarilyBindTransformFeedback(tfboID); // after binding, the transform feedback buffer should be created
-		restoreTemporaryTransformFeedbackBinding();
-		ids[i] = tfboID;
-	}
-	
-	LOG_D("Created %d transform feedback buffers successfully", n);
+	glGenTransformFeedbacks(n, ids);
+	LOG_D("Created %d transform feedback objects", n);
 }
 
-void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer) {
-	LOG()
-		LOG_D("glTransformFeedbackBufferBase, xfb: %u, index: %u, buffer: %u", xfb, index, buffer);
-
-	if (xfb == 0 || index >= GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || buffer == 0) {
+// glTransformFeedbackBufferBase��bind��glBindBufferBase��restore
+GLAPI void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer) {
+	LOG();
+	LOG_D("glTransformFeedbackBufferBase, xfb=%u, index=%u, buffer=%u", xfb, index, buffer);
+	if (xfb == 0 || index >= (GLuint)GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || buffer == 0) {
 		LOG_E("Invalid parameters for glTransformFeedbackBufferBase");
 		return;
 	}
-	temporarilyBindTransformFeedback(xfb);
+	pushXFB(xfb);
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer);
-	restoreTemporaryTransformFeedbackBinding();
-
-	LOG_D("Bound transform feedback buffer %u to index %u for transform feedback object %u", buffer, index, xfb);
+	popXFB();
+	LOG_D("Bound buffer %u to TFBO %u at index %u", buffer, xfb, index);
 }
 
-void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
-	LOG()
-	LOG_D("glTransformFeedbackBufferRange, xfb: %u, index: %u, buffer: %u, offset: %lld, size: %lld", xfb, index, buffer, offset, size);
-	
-	if (xfb == 0 || index >= GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || buffer == 0 || size < 0 || offset < 0) {
+// glTransformFeedbackBufferRange��bind��glBindBufferRange��restore
+GLAPI void glTransformFeedbackBufferRange(GLuint xfb, GLuint index,
+	GLuint buffer,
+	GLintptr offset, GLsizeiptr size)
+{
+	LOG();
+	LOG_D("glTransformFeedbackBufferRange, xfb=%u, index=%u, buffer=%u, offset=%lld, size=%lld",
+		xfb, index, buffer, offset, size);
+	if (xfb == 0 ||
+		index >= (GLuint)GL_MAX_TRANSFORM_FEEDBACK_BUFFERS ||
+		buffer == 0 ||
+		offset < 0 || size <= 0)
+	{
 		LOG_E("Invalid parameters for glTransformFeedbackBufferRange");
 		return;
 	}
-	temporarilyBindTransformFeedback(xfb);
+	pushXFB(xfb);
 	glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer, offset, size);
-	restoreTemporaryTransformFeedbackBinding();
-	
-	LOG_D("Bound transform feedback buffer %u to index %u with offset %lld and size %lld for transform feedback object %u", buffer, index, offset, size, xfb);
+	popXFB();
+	LOG_D("Bound buffer %u to TFBO %u at index %u (offset=%lld, size=%lld)",
+		buffer, xfb, index, offset, size);
 }
 
-void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
-	LOG()
-	LOG_D("glGetTransformFeedbackiv, xfb: %u, pname: 0x%X, param: %p", xfb, pname, param);
-	
+// glGetTransformFeedbackiv��bind��glGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK)��restore
+GLAPI void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
+	LOG();
+	LOG_D("glGetTransformFeedbackiv, xfb=%u, pname=0x%X, param=%p", xfb, pname, param);
 	if (xfb == 0 || !param) {
 		LOG_E("Invalid parameters for glGetTransformFeedbackiv");
 		return;
 	}
-	temporarilyBindTransformFeedback(xfb);
-	glGetTransformFeedbackiv(xfb, pname, param);
-	restoreTemporaryTransformFeedbackBinding();
-	
-	LOG_D("Retrieved transform feedback parameter 0x%X for transform feedback object %u", pname, xfb);
+	pushXFB(xfb);
+	glGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK, pname, param);
+	popXFB();
+	LOG_D("Retrieved TFBO %u param 0x%X = %d", xfb, pname, *param);
 }
 
-void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint* param) {
-	LOG()
-	LOG_D("glGetTransformFeedbacki_v, xfb: %u, pname: 0x%X, index: %u, param: %p", xfb, pname, index, param);
-	
-	if (xfb == 0 || index >= GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || !param) {
+// glGetTransformFeedbacki_v��bind��glGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK)��restore
+GLAPI void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint* param) {
+	LOG();
+	LOG_D("glGetTransformFeedbacki_v, xfb=%u, pname=0x%X, index=%u, param=%p",
+		xfb, pname, index, param);
+	if (xfb == 0 || index >= (GLuint)GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || !param) {
 		LOG_E("Invalid parameters for glGetTransformFeedbacki_v");
 		return;
 	}
-	temporarilyBindTransformFeedback(xfb);
-	glGetTransformFeedbacki_v(xfb, pname, index, param);
-	restoreTemporaryTransformFeedbackBinding();
-	
-	LOG_D("Retrieved indexed transform feedback parameter 0x%X for transform feedback object %u at index %u", pname, xfb, index);
+	pushXFB(xfb);
+	glGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
+	popXFB();
+	LOG_D("Retrieved TFBO %u param 0x%X at index %u = %d", xfb, pname, index, *param);
 }
 
-void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64* param) {
-	LOG()
-	LOG_D("glGetTransformFeedbacki64_v, xfb: %u, pname: 0x%X, index: %u, param: %p", xfb, pname, index, param);
-	
-	if (xfb == 0 || index >= GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || !param) {
+// glGetTransformFeedbacki64_v��bind��glGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK)��restore
+GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64* param) {
+	LOG();
+	LOG_D("glGetTransformFeedbacki64_v, xfb=%u, pname=0x%X, index=%u, param=%p",
+		xfb, pname, index, param);
+	if (xfb == 0 || index >= (GLuint)GL_MAX_TRANSFORM_FEEDBACK_BUFFERS || !param) {
 		LOG_E("Invalid parameters for glGetTransformFeedbacki64_v");
 		return;
 	}
-	temporarilyBindTransformFeedback(xfb);
-	glGetTransformFeedbacki64_v(xfb, pname, index, param);
-	restoreTemporaryTransformFeedbackBinding();
-	
-	LOG_D("Retrieved indexed 64-bit transform feedback parameter 0x%X for transform feedback object %u at index %u", pname, xfb, index);
+	pushXFB(xfb);
+	glGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
+	popXFB();
+	LOG_D("Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
 }
