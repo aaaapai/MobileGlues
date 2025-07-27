@@ -905,9 +905,8 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
 			LOG_E("Failed to create texture at index %d", i);
 			continue;
 		}
-		glBindTexture(target, texID);
-		// temporarilyBindTexture(texID, target);
-		// restoreTemporaryTextureBinding(texID, target);
+		temporarilyBindTexture(texID, target);
+		restoreTemporaryTextureBinding(texID, target);
 		textures[i] = texID;
 	}
 
@@ -1129,10 +1128,12 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		LOG_E("Invalid parameters for glBindTextureUnit");
 		return;
 	}
-
+	GLint prevUnit = 0;
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = mgGetTexTarget(texture);
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(target, texture);
+	glActiveTexture(prevUnit);
 	LOG_D("Bound texture %u to texture unit %u", texture, unit);
 }
 
