@@ -96,6 +96,142 @@ void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 		bufferBindingStack.erase(it);
 }
 
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data)
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(GetBindingQuery(target, false));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer)
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size)
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer")
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type))
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < size; i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
+                              GLintptr offset, GLsizeiptr size, 
+                              GLenum format, GLenum type, 
+                              const void *data) {
+    // æ£€æŸ¥å‚æ•°æœ‰æ•ˆæ€§
+    if (offset < 0 || size <= 0) {
+        return;
+    }
+    
+    // æ ¹æ®å†…éƒ¨æ ¼å¼ç¡®å®šæ¸…é™¤å€¼çš„å¤§å°
+    GLsizeiptr clearSize = size;
+    void* clearData = NULL;
+    
+    // å¦‚æžœæä¾›äº†æ•°æ®æŒ‡é’ˆï¼Œç›´æŽ¥ä½¿ç”¨å®ƒ
+    if (data != NULL) {
+        clearData = (void*)data;
+    } else {
+        // å¦‚æžœæ²¡æœ‰æä¾›æ•°æ®ï¼Œåˆ›å»ºä¸€ä¸ªé»˜è®¤çš„æ¸…é™¤å€¼
+        // è¿™é‡Œç®€åŒ–å¤„ç†ï¼Œå®žé™…åº”æ ¹æ®internalformatåˆ›å»ºé€‚å½“çš„é»˜è®¤å€¼
+        GLubyte zero = 0;
+        clearData = &zero;
+        clearSize = 1; // ç®€åŒ–å¤„ç†ï¼Œå®žé™…åº”æ ¹æ®æ ¼å¼è°ƒæ•´
+    }
+    
+    // ç»‘å®šç¼“å†²åŒº
+    GLint prevBuffer;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prevBuffer);
+            break;
+        default:
+            LOG_W("Warning: Unsupported buffers")
+            return;
+    }
+    
+    // ä½¿ç”¨glBufferSubDataæ›´æ–°ç¼“å†²åŒºæ•°æ®
+    glBufferSubData(target, offset, clearSize, clearData);
+    
+    // æ¢å¤ä¹‹å‰ç»‘å®šçš„ç¼“å†²åŒº
+    glBindBuffer(target, prevBuffer);
+} //DeepSeek
+
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
 	LOG()
 	LOG_D("glCreateBuffers, n: %d, buffers: %p", n, buffers);
@@ -1401,11 +1537,11 @@ void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintpt
 	popQueryBufferBinding(prev);
 }
 
-// ¡ª¡ª ÐÞ¸´ºóµÄ Transform Feedback Fallback ¡ª¡ª
+// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ Transform Feedback Fallback ï¿½ï¿½ï¿½ï¿½
 
 static thread_local std::vector<GLint> g_xfbBindingStack;
 
-// Push£º±£´æµ±Ç°°ó¶¨µÄ XFB ¶ÔÏó£¬²¢ bind µ½ xfb
+// Pushï¿½ï¿½ï¿½ï¿½ï¿½æµ±Ç°ï¿½ó¶¨µï¿½ XFB ï¿½ï¿½ï¿½ó£¬²ï¿½ bind ï¿½ï¿½ xfb
 static void pushXFB(GLuint xfb) {
 	GLint prev = 0;
 	glGetIntegerv(GL_TRANSFORM_FEEDBACK_BINDING, &prev);
@@ -1413,7 +1549,7 @@ static void pushXFB(GLuint xfb) {
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, xfb);
 }
 
-// Pop£º»Ö¸´ÉÏ²ã°ó¶¨
+// Popï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Ï²ï¿½ï¿½
 static void popXFB() {
 	assert(!g_xfbBindingStack.empty());
 	GLint prev = g_xfbBindingStack.back();
@@ -1421,7 +1557,7 @@ static void popXFB() {
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, (GLuint)prev);
 }
 
-// glCreateTransformFeedbacks£ºfallback Ö»Ðè gen
+// glCreateTransformFeedbacksï¿½ï¿½fallback Ö»ï¿½ï¿½ gen
 GLAPI void glCreateTransformFeedbacks(GLsizei n, GLuint* ids) {
 	LOG();
 	LOG_D("glCreateTransformFeedbacks, n=%d, ids=%p", n, ids);
@@ -1433,7 +1569,7 @@ GLAPI void glCreateTransformFeedbacks(GLsizei n, GLuint* ids) {
 	LOG_D("Created %d transform feedback objects", n);
 }
 
-// glTransformFeedbackBufferBase£ºbind¡úglBindBufferBase¡úrestore
+// glTransformFeedbackBufferBaseï¿½ï¿½bindï¿½ï¿½glBindBufferBaseï¿½ï¿½restore
 GLAPI void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer) {
 	LOG();
 	LOG_D("glTransformFeedbackBufferBase, xfb=%u, index=%u, buffer=%u", xfb, index, buffer);
@@ -1447,7 +1583,7 @@ GLAPI void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer
 	LOG_D("Bound buffer %u to TFBO %u at index %u", buffer, xfb, index);
 }
 
-// glTransformFeedbackBufferRange£ºbind¡úglBindBufferRange¡úrestore
+// glTransformFeedbackBufferRangeï¿½ï¿½bindï¿½ï¿½glBindBufferRangeï¿½ï¿½restore
 GLAPI void glTransformFeedbackBufferRange(GLuint xfb, GLuint index,
 	GLuint buffer,
 	GLintptr offset, GLsizeiptr size)
@@ -1470,7 +1606,7 @@ GLAPI void glTransformFeedbackBufferRange(GLuint xfb, GLuint index,
 		buffer, xfb, index, offset, size);
 }
 
-// glGetTransformFeedbackiv£ºbind¡úglGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK)¡úrestore
+// glGetTransformFeedbackivï¿½ï¿½bindï¿½ï¿½glGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK)ï¿½ï¿½restore
 GLAPI void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
 	LOG();
 	LOG_D("glGetTransformFeedbackiv, xfb=%u, pname=0x%X, param=%p", xfb, pname, param);
@@ -1484,7 +1620,7 @@ GLAPI void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
 	LOG_D("Retrieved TFBO %u param 0x%X = %d", xfb, pname, *param);
 }
 
-// glGetTransformFeedbacki_v£ºbind¡úglGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK)¡úrestore
+// glGetTransformFeedbacki_vï¿½ï¿½bindï¿½ï¿½glGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK)ï¿½ï¿½restore
 GLAPI void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint* param) {
 	LOG();
 	LOG_D("glGetTransformFeedbacki_v, xfb=%u, pname=0x%X, index=%u, param=%p",
@@ -1499,7 +1635,7 @@ GLAPI void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLi
 	LOG_D("Retrieved TFBO %u param 0x%X at index %u = %d", xfb, pname, index, *param);
 }
 
-// glGetTransformFeedbacki64_v£ºbind¡úglGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK)¡úrestore
+// glGetTransformFeedbacki64_vï¿½ï¿½bindï¿½ï¿½glGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK)ï¿½ï¿½restore
 GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64* param) {
 	LOG();
 	LOG_D("glGetTransformFeedbacki64_v, xfb=%u, pname=0x%X, index=%u, param=%p",

@@ -12,6 +12,8 @@
 #include <cstring>
 #include <optional>
 
+#define EGL_OPENGL_ES3_BIT_KHR 0x00000040
+
 static const char *gles3_lib[] = {
         "libGLESv3_CM",
         "libGLESv3",
@@ -29,9 +31,16 @@ std::string getGPUInfo() {
         return "";
 
     EGLint egl_attributes[] = {
-            EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
-            EGL_ALPHA_SIZE, 8, EGL_DEPTH_SIZE, 24, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_NONE
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_ALPHA_SIZE, 8,
+            EGL_DEPTH_SIZE, 24,
+            EGL_ALPHA_MASK_SIZE, 8,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
+            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_NONE
     };
 
     EGLint num_configs = 0;
