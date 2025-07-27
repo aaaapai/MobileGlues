@@ -666,7 +666,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
 }
 
 
-std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, GLenum glsl_type) {
+std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
@@ -709,7 +709,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, GLenum g
         process_sampler_buffer(ret);
     }
     
-    if (shaderType == GL_COMPUTE_SHADER) {
+    if (glsl_type == GL_COMPUTE_SHADER) {
         inject_atomicCounterAdd(ret);
     }
 
