@@ -1602,7 +1602,7 @@ static GLint pushQueryBufferBinding(GLuint buffer) {
 static void popQueryBufferBinding(GLint prev) {
 	glBindBuffer(GL_QUERY_BUFFER, (GLuint)prev);
 }
-/*
+
 void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset) {
 	assert(pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE);
 	GLint prev = pushQueryBufferBinding(buffer);
@@ -1638,7 +1638,6 @@ void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintpt
 	glBufferSubData(GL_QUERY_BUFFER, offset, sizeof(value), &value);
 	popQueryBufferBinding(prev);
 }
-*/
 
 // ���� �޸���� Transform Feedback Fallback ����
 
