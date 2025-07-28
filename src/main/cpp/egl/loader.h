@@ -6,11 +6,12 @@
 #define FOLD_CRAFT_LAUNCHER_EGL_LOADER_H
 
 
+#include "egl.h"
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "egl.h"
 
 typedef EGLBoolean (*eglBindAPI_PTR)(EGLenum api);
 
@@ -179,5 +180,6 @@ void destroy_temp_egl_ctx();
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif //FOLD_CRAFT_LAUNCHER_EGL_LOADER_H
