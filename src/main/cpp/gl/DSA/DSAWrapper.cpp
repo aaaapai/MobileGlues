@@ -8,6 +8,10 @@
 
 #define DEBUG 0
 
+extern GLint MAX_DRAW_BUFFERS;
+extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
+extern GLint getMaxDrawBuffers();
+
 GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
@@ -99,6 +103,142 @@ void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	if (it->second.empty())
 		bufferBindingStack.erase(it);
 }
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data)
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(GetBindingQuery(target, false));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer)
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size)
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer")
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type))
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < size; i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
+                              GLintptr offset, GLsizeiptr size, 
+                              GLenum format, GLenum type, 
+                              const void *data) {
+    // 检查参数有效性
+    if (offset < 0 || size <= 0) {
+        return;
+    }
+    
+    // 根据内部格式确定清除值的大小
+    GLsizeiptr clearSize = size;
+    void* clearData = NULL;
+    
+    // 如果提供了数据指针，直接使用它
+    if (data != NULL) {
+        clearData = (void*)data;
+    } else {
+        // 如果没有提供数据，创建一个默认的清除值
+        // 这里简化处理，实际应根据internalformat创建适当的默认值
+        GLubyte zero = 0;
+        clearData = &zero;
+        clearSize = 1; // 简化处理，实际应根据格式调整
+    }
+    
+    // 绑定缓冲区
+    GLint prevBuffer;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prevBuffer);
+            break;
+        default:
+            LOG_W("Warning: Unsupported buffers")
+            return;
+    }
+    
+    // 使用glBufferSubData更新缓冲区数据
+    glBufferSubData(target, offset, clearSize, clearData);
+    
+    // 恢复之前绑定的缓冲区
+    glBindBuffer(target, prevBuffer);
+} //DeepSeek
 
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
 	LOG()
@@ -444,6 +584,75 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 	LOG_D("[DSA] Set framebuffer parameter 0x%X to %d for framebuffer %u", pname, param, framebuffer);
 }
 
+
+
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
+
+    LOG()
+    LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%04X, texture: %u, level: %d", 
+          framebuffer, attachment, texture, level)
+
+    // 验证 attachment 参数是否合法
+    if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+        // 有效的颜色附件
+    } else if (attachment == GL_DEPTH_ATTACHMENT || 
+               attachment == GL_STENCIL_ATTACHMENT || 
+               attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
+        // 有效的深度/模板附件
+    } else {
+        LOG_E("ERROR: Invalid attachment parameter: 0x%04X", attachment);
+        return;
+    }
+
+    // 检查 framebuffer 是否为 0（默认帧缓冲区）
+    if (framebuffer == 0) {
+        LOG_D("Default framebuffer (0) cannot be modified with glNamedFramebufferTexture");
+        return;
+    }
+
+    // 绑定帧缓冲区到当前目标（假设 GL_DRAW_FRAMEBUFFER 为最常见目标）
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+
+    // 更新帧缓冲区附件信息
+    struct framebuffer_t* fb = bound_framebuffer;  // 显式使用 struct 前缀
+    if (fb) {
+        if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + MAX_DRAW_BUFFERS) {
+            // 处理颜色附件
+            GLuint index = attachment - GL_COLOR_ATTACHMENT0;
+            if (index >= MAX_DRAW_BUFFERS) {
+                LOG_D("Color attachment index out of bounds: %u", index);
+                return;
+            }
+
+            if (!fb->draw_attachment) {
+                fb->draw_attachment = new struct attachment_t[MAX_DRAW_BUFFERS];  // 同样显式使用 struct
+            }
+
+            fb->draw_attachment[index].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            fb->draw_attachment[index].texture = texture;
+            fb->draw_attachment[index].level = level;
+        } else {
+            // 处理深度/模板附件
+            if (!fb->read_attachment) {
+                fb->read_attachment = new struct attachment_t;  // 显式使用 struct
+            }
+
+            fb->read_attachment->textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            fb->read_attachment->texture = texture;
+            fb->read_attachment->level = level;
+        }
+    }
+
+    // 实际调用 GLES 函数
+    GLES.glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
+
+    // 检查帧缓冲区完整性
+    GLenum status = GLES.glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        LOG_D("Framebuffer not complete after attachment: 0x%04X", status);
+    }
+}
+/*
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 	LOG()
 	LOG_D("[DSA] glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level);
@@ -456,6 +665,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 	
 	LOG_D("[DSA] Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
 }
+*/
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
 	LOG()

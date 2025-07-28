@@ -4,10 +4,12 @@
 #include <glslang/Include/Types.h>
 #include <glslang/Public/ShaderLang.h>
 #include <spirv_cross/spirv_cross_c.h>
+#include <spirv-tools/optimizer.hpp>
 #include <iostream>
 #include <fstream>
 #include "../log.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
+#include <shaderc/shader.h>
 #include <string>
 #include <regex>
 #include <strstream>
@@ -15,13 +17,14 @@
 #include <sstream>
 #include "cache.h"
 #include "../../version.h"
+// #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 0	
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
+#define DEBUG 1
 
 #if !defined(__APPLE__)
-char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
 
 static TBuiltInResource InitResources()
@@ -353,7 +356,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     return_code = -1;
-    std::string converted = glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = glsl_version<140? GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code >= 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -383,7 +386,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
+        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
             isLineDirective = true;
         }
 
@@ -726,7 +729,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
     glslCode.insert(insertionPos, macro_definitions);
 }
 
-std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* atomicCounterEmulated) {
+std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* atomicCounterEmulated) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
@@ -739,6 +742,19 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                 "const mat3 rotInverse = transpose(rot);",
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
 
+    replace_all(ret, "texture2D", "texture");
+    replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
+    replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
+    replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
+
+    // Replace deprecated syntax
+    if (glsl_type == GL_VERTEX_SHADER) {
+        replace_all(ret, "attribute", "in");
+        replace_all(ret, "varying", "out");
+    } else if (glsl_type == GL_FRAGMENT_SHADER) {
+        replace_all(ret, "varying", "in");
+    }
+      
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
@@ -747,12 +763,17 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
         inject_textureQueryLod(ret);
     }
 
+
     // MobileGlues macros injection
     inject_mg_macro_definition(ret);
 
     if (hardware->emulate_texture_buffer) {
         // Sampler buffer processing
         process_sampler_buffer(ret);
+    }
+  
+    if (glsl_type == GL_COMPUTE_SHADER) {
+        inject_atomicCounterAdd(ret);
     }
 
     *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
@@ -762,14 +783,68 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
 int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
-        glsl_version = 140;
-        glsl.insert(0, "#version 140\n");
+        glsl_version = 330;
+        glsl.insert(0, "#version 330\n");
+    } else if (glsl_version < 330) {
+        // force upgrade glsl version
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
+        glsl_version = 330;
     }
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
+    
+    static shaderc_compiler_t compiler = nullptr;
+    if(compiler == nullptr) {
+        printf("shaderc\n");
+        compiler = shaderc_compiler_initialize();
+        if(compiler == nullptr) {
+            printf("Error: shaderc compiler cannot be created!\n");
+            errc = -1;
+            return {};
+        }
+    }
+
+    shaderc_compile_options_t opts = shaderc_compile_options_initialize();
+    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
+    shaderc_compile_options_set_auto_map_locations(opts, true);
+    shaderc_compile_options_set_auto_bind_uniforms(opts, true);
+    shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+
+    shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
+    
+    GLint max_draw_buffers;
+    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+    std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
+    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
+
+    shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
+
+    shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_preprocessed_text(
+        compiler, 
+        *shader_src,
+        strlen(*shader_src),
+        shader_type == GL_VERTEX_SHADER ? shaderc_glsl_vertex_shader : 
+        shader_type == GL_FRAGMENT_SHADER ? shaderc_glsl_fragment_shader :
+        shader_type == GL_COMPUTE_SHADER ? shaderc_glsl_compute_shader :
+        shader_type == GL_GEOMETRY_SHADER ? shaderc_glsl_geometry_shader :
+        shader_type == GL_TESS_CONTROL_SHADER ? shaderc_glsl_tess_control_shader :
+        shader_type == GL_TESS_EVALUATION_SHADER ? shaderc_glsl_tess_evaluation_shader :
+        shaderc_glsl_infer_from_source,
+        "optimized_shader", "main", opts);
+
+    if(shaderc_result_get_compilation_status(optimized_glsl_res) != shaderc_compilation_status_success) {
+        printf("There is a problem with shaderc！\n%s\n", shaderc_result_get_error_message(optimized_glsl_res));
+        shaderc_result_release(optimized_glsl_res);
+        errc = -1;
+        return {};
+    }
+
+    const char* optimized_glsl = shaderc_result_get_bytes(optimized_glsl_res);
+    size_t optimized_glsl_length = shaderc_result_get_length(optimized_glsl_res);
+    
     EShLanguage shader_language;
     switch (shader_type) {
         case GL_VERTEX_SHADER:
@@ -792,15 +867,16 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
             break;
         default:
             LOG_D("GLSL type not supported!")
+            shaderc_result_release(optimized_glsl_res);
             errc = -1;
             return {};
     }
 
     glslang::TShader shader(shader_language);
-    shader.setStrings(shader_src, 1);
+    shader.setStrings(&optimized_glsl, 1);
 
     using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
     shader.setAutoMapLocations(true);
@@ -809,7 +885,8 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
     if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
-        LOG_D("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+        LOG_E("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
         errc = -1;
         return {};
     }
@@ -819,7 +896,8 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     program.addShader(&shader);
 
     if (!program.link(EShMsgDefault)) {
-        LOG_D("Shader Linking ERROR: %s", program.getInfoLog())
+        LOG_E("Shader Linking ERROR: %s", program.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
         errc = -1;
         return {};
     }
@@ -827,7 +905,9 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     std::vector<unsigned int> spirv_code;
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
+    spvOptions.optimizeSize = true;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    shaderc_result_release(optimized_glsl_res);
     errc = 0;
     return spirv_code;
 }
@@ -846,20 +926,40 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     size_t word_count = spirv.size();
 
     LOG_D("spirv_code.size(): %d", spirv.size())
-    spvc_context_create(&context);
+    if(context == nullptr) {
+        spvc_context_create(&context);
+        if(context == nullptr) {
+            printf("SPVC Context could not be created!\n");
+        }
+    }
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 300 ? essl_version : 300);
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 320 ? essl_version : 320);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
 
     if (!result) {
-        LOG_E("Error: unexpected error in spirv-cross.")
+        const char* error_msg = spvc_context_get_last_error_string(context);
+        if (error_msg) {
+            LOG_E("SPIRV-Cross error: %s", error_msg);
+        } else {
+            LOG_E("SPIRV-Cross failed without error message");
+        }
+        
+        // 检查常见原因
+        if (essl_version < 300) {
+            LOG_E("Hint: ESSL version %u may be too low", essl_version);
+        }
+        
+        spvc_compiler_get_current_id_bound(compiler_glsl);
+        
         errc = -1;
+        spvc_context_destroy(context);
         return "";
     }
 
@@ -877,6 +977,8 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
+
+    LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
 
     if (!glslang_inited) {
         glslang::InitializeProcess();
@@ -915,7 +1017,7 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
-    if (esversion < 300) esversion = 300;
+    if (esversion < 320) esversion = 320;
     std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
 
     return_code = 0;
