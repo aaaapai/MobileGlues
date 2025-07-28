@@ -6,7 +6,7 @@
 #include <cassert>
 #include "../texture.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 extern GLint MAX_DRAW_BUFFERS;
 extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
@@ -628,6 +628,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 }
 */
 
+#define DEBUG 1
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) {
     LOG()
 
@@ -668,6 +669,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 	
 	LOG_D("Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
 }
+#define DEBUG 0
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
 	LOG()
