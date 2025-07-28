@@ -84,12 +84,15 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
         LOG_D("%s", glsl_src.c_str())
         GLint shaderType;
         GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
-		int return_code = 0;
-        essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version, return_code);
-        if (return_code == 1) { //atomicCounterEmulated
+		//int return_code = 0;
+	essl_src = getCachedESSL(glsl_src.c_str(), hardware->es_version);
+        if (essl_src.empty()) {
+           essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version/*, return_code*/);
+	}
+        /*if (return_code == 1) { //atomicCounterEmulated
 			shader_map_is_atomic_counter_emulated[shader] = true;
 			LOG_D("[INFO] [Shader] Atomic counter emulated in shader %d", shader)
-        }
+        }*/
 
         if (essl_src.empty()) {
             LOG_E("ERROR: Failed to convert shader %d.", shader)
