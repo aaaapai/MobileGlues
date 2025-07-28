@@ -391,6 +391,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
     return nullptr;
 }
 
+/*
 void glQueryCounter(GLuint id, GLenum target) {
     LOG()
 
@@ -432,3 +433,4 @@ void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params) {
     GLES.glGetQueryObjecti64vEXT(id, pname, params);
     CHECK_GL_ERROR
 }
+*/
