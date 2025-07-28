@@ -559,7 +559,7 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 }
 
 
-
+/*
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 
     LOG()
@@ -626,7 +626,8 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
         LOG_D("Framebuffer not complete after attachment: 0x%04X", status);
     }
 }
-/*
+*/
+
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 	LOG()
 	LOG_D("glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level);
@@ -641,7 +642,6 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 	
 	LOG_D("Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
 }
-*/
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
 	LOG()
