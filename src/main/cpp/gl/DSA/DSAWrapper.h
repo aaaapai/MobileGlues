@@ -59,6 +59,7 @@ extern "C" {
 	GLAPI GLAPIENTRY void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 	GLAPI GLAPIENTRY void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 	GLAPI GLAPIENTRY void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param);
+        GLAPI GLAPIENTRY void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level);
 	GLAPI GLAPIENTRY void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
 	GLAPI GLAPIENTRY void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
 	GLAPI GLAPIENTRY void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum mode);
