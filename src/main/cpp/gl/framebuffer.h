@@ -39,6 +39,8 @@ GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);
 
 GLAPI GLAPIENTRY void glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers);
 
+GLAPI GLAPIENTRY void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level);
+
 #ifdef __cplusplus
 }
 #endif
