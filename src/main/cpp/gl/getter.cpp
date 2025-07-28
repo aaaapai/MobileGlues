@@ -66,7 +66,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = 4;
             break;
         case GL_MINOR_VERSION:
-            (*params) = 0;
+            (*params) = 3;
             break;
         case GL_MAX_TEXTURE_IMAGE_UNITS: {
             int es_params = 16;
