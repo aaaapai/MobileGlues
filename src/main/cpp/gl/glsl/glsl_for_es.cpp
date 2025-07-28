@@ -366,7 +366,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     int return_code = -1;
-    std::string converted = glsl_version<140? GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = glsl_version<140? GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version/*, return_code*/):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version/*, return_code*/);
     if (return_code == 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -993,16 +993,16 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     const char* s[] = { correct_glsl_str.c_str() };
     int errc = 0;
     std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
-    if (errc != 0) {
+    /*if (errc != 0) {
         return_code = -1;
         return "";
-    }
+    }*/
     errc = 0;
     std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
-    if (errc != 0) {
+    /*if (errc != 0) {
         return_code = -2;
         return "";
-    }
+    }*/
 
     // Post-processing ESSL
 
@@ -1013,7 +1013,7 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     essl = forceSupporterOutput(essl);
 
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
-    return_code = errc;
+    //return_code = errc;
     /* if (return_code == 0) {
         return_code = atomicCounterEmulated ? 1 : 0;
     } */
@@ -1026,7 +1026,7 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
     if (esversion < 320) esversion = 320;
     std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
 
-    return_code = 0;
+    //return_code = 0;
     return result;
 #else
     LOG_W_FORCE("Cannot convert glsl with version %d in MacOS/iOS", esversion);
