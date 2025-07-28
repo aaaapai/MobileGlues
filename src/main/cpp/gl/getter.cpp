@@ -66,7 +66,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = 4;
             break;
         case GL_MINOR_VERSION:
-            (*params) = 3;
+            (*params) = 6;
             break;
         case GL_MAX_TEXTURE_IMAGE_UNITS: {
             int es_params = 16;
@@ -137,6 +137,7 @@ void InitGLESBaseExtensions() {
              "GL_ARB_shading_language_100 "
              "GL_ARB_imaging "
              "GL_ARB_draw_buffers_blend "
+             "OpenGL10 "
              "OpenGL11 "
              "OpenGL12 "
              "OpenGL13 "
