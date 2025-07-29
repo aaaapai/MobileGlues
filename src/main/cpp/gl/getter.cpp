@@ -311,7 +311,7 @@ const GLubyte * glGetString( GLenum name ) {
             if (hardware->es_version < 310)
                 return (const GLubyte *) "4.00 MobileGlues with glslang, SPIRV-Cross and shaderc";
             else
-                return (const GLubyte *) "4.50 MobileGlues with glslang, SPIRV-Cross and shaderc";
+                return (const GLubyte *) "4.60 MobileGlues with glslang, SPIRV-Cross and shaderc";
         case GL_EXTENSIONS:
             return (const GLubyte *) GetExtensionsList().c_str();
         default:
@@ -349,7 +349,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
-                    str = (const GLubyte*)"4.50 MobileGlues with glslang, SPIRV-Cross and shaderc";
+                    str = (const GLubyte*)"4.60 MobileGlues with glslang, SPIRV-Cross and shaderc";
                     break;
                 case GL_EXTENSIONS:
                     str = glGetString(GL_EXTENSIONS);
