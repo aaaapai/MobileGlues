@@ -496,6 +496,98 @@ static size_t find_insertion_point(const std::string& glsl) {
     return insertion_point;
 }
 
+bool process_non_opaque_atomic_to_ssbo(std::string& source) {
+    if (source.find("atomicCounter") == std::string::npos) return false;
+
+    std::set<std::string> atomic_vars;
+    std::map<std::string, std::string> binding_map;
+    std::regex decl_rx(
+        R"(layout\s*\(\s*binding\s*=\s*(\d+)\s*(?:,\s*offset\s*=\s*(\d+)\s*)?\)\s*uniform\s+atomic_uint\s+(\w+)\s*;)",
+        std::regex::icase
+    );
+
+    std::smatch m;
+    auto it = source.cbegin();
+    while (std::regex_search(it, source.cend(), m, decl_rx)) {
+        size_t prefix = std::distance(source.cbegin(), it);
+        size_t match_pos = prefix + m.position(0);
+        size_t match_len = m.length(0);
+
+        std::string binding = m[1].str();
+        std::string var = m[3].str();
+        atomic_vars.insert(var);
+        binding_map[var] = binding;
+
+        std::string repl =
+            "layout(std430, binding=" + binding + ") buffer AtomicCounterSSBO_" + binding + " {\n"
+            "    uint " + var + ";\n"
+            "};\n";
+        source.replace(match_pos, match_len, repl);
+
+        it = source.cbegin() + match_pos + repl.size();
+    }
+
+    if (atomic_vars.empty()) return true;
+
+    for (auto& var : atomic_vars) {
+        source = std::regex_replace(source,
+            std::regex(R"(\batomicCounterIncrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
+            "atomicAdd(" + var + ", 1u)"
+        );
+        source = std::regex_replace(source,
+            std::regex(R"(\batomicCounterDecrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
+            "atomicAdd(" + var + ", uint(-1))"
+        );
+        source = std::regex_replace(source,
+            std::regex(R"(\batomicCounterAdd\s*\(\s*)" + var + R"(\s*,\s*([^)]+)\s*\))", std::regex::icase),
+            "atomicAdd(" + var + ", $1)"
+        );
+        source = std::regex_replace(source,
+            std::regex(R"(\batomicCounter\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
+            var
+        );
+    }
+
+	// insert memoryBarrierBuffer
+    {
+        std::regex rx_barrier(
+            R"(([ \t]*\batomicAdd\b[^;]*;))",
+            std::regex::icase
+        );
+
+        std::set<size_t> processed_positions;
+        std::string result;
+        size_t last_pos = 0;
+
+        for (auto it = std::sregex_iterator(source.begin(), source.end(), rx_barrier);
+            it != std::sregex_iterator(); ++it) {
+
+            size_t start_pos = it->position();
+            size_t end_pos = start_pos + it->length();
+
+            if (processed_positions.find(start_pos) != processed_positions.end()) {
+                continue;
+            }
+
+            result += source.substr(last_pos, start_pos - last_pos);
+
+            std::string matched_stmt = it->str();
+            result += matched_stmt;
+
+            result += "\n    memoryBarrierBuffer();barrier();";
+
+            processed_positions.insert(start_pos);
+            last_pos = end_pos;
+        }
+
+        result += source.substr(last_pos);
+        source = result;
+    }
+
+    source += "\n" + std::string(atomicCounterEmulatedWatermark);
+    return true;
+}
+
 void process_sampler_buffer(std::string& source) { // a simplized version, should be rewritten in the future
     if (source.find("isamplerBuffer") == std::string::npos) {
         return;
@@ -577,32 +669,6 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
 
     size_t insertPos = find_insertion_point(glsl);
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
-}
-
-static void inject_atomicCounterAdd(std::string& glsl) {
-    if (glsl.find("atomicCounterAdd") == std::string::npos) {
-        return;
-    }
-
-    const std::regex defRegex(R"(uint\s+mg_atomicCounterAdd\s*\()", std::regex::ECMAScript);
-    if (std::regex_search(glsl, defRegex)) {
-        return;
-    }
-
-    const std::string atomicCounterAddImpl = R"(
-#define atomicCounterAdd mg_atomicCounterAdd
-
-uint mg_atomicCounterAdd(atomic_uint ac, uint val) {
-    uint old = atomicCounterIncrement(ac) - 1u;
-    for (uint i = 1u; i < val; ++i) {
-        atomicCounterIncrement(ac);
-    }
-    return old;
-}
-)";
-
-    size_t insertPos = find_insertion_point(glsl);
-    glsl.insert(insertPos, "\n" + atomicCounterAddImpl + "\n");
 }
 
 static inline void inject_temporal_filter(std::string& glsl) {
