@@ -1893,3 +1893,38 @@ GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, G
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
 }
+
+
+
+static struct {
+    GLint activeUnit = 0;  // 使用GLint避免类型转换
+    GLuint boundSamplers[GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS] = {0};
+} s_samplerState;
+void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
+
+    LOG()
+    LOG_D("glBindSamplers, first: %u, count: %d, samplers: %p", first, count, samplers)
+
+    // 快速参数检查
+    if (count < 0 || first + count > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+        LOG_E("ERROR: Invalid sampler binding range: first=%u count=%d", first, count)
+        return;
+    }
+
+    // 批量绑定采样器
+    for (GLsizei i = 0; i < count; ++i) {
+        const GLuint unit = first + i;
+        const GLuint sampler = samplers ? samplers[i] : 0;
+        
+        if (s_samplerState.boundSamplers[unit] != sampler) {
+            if (s_samplerState.activeUnit != unit) {
+                GLES.glActiveTexture(GL_TEXTURE0 + unit);
+                s_samplerState.activeUnit = unit;
+            }
+            GLES.glBindSampler(unit, sampler);
+            s_samplerState.boundSamplers[unit] = sampler;
+        }
+    }
+
+    CHECK_GL_ERROR
+} //DeepSeek*2
