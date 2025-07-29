@@ -865,6 +865,11 @@ void glActiveTexture(GLenum texture) {
 }
 
 void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void* pixels) {
+
+    LOG()
+    LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = %p",
+          glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
+
     GLint prevFBO;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFBO);
     GLint prevReadFBO;
@@ -923,10 +928,22 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
         return;
     }
 
+GLint oldViewport[4];
+    glGetIntegerv(GL_VIEWPORT, oldViewport);
+    GLES.glViewport(0, 0, width, height);
+    GLint oldPackAlignment;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &oldPackAlignment);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    glReadPixels(0, 0, width, height, format, type, pixels);
-
+    if (pixels != NULL && format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8 || type == GL_UNSIGNED_INT_8_8_8_8_REV)) {
+        void *read_pixels = malloc(width * height * 4);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, read_pixels);
+        pixel_convert(read_pixels, &pixels, width, height, GL_RGBA, GL_UNSIGNED_BYTE, format, GL_UNSIGNED_BYTE, 0, 1);
+        free(read_pixels);
+    } else {
+        glReadPixels(0, 0, width, height, format, type, pixels);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); 
     glDeleteFramebuffers(1, &tempFBO);
 }
