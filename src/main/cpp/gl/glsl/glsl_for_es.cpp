@@ -813,7 +813,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         process_sampler_buffer(ret);
     }
 
-    if (shaderType == GL_COMPUTE_SHADER) {
+    if (glsl_type == GL_COMPUTE_SHADER) {
         inject_atomicCounterAdd(ret);
     }
 
