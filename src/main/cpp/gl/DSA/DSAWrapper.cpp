@@ -73,6 +73,12 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	case GL_DEBUG_OUTPUT:                  return GL_DEBUG_OUTPUT;
 	case GL_DEBUG_OUTPUT_SYNCHRONOUS:      return GL_DEBUG_OUTPUT_SYNCHRONOUS;
 
+	case GL_PATCH_VERTICES:                return GL_PATCH_VERTICES;
+	case GL_SCISSOR_BOX:                   return GL_SCISSOR_BOX;
+
+	case GL_BLEND:                         return GL_BLEND;
+	case GL_VIEWPORT:                      return GL_VIEWPORT;
+
 	default:
 		LOG_E("[DSA] GetBindingQuery: unknown target %u", target);
 		return 0;
