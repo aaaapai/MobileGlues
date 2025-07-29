@@ -680,6 +680,32 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
+static void inject_atomicCounterAdd(std::string& glsl) {
+    if (glsl.find("atomicCounterAdd") == std::string::npos) {
+        return;
+    }
+
+    const std::regex defRegex(R"(uint\s+mg_atomicCounterAdd\s*\()", std::regex::ECMAScript);
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    const std::string atomicCounterAddImpl = R"(
+#define atomicCounterAdd mg_atomicCounterAdd
+
+uint mg_atomicCounterAdd(atomic_uint ac, uint val) {
+    uint old = atomicCounterIncrement(ac) - 1u;
+    for (uint i = 1u; i < val; ++i) {
+        atomicCounterIncrement(ac);
+    }
+    return old;
+}
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + atomicCounterAddImpl + "\n");
+}
+
 static inline void inject_temporal_filter(std::string& glsl) {
     const std::regex defRegex(R"(vec4\s+GI_TemporalFilter\s*\()", std::regex::ECMAScript);
 
@@ -789,6 +815,10 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         // Sampler buffer processing
         process_sampler_buffer(ret);
     }
+
+    //if (shaderType == GL_COMPUTE_SHADER) {
+        inject_atomicCounterAdd(ret);
+    //}
 
     *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
     return ret;
