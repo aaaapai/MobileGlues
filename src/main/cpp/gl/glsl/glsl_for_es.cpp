@@ -348,6 +348,10 @@ std::string getCachedESSL(const char* glsl_code, uint essl_version) {
     } else return "";
 }
 
+bool checkIfAtomicCounterBufferEmulated(const std::string& glslCode) {
+    return glslCode.find(atomicCounterEmulatedWatermark) != std::string::npos;
+}
+
 std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_version, uint glsl_version, int& return_code) {
     std::string sha256_string(glsl_code);
     sha256_string += "\n//" + std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION) + "|" + std::to_string(essl_version);
