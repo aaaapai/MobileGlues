@@ -690,7 +690,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
                 : bound_framebuffer->read_attachment;
         if (attach) {
             // Record generic texture as 2D for now
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
+            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
         }
@@ -703,9 +703,28 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 	LOG()
 	LOG_D("[DSA] glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level);
-	
+
+	if (framebuffer == 0) {
+           return;
+	}
+
 	temporarilyBindFramebuffer(framebuffer);
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
+
+	if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
+        struct attachment_t* attach =
+            (target == GL_DRAW_FRAMEBUFFER)
+                ? bound_framebuffer->draw_attachment
+                : bound_framebuffer->read_attachment;
+        if (attach) {
+            // Record generic texture as 2D for now
+            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
+            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
+        }
+        bound_framebuffer->current_target = target;
+	}
+
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
 	LOG_D("[DSA] glFramebufferTexture called: attachment=0x%X, texture=%u, level=%d", attachment, texture, level);
 	CHECK_GL_ERROR;
 	restoreTemporaryFramebufferBinding(GL_DRAW_FRAMEBUFFER);
