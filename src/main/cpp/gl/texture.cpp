@@ -865,69 +865,40 @@ void glActiveTexture(GLenum texture) {
 }
 
 void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void* pixels) {
-
     LOG()
-    LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = %p",
+    LOG_D("glGetTexImage, target = %s, level = %d, format = %s, type = %s, pixel = 0x%x",
           glEnumToString(target), level, glEnumToString(format), glEnumToString(type), pixels)
 
     GLint prevFBO;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevFBO);
-    GLint prevReadFBO;
-    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFBO);
-
-    GLuint tempFBO = 0;
-    glGenFramebuffers(1, &tempFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, tempFBO);
-
-    GLint textureId = 0;
-    GLenum textureBindingTarget;
-    if (target >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && target <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
-        textureBindingTarget = GL_TEXTURE_BINDING_CUBE_MAP;
-    }
-    else if (target == GL_TEXTURE_2D) {
-        textureBindingTarget = GL_TEXTURE_BINDING_2D;
-    }
-    else {
-        LOG_E("glGetTexImage: Unsupported or complex target: 0x%x", target)
-        glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
-        glDeleteFramebuffers(1, &tempFBO);
-        return;
-    }
-    glGetIntegerv(textureBindingTarget, &textureId);
-
-    if (textureId == 0) {
-        LOG_E("glGetTexImage: No texture bound to the specified target.")
-        glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
-        glDeleteFramebuffers(1, &tempFBO);
-        return;
-    }
-
-    GLint width = 0, height = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    GLenum bindingTarget = get_binding_for_target(target);
+    if (bindingTarget == 0) return;
+    GLint oldTexBinding;
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(bindingTarget, &oldTexBinding);
+    auto texture = static_cast<GLuint>(oldTexBinding);
+    if (texture == 0) return;
+    GLint width, height;
+    glBindTexture(target, texture);
     glGetTexLevelParameteriv(target, level, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(target, level, GL_TEXTURE_HEIGHT, &height);
-
-    if (width == 0 || height == 0) {
-        LOG_E("glGetTexImage: Texture level %d has zero width or height.", level)
+    glBindTexture(target, oldTexBinding);
+    if (width <= 0 || height <= 0) return;
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    if (target == GL_TEXTURE_2D || (target >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && target <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, texture, level);
+    } else {
+        glDeleteFramebuffers(1, &fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
-        glDeleteFramebuffers(1, &tempFBO);
         return;
     }
-
-    if (target >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && target <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, textureId, level);
-    }
-    else if (target == GL_TEXTURE_2D) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, level);
-    }
-
-    GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (fboStatus != GL_FRAMEBUFFER_COMPLETE) {
-        LOG_E("glGetTexImage: Failed to create complete framebuffer. Status: 0x%x", fboStatus)
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        glDeleteFramebuffers(1, &fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
-        glDeleteFramebuffers(1, &tempFBO);
         return;
     }
-
     GLint oldViewport[4];
     glGetIntegerv(GL_VIEWPORT, oldViewport);
     GLES.glViewport(0, 0, width, height);
@@ -945,10 +916,13 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
         glReadPixels(0, 0, width, height, format, type, pixels);
     }
 
+
+//    glReadPixels(0, 0, width, height, format, type, pixels);
+
     glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
     GLES.glViewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
-    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); 
-    glDeleteFramebuffers(1, &tempFBO);
+    glDeleteFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
 }
 
 #if GLOBAL_DEBUG || DEBUG
