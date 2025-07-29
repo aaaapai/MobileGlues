@@ -813,11 +813,11 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         process_sampler_buffer(ret);
     }
 
-    //if (shaderType == GL_COMPUTE_SHADER) {
+    if (shaderType == GL_COMPUTE_SHADER) {
         inject_atomicCounterAdd(ret);
-    //}
+    }
 
-    *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
+    //*atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
     return ret;
 }
 
