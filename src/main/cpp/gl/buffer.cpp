@@ -262,9 +262,9 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offs
     LOG_D("glBindBufferRange, target = %s, index = %d, buffer = %d, offset = %p, size = %zi", glEnumToString(target), index, buffer, (void*) offset, size)
     g_bound_buffers[target] = buffer;
     // save ibo binding to vao
-    if (target == GL_ELEMENT_ARRAY_BUFFER) {
+    /*if (target == GL_ELEMENT_ARRAY_BUFFER) {
         update_vao_ibo_binding(find_bound_array(), buffer);
-    }
+    }*/
 
     if (!has_buffer(buffer) || buffer == 0) {
         GLES.glBindBufferRange(target, index, buffer, offset, size);
@@ -292,9 +292,9 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
     LOG_D("glBindBufferBase, target = %s, index = %d, buffer = %d", glEnumToString(target), index, buffer)
     g_bound_buffers[target] = buffer;
     // save ibo binding to vao
-    if (target == GL_ELEMENT_ARRAY_BUFFER) {
+    /*if (target == GL_ELEMENT_ARRAY_BUFFER) {
         update_vao_ibo_binding(find_bound_array(), buffer);
-    }
+    }*/
 
     if (!has_buffer(buffer) || buffer == 0) {
         GLES.glBindBufferBase(target, index, buffer);
