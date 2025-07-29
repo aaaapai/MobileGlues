@@ -55,6 +55,14 @@ GLuint find_bound_array();
 
 static GLenum get_binding_query(GLenum target);
 
+void bindAllAtomicCounterAsSSBO();
+
+
+
+
+
+
+
 GLAPI GLAPIENTRY void glGenBuffers(GLsizei n, GLuint *buffers);
 
 GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers); 
