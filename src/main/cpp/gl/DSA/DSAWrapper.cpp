@@ -690,21 +690,11 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
                 : bound_framebuffer->read_attachment;
         if (attach) {
             // Record generic texture as 2D for now
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
+            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
         }
         bound_framebuffer->current_target = target;
-    } else {
-	struct attachment_t* attach = bound_framebuffer->read_attachment;
-        if (attach) {
-            // Record generic texture as 2D for now
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
-            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
-            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-        }
-        bound_framebuffer->current_target = target;
- 
     }
     GLES.glFramebufferTexture(target, attachment, texture, level);
     CHECK_GL_ERROR
@@ -714,9 +704,9 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 	LOG()
 	LOG_D("[DSA] glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level);
 
-	if (framebuffer == 0) {
+	/*if (framebuffer == 0) {
            return;
-	}
+	}*/
 
 	temporarilyBindFramebuffer(framebuffer);
 
