@@ -928,7 +928,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
         return;
     }
 
-GLint oldViewport[4];
+    GLint oldViewport[4];
     glGetIntegerv(GL_VIEWPORT, oldViewport);
     GLES.glViewport(0, 0, width, height);
     GLint oldPackAlignment;
@@ -944,6 +944,9 @@ GLint oldViewport[4];
     } else {
         glReadPixels(0, 0, width, height, format, type, pixels);
     }
+
+    glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
+    GLES.glViewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
     glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); 
     glDeleteFramebuffers(1, &tempFBO);
 }
