@@ -348,23 +348,25 @@ std::string getCachedESSL(const char* glsl_code, uint essl_version) {
     } else return "";
 }
 
-std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_version, uint glsl_version) {
+std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_version, uint glsl_version, int& return_code) {
     std::string sha256_string(glsl_code);
     sha256_string += "\n//" + std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION) + "|" + std::to_string(essl_version);
     const char* cachedESSL = Cache::get_instance().get(sha256_string.c_str());
     if (cachedESSL) {
         LOG_D("GLSL Hit Cache:\n%s\n-->\n%s", glsl_code, cachedESSL)
+        bool atomicCounterEmulated = checkIfAtomicCounterBufferEmulated(std::string(cachedESSL));
+        return_code = atomicCounterEmulated ? 1 : 0;
         return (char*)cachedESSL;
     }
-    
-    int return_code = -1;
+
+    return_code = -1;
     std::string converted = glsl_version<140? GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
-    if (return_code == 0 && !converted.empty()) {
+    if (return_code >= 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
     }
 
-    return (return_code == 0) ? converted : glsl_code;
+    return (return_code >= 0) ? converted : glsl_code;
 }
 
 std::string replace_line_starting_with(const std::string& glslCode, const std::string& starting, const std::string& substitution = "") {
@@ -666,7 +668,7 @@ void inject_mg_macro_definition(std::string& glslCode) {
 }
 
 
-std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
+std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* atomicCounterEmulated) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
     ret = replace_line_starting_with(ret, "#line");
@@ -708,11 +710,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type) {
         // Sampler buffer processing
         process_sampler_buffer(ret);
     }
-    
-    if (glsl_type == GL_COMPUTE_SHADER) {
-        inject_atomicCounterAdd(ret);
-    }
 
+    *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
     return ret;
 }
 
@@ -909,7 +908,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
 
 static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
-    std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type);
+    std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
@@ -944,6 +943,9 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
 
     return_code = errc;
+    if (return_code == 0) {
+       return_code = atomicCounterEmulated ? 1 : 0;
+    }
     return essl;
 }
 
