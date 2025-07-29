@@ -720,27 +720,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 
 	temporarilyBindFramebuffer(framebuffer);
 
-	if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
-          struct attachment_t* attach = bound_framebuffer->draw_attachment;
-          if (attach) {
-            // Record generic texture as 2D for now
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
-            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
-            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-          }
-          bound_framebuffer->current_target = GL_DRAW_FRAMEBUFFER;
-	} else {
-	    struct attachment_t* attach = bound_framebuffer->read_attachment;
-	    if (attach) {
-               // Record generic texture as 2D for now
-               attach[attachment - GL_COLOR_ATTACHMENT0].textarget = texture ? GL_TEXTURE_2D : GL_NONE;
-               attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
-               attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-	    }
-	    bound_framebuffer->current_target = GL_DRAW_FRAMEBUFFER;
-	}
-
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
+	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
 	LOG_D("[DSA] glFramebufferTexture called: attachment=0x%X, texture=%u, level=%d", attachment, texture, level);
 	CHECK_GL_ERROR;
 	restoreTemporaryFramebufferBinding(GL_DRAW_FRAMEBUFFER);
