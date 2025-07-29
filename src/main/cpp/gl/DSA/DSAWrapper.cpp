@@ -728,7 +728,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
           }
-          bound_framebuffer->current_target = target;
+          bound_framebuffer->current_target = GL_DRAW_FRAMEBUFFER;
 	} else {
 	    struct attachment_t* attach = bound_framebuffer->read_attachment;
 	    if (attach) {
@@ -737,7 +737,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
                attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
                attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
 	    }
-	    bound_framebuffer->current_target = target;
+	    bound_framebuffer->current_target = GL_DRAW_FRAMEBUFFER;
 	}
 
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
