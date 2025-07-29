@@ -912,6 +912,8 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
 
 static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
+
+    bool atomicCounterEmulated = false;
     std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
