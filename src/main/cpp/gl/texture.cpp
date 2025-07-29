@@ -184,6 +184,9 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
 				break;
             }
         }
+        *internal_format = GL_R32F;
+        if (format) *format = GL_RED;
+        if (type) *type = GL_FLOAT;
         break;
     case GL_R8UI:
         if (format) *format = GL_RED_INTEGER;
