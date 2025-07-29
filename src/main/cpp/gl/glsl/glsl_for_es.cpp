@@ -532,25 +532,32 @@ bool process_non_opaque_atomic_to_ssbo(std::string& source) {
     if (atomic_vars.empty()) return true;
 
     for (auto& var : atomic_vars) {
+        // 修正 atomicCounterIncrement：返回操作前的值
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounterIncrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
-            "atomicAdd(" + var + ", 1u)"
+            "(atomicAdd(" + var + ", 1u) - 1u)"
         );
+        
+        // 修正 atomicCounterDecrement：使用 ~0u 并返回操作前的值
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounterDecrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
-            "atomicAdd(" + var + ", uint(-1))"
+            "(atomicAdd(" + var + ", ~0u) - ~0u)"
         );
+        
+        // atomicCounterAdd 保持不变
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounterAdd\s*\(\s*)" + var + R"(\s*,\s*([^)]+)\s*\))", std::regex::icase),
             "atomicAdd(" + var + ", $1)"
         );
+        
+        // atomicCounter 读取保持不变
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounter\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
             var
         );
     }
 
-	// insert memoryBarrierBuffer
+    // 插入 memoryBarrierBuffer
     {
         std::regex rx_barrier(
             R"(([ \t]*\batomicAdd\b[^;]*;))",
@@ -783,7 +790,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         process_sampler_buffer(ret);
     }
 
-    //*atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
+    *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
     return ret;
 }
 
