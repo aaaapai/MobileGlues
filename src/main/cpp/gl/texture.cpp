@@ -1108,8 +1108,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
     }
     else if (target == GL_TEXTURE_2D) {
         textureBindingTarget = GL_TEXTURE_BINDING_2D;
-    }
-    else {
+    } else {
         LOG_E("glGetTexImage: Unsupported or complex target: 0x%x", target)
         glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
         glDeleteFramebuffers(1, &tempFBO);
@@ -1152,7 +1151,14 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    glReadPixels(0, 0, width, height, format, type, pixels);
+    if (pixels != NULL && format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8 || type == GL_UNSIGNED_INT_8_8_8_8_REV)) {
+        void *read_pixels = malloc(width * height * 4);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, read_pixels);
+        pixel_convert(read_pixels, &pixels, width, height, GL_RGBA, GL_UNSIGNED_BYTE, format, GL_UNSIGNED_BYTE, 0, 1);
+        free(read_pixels);
+    } else {
+        glReadPixels(0, 0, width, height, format, type, pixels);
+    }
 
     GLES.glViewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
     glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); 
