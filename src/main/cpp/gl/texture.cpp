@@ -419,6 +419,8 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
                 *type = GL_SHORT;
         }
         break;
+    }
+}
 
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
     LOG()
