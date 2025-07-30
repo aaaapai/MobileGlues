@@ -65,15 +65,9 @@ void init_settings() {
     if (static_cast<int>(angleDepthClearFixMode) < 0 || static_cast<int>(angleDepthClearFixMode) >= static_cast<int>(AngleDepthClearFixMode::MaxValue)) {
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
-    if (customGLVersionInt > 46) {
-        customGLVersionInt = 46;
-    } else if (customGLVersionInt < 32 && customGLVersionInt != 0) {
-        customGLVersionInt = 32;
-    } else if (customGLVersionInt > 33 && customGLVersionInt < 40) {
-        customGLVersionInt = 33;
-    } else if (customGLVersionInt == 0) {
+    if (customGLVersionInt == 0) {
         customGLVersionInt = DEFAULT_GL_VERSION; 
-	}
+    }
 
     Version customGLVersion(customGLVersionInt);
 
