@@ -535,12 +535,12 @@ bool process_non_opaque_atomic_to_ssbo(std::string& source) {
 
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounterIncrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
-            "atomicAdd(" + var + ", 1u)"
+            "(atomicAdd(" + var + ", 1u) - 1u)"
         );
         
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounterDecrement\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
-            "atomicAdd(" + var + ", uint(-1))"
+            "(atomicAdd(" + var + ", ~0u) - ~0u)"
         );
         
         source = std::regex_replace(source,
@@ -817,7 +817,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         inject_atomicCounterAdd(ret);
     }
 
-    //*atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
+    *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
     return ret;
 }
 
