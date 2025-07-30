@@ -172,7 +172,6 @@ void glUniform1i(GLint location, GLint v0) {
     CHECK_GL_ERROR
 }
 
-void bindAllAtomicCounterAsSSBO();
 void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) {
     LOG()
     LOG_D("glDispatchCompute, num_groups_x: %d, num_groups_y: %d, num_groups_z: %d",
