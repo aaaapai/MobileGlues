@@ -14,6 +14,19 @@
 #include "../drawing.h"
 
 extern "C" {
+
+  struct attachment_t {
+              GLenum textarget;
+              GLuint texture;
+              GLint level;
+  };
+  struct framebuffer_t {
+              GLenum current_target;
+              struct attachment_t* draw_attachment;
+              struct attachment_t* read_attachment;
+  };
+  extern struct framebuffer_t* bound_framebuffer;
+
 	/* Transform Feedback object functions */
 	GLAPI void glCreateTransformFeedbacks(GLsizei n, GLuint* ids);
 	GLAPI void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
@@ -28,6 +41,8 @@ extern "C" {
 	GLAPI void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
 	GLAPI void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 	GLAPI void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+  GLAPI GLAPIENTRY void glClearBufferData (GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
+  GLAPI GLAPIENTRY void glClearBufferSubData (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
 	GLAPI void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data);
 	GLAPI void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data);
 	GLAPI void* glMapNamedBuffer(GLuint buffer, GLenum access);
@@ -43,6 +58,7 @@ extern "C" {
 	GLAPI void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
 	GLAPI void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 	GLAPI void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param);
+  GLAPI GLAPIENTRY void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level);
 	GLAPI void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
 	GLAPI void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
 	GLAPI void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum mode);

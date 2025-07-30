@@ -5,9 +5,13 @@
 #include "drawing.h"
 #include "buffer.h"
 #include "framebuffer.h"
+#include "fpe/fpe.hpp"
+#include "fpe/list.h"
+
 #include "mg.h"
 #include "texture.h"
 #include <ankerl/unordered_dense.h>
+
 
 #define DEBUG 0
 
@@ -18,8 +22,8 @@ GLuint bufSampelerProg;
 GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
-extern std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
-extern std::unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
+extern unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
+extern unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 unordered_map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
@@ -100,6 +104,41 @@ void prepareForDraw() {
     }
 }
 
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    LOG()
+    LOG_D("glDrawArrays(), mode = %s, first = %d, count = %u", glEnumToString(mode), first, count)
+
+    LIST_RECORD(glDrawArrays, {}, mode, first, count)
+
+    // TODO: deal with draw in list later
+    if (DisplayListManager::isCalling()) {
+        return;
+    }
+
+    INIT_CHECK_GL_ERROR
+
+    CHECK_GL_ERROR_NO_INIT
+    GET_PREV_PROGRAM
+    int do_draw_element = commit_fpe_state_on_draw(&mode, &first, &count);
+    if (do_draw_element) {
+        LOG_D("Switch to glDrawElements(), mode = %s, count = %u", glEnumToString(mode), count)
+
+        GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, (void *) 0);
+    } else
+        GLES.glDrawArrays(mode, first, count);
+
+    SET_PREV_PROGRAM
+    GLES.glBindVertexArray(0);
+    CHECK_GL_ERROR_NO_INIT
+}
+
+///*_Thread_local*/ static bool unexpected_error = false; // solve the crash error for ANGLE
+// Why thread local here? We've never PRETEND we are thread safe.
+
+// solve the crash error for ANGLE, but it will make Derivative Main with Optifine not work!
+
+//_Thread_local static bool unexpected_error = false;
+
 void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount) {
     LOG()
     LOG_D("glDrawElementsInstanced, mode: %d, count: %d, type: %d, indices: %p, primcount: %d",
@@ -112,6 +151,7 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
     LOG()
     LOG_D("glDrawElements, mode: %d, count: %d, type: %d, indices: %p", mode, count, type, indices)
+
     prepareForDraw();
     GLES.glDrawElements(mode, count, type, indices);
     CHECK_GL_ERROR
@@ -137,12 +177,12 @@ void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_grou
     LOG()
     LOG_D("glDispatchCompute, num_groups_x: %d, num_groups_y: %d, num_groups_z: %d",
           num_groups_x, num_groups_y, num_groups_z)
+
     if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
-		bindAllAtomicCounterAsSSBO();
+	bindAllAtomicCounterAsSSBO();
         LOG_D("Atomic counters bound as SSBOs for program %d", gl_state->current_program);
-    }
-    else {
-		LOG_D("No atomic counters bound as SSBOs for program %d", gl_state->current_program);
+    } else {
+	LOG_D("No atomic counters bound as SSBOs for program %d", gl_state->current_program);
     }
     GLES.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
     CHECK_GL_ERROR

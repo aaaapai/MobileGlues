@@ -8,7 +8,7 @@
 #include "../includes.h"
 #include "loader.h"
 #include <GL/gl.h>
-#include "../gl/glext.h"
+#include <GL/glext.h>
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -161,6 +161,8 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_disjoint_timer_query = 1;
             } else if (strcmp(extension, "GL_QCOM_texture_lod_bias") == 0) {
                 g_gles_caps.GL_QCOM_texture_lod_bias = 1;
+            } else if (strcmp(extension, "GL_EXT_texture_lod_bias") == 0) {
+                g_gles_caps.GL_EXT_texture_lod_bias = 1;
             } else if (strcmp(extension, "GL_EXT_blend_func_extended") == 0) {
                 g_gles_caps.GL_EXT_blend_func_extended = 1;
             } else if (strcmp(extension, "GL_EXT_texture_format_BGRA8888") == 0) {
@@ -203,7 +205,18 @@ void InitGLESCapabilities() {
     }
 
     if (global_settings.ext_gl43) {
+	AppendExtension("OpenGL41");
+        AppendExtension("OpenGL42");
         AppendExtension("OpenGL43");
+
+    }
+
+    if (global_settings.ext_dsa) {
+	AppendExtension("OpenGL44");
+        AppendExtension("OpenGL45");
+        AppendExtension("OpenGL46");
+        AppendExtension("GL_EXT_direct_state_access");
+        AppendExtension("GL_ARB_direct_state_access");
     }
 
     if (global_settings.ext_compute_shader) {
@@ -234,6 +247,9 @@ void init_target_gles() {
     init_gl_state();
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
+    INIT_GLES_FUNC(glMultiDrawElementsEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexOES)
+    INIT_GLES_FUNC(glQueryCounterEXT)
     INIT_GLES_FUNC(glActiveTexture)
     INIT_GLES_FUNC(glAttachShader)
     INIT_GLES_FUNC(glBindAttribLocation)
@@ -257,7 +273,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glCompileShader)
     INIT_GLES_FUNC(glCompressedTexImage2D)
     INIT_GLES_FUNC(glCompressedTexSubImage2D)
-//    INIT_GLES_FUNC(glCopyTexImage1D)
+    INIT_GLES_FUNC(glCopyTexImage1D)
     INIT_GLES_FUNC(glCopyTexImage2D)
     INIT_GLES_FUNC(glCopyTexSubImage2D)
     INIT_GLES_FUNC(glCreateProgram)
@@ -341,9 +357,9 @@ void init_target_gles() {
     INIT_GLES_FUNC(glStencilMaskSeparate)
     INIT_GLES_FUNC(glStencilOp)
     INIT_GLES_FUNC(glStencilOpSeparate)
-//    INIT_GLES_FUNC(glTexImage1D)
+    INIT_GLES_FUNC(glTexImage1D)
     INIT_GLES_FUNC(glTexImage2D)
-//    INIT_GLES_FUNC(glTexStorage1D)
+    INIT_GLES_FUNC(glTexStorage1D)
     INIT_GLES_FUNC(glTexParameterf)
     INIT_GLES_FUNC(glTexParameterfv)
     INIT_GLES_FUNC(glTexParameteri)
@@ -394,6 +410,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glEndQuery)
     INIT_GLES_FUNC(glGetQueryiv)
     INIT_GLES_FUNC(glGetQueryObjectuiv)
+    INIT_GLES_FUNC(glGetQueryObjectuivEXT)
     INIT_GLES_FUNC(glUnmapBuffer)
     INIT_GLES_FUNC(glGetBufferPointerv)
     INIT_GLES_FUNC(glDrawBuffers)
@@ -501,6 +518,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGenProgramPipelines)
     INIT_GLES_FUNC(glIsProgramPipeline)
     INIT_GLES_FUNC(glGetProgramPipelineiv)
+    INIT_GLES_FUNC(glPolygonModeNV)
     INIT_GLES_FUNC(glProgramUniform1i)
     INIT_GLES_FUNC(glProgramUniform2i)
     INIT_GLES_FUNC(glProgramUniform3i)
@@ -600,11 +618,12 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjecti64vEXT)
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
+    INIT_GLES_FUNC(glFramebufferTexture3DOES)
 
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
-//    INIT_GLES_FUNC(glBruh)
+    //INIT_GLES_FUNC(glBruh)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)

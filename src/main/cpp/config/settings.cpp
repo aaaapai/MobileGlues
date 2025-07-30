@@ -185,6 +185,9 @@ void init_settings() {
     case multidraw_mode_t::PreferMultidrawIndirect: draw_mode_str = "Multidraw indirect"; break;
     case multidraw_mode_t::DrawElements: draw_mode_str = "DrawElements"; break;
     case multidraw_mode_t::Compute: draw_mode_str = "Compute"; break;
+    case multidraw_mode_t::DeepSeekOne: draw_mode_str = "DeepSeek的方案1"; break;
+    case multidraw_mode_t::DeepSeekTwo: draw_mode_str = "DeepSeek的方案2"; break;
+    case multidraw_mode_t::Native: draw_mode_str = "懒得模拟"; break;
     case multidraw_mode_t::Auto: draw_mode_str = "Auto"; break;
     default:
         draw_mode_str = "(Unknown)";
@@ -221,11 +224,14 @@ void init_settings() {
 
 void init_settings_post() {
     bool multidraw = g_gles_caps.GL_EXT_multi_draw_indirect;
-    bool basevertex = g_gles_caps.GL_OES_draw_elements_base_vertex ||
-                     (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || 
-                     (g_gles_caps.major > 3);
-    bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || 
-                    (g_gles_caps.major > 3);
+    bool basevertex =
+            g_gles_caps.GL_OES_draw_elements_base_vertex ||
+            (g_gles_caps.major == 3 && g_gles_caps.minor >= 2) || (g_gles_caps.major > 3);
+    bool indirect = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool drawelements = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool deepseek_one = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool deepseek_two = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
+    bool native = (g_gles_caps.major == 3 && g_gles_caps.minor >= 1) || (g_gles_caps.major > 3);
 
     switch (global_settings.multidraw_mode) {
         case multidraw_mode_t::PreferIndirect:
@@ -236,10 +242,19 @@ void init_settings_post() {
             } else if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
                 LOG_V("    -> BaseVertex (Preferred not supported, falling back)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
+	    } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Preferred not supported, falling back)")
+	    } else if (native) {
+                global_settings.multidraw_mode = multidraw_mode_t::Native;
+                LOG_V("    -> 不模拟 (Preferred not supported, falling back)")
+	    }
             break;
         case multidraw_mode_t::PreferBaseVertex:
             LOG_V("multidrawMode = PreferBaseVertex")
@@ -252,10 +267,19 @@ void init_settings_post() {
             } else if (indirect) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
                 LOG_V("    -> Indirect (Preferred not supported, falling back)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Preferred not supported, falling back)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Preferred not supported, falling back)")
+            } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Preferred not supported, falling back)")
+	    } else if (native) {
+                global_settings.multidraw_mode = multidraw_mode_t::Native;
+                LOG_V("    -> Lazy (Preferred not supported, falling back)")
+	    }
             break;
         case multidraw_mode_t::DrawElements:
             LOG_V("multidrawMode = DrawElements")
@@ -266,6 +290,21 @@ void init_settings_post() {
             LOG_V("multidrawMode = Compute")
             global_settings.multidraw_mode = multidraw_mode_t::Compute;
             LOG_V("    -> Compute (OK)")
+            break;
+	case multidraw_mode_t::DeepSeekOne:
+            LOG_V("multidrawMode = DeepSeek的方案1")
+            global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+            LOG_V("    -> DeepSeek的方案1 (OK)")
+            break;
+	case multidraw_mode_t::DeepSeekTwo:
+            LOG_V("multidrawMode = DeepSeek的方案2")
+            global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+            LOG_V("    -> DeepSeek的方案2 (OK)")
+            break;
+	case multidraw_mode_t::Native:
+            LOG_V("multidrawMode = 摆烂")
+            global_settings.multidraw_mode = multidraw_mode_t::Native;
+            LOG_V("    -> 懒得模拟 (OK)")
             break;
         case multidraw_mode_t::Auto:
         default:
@@ -279,10 +318,19 @@ void init_settings_post() {
             } else if (basevertex) {
                 global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
                 LOG_V("    -> BaseVertex (Auto detected)")
-            } else {
+            } else if (drawelements) {
                 global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
                 LOG_V("    -> DrawElements (Auto detected)")
-            }
+            } else if (deepseek_one) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekOne;
+                LOG_V("    -> DeepSeek的方案1 (Auto detected)")
+	    } else if (deepseek_two) {
+                global_settings.multidraw_mode = multidraw_mode_t::DeepSeekTwo;
+                LOG_V("    -> DeepSeek的方案2 (Auto detected)")
+	    } else if (native) {
+                global_settings.multidraw_mode = multidraw_mode_t::Native;
+                LOG_V("    -> 摆烂 (Auto detected)")
+	    }
             break;
     }
 }
