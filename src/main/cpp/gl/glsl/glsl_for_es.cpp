@@ -340,6 +340,16 @@ std::string processOutColorLocations(const std::string& glslCode) {
     return std::regex_replace(glslCode, pattern, replacement);
 }
 
+std::string getCachedESSL(const char* glsl_code, uint essl_version) {
+    std::string sha256_string(glsl_code);
+    sha256_string += "\n//" + std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION) + "|" + std::to_string(essl_version);
+    const char* cachedESSL = Cache::get_instance().get(sha256_string.c_str());
+    if (cachedESSL) {
+        LOG_D("GLSL Hit Cache:\n%s\n-->\n%s", glsl_code, cachedESSL)
+        return cachedESSL;
+    } else return "";
+}
+
 bool checkIfAtomicCounterBufferEmulated(const std::string& glslCode) {
     return glslCode.find(atomicCounterEmulatedWatermark) != std::string::npos;
 }
@@ -774,10 +784,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
     if (hardware->emulate_texture_buffer) {
         // Sampler buffer processing
         process_sampler_buffer(ret);
-    }
-
-    if (glsl_type == GL_COMPUTE_SHADER) {
-        inject_atomicCounterAdd(ret);
     }
 
     *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
