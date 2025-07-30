@@ -3,6 +3,7 @@
 //
 
 #include "getter.h"
+#include "../config/settings.h"
 #include "buffer.h"
 #include "fpe/fpe.hpp"
 #include <glm/glm/gtc/type_ptr.hpp>
