@@ -14,8 +14,8 @@
 #include "../drawing.h"
 
 extern "C" {
-    GLAPI void glBindTextures(GLuint first, GLsizei count, const GLuint* textures);
-    GLAPI void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers);
-    GLAPI void glBindImageTextures(GLuint first, GLsizei count, const GLuint* textures);
-    GLAPI void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides);
+    GLAPI GLAPIENTRY void glBindTextures(GLuint first, GLsizei count, const GLuint* textures);
+    GLAPI GLAPIENTRY void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers);
+    GLAPI GLAPIENTRY void glBindImageTextures(GLuint first, GLsizei count, const GLuint* textures);
+    GLAPI GLAPIENTRY void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides);
 }
