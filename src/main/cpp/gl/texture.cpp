@@ -533,6 +533,7 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width, GLsizei height,GLint border, GLenum format, GLenum type,const GLvoid* pixels) {
     LOG()
     GLenum transfer_format = format;
+    GLenum transfer_type = type;
 
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
@@ -593,10 +594,9 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
     tex->format = format;
  
     // Fix for 1.12
-    if (transfer_format == GL_BGRA && tex.format != transfer_format
+    if (transfer_format == GL_BGRA && tex->format != transfer_format
         && transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV)
     {
-        LOG_D("Detected GL_BGRA/GL_UNSIGNED_INT_8_8_8_8_REV format @ tex = %d, do swizzle", bound_texture)
         internalFormat = GL_BGRA;
         format = GL_BGRA;
         type = GL_UNSIGNED_BYTE;
@@ -1162,7 +1162,6 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
         glReadPixels(0, 0, width, height, format, type, pixels);
     }
 
-    GLES.glViewport(oldViewport[0], oldViewport[1], oldViewport[2], oldViewport[3]);
     glBindFramebuffer(GL_FRAMEBUFFER, prevFBO); 
     glDeleteFramebuffers(1, &tempFBO);
 }
