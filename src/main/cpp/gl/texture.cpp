@@ -37,40 +37,68 @@ int nlevel(int size, int level) {
 
 GLenum ConvertTextureTargetToGLEnum(TextureTarget target) {
     switch (target) {
-        case TextureTarget::TEXTURE_2D: return GL_TEXTURE_2D;
-        case TextureTarget::PROXY_TEXTURE_2D: return GL_PROXY_TEXTURE_2D;
-        case TextureTarget::TEXTURE_1D_ARRAY: return GL_TEXTURE_1D_ARRAY;
-        case TextureTarget::PROXY_TEXTURE_1D_ARRAY: return GL_PROXY_TEXTURE_1D_ARRAY;
-        case TextureTarget::TEXTURE_RECTANGLE: return GL_TEXTURE_RECTANGLE;
-        case TextureTarget::PROXY_TEXTURE_RECTANGLE: return GL_PROXY_TEXTURE_RECTANGLE;
-        case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X: return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-        case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X: return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-        case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y: return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-        case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-        case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z: return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-        case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
-        case TextureTarget::PROXY_TEXTURE_CUBE_MAP: return GL_PROXY_TEXTURE_CUBE_MAP;
+    case TextureTarget::TEXTURE_1D: return GL_TEXTURE_1D;
+    case TextureTarget::PROXY_TEXTURE_1D: return GL_PROXY_TEXTURE_1D;
+    case TextureTarget::TEXTURE_1D_ARRAY: return GL_TEXTURE_1D_ARRAY;
+    case TextureTarget::PROXY_TEXTURE_1D_ARRAY: return GL_PROXY_TEXTURE_1D_ARRAY;
+    case TextureTarget::TEXTURE_2D: return GL_TEXTURE_2D;
+    case TextureTarget::PROXY_TEXTURE_2D: return GL_PROXY_TEXTURE_2D;
+    case TextureTarget::TEXTURE_2D_ARRAY: return GL_TEXTURE_2D_ARRAY;
+    case TextureTarget::PROXY_TEXTURE_2D_ARRAY: return GL_PROXY_TEXTURE_2D_ARRAY;
+    case TextureTarget::TEXTURE_2D_MULTISAMPLE: return GL_TEXTURE_2D_MULTISAMPLE;
+    case TextureTarget::PROXY_TEXTURE_2D_MULTISAMPLE: return GL_PROXY_TEXTURE_2D_MULTISAMPLE;
+    case TextureTarget::TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+    case TextureTarget::PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY;
+    case TextureTarget::TEXTURE_3D: return GL_TEXTURE_3D;
+    case TextureTarget::PROXY_TEXTURE_3D: return GL_PROXY_TEXTURE_3D;
+    case TextureTarget::TEXTURE_RECTANGLE: return GL_TEXTURE_RECTANGLE;
+    case TextureTarget::PROXY_TEXTURE_RECTANGLE: return GL_PROXY_TEXTURE_RECTANGLE;
+    case TextureTarget::TEXTURE_CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
+    case TextureTarget::PROXY_TEXTURE_CUBE_MAP: return GL_PROXY_TEXTURE_CUBE_MAP;
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X: return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X: return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y: return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z: return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    case TextureTarget::TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_CUBE_MAP_ARRAY;
+    case TextureTarget::PROXY_TEXTURE_CUBE_MAP_ARRAY: return GL_PROXY_TEXTURE_CUBE_MAP_ARRAY;
+    case TextureTarget::TEXTURE_BUFFER: return GL_TEXTURE_BUFFER;
+    default: return GL_TEXTURE_2D;
     }
-    return GL_TEXTURE_2D;
 }
 
 TextureTarget ConvertGLEnumToTextureTarget(GLenum target) {
     switch (target) {
-        case GL_TEXTURE_2D: return TextureTarget::TEXTURE_2D;
-        case GL_PROXY_TEXTURE_2D: return TextureTarget::PROXY_TEXTURE_2D;
-        case GL_TEXTURE_1D_ARRAY: return TextureTarget::TEXTURE_1D_ARRAY;
-        case GL_PROXY_TEXTURE_1D_ARRAY: return TextureTarget::PROXY_TEXTURE_1D_ARRAY;
-        case GL_TEXTURE_RECTANGLE: return TextureTarget::TEXTURE_RECTANGLE;
-        case GL_PROXY_TEXTURE_RECTANGLE: return TextureTarget::PROXY_TEXTURE_RECTANGLE;
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_X: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X;
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X;
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y;
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y;
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z;
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z;
-        case GL_PROXY_TEXTURE_CUBE_MAP: return TextureTarget::PROXY_TEXTURE_CUBE_MAP;
+    case GL_TEXTURE_1D: return TextureTarget::TEXTURE_1D;
+    case GL_PROXY_TEXTURE_1D: return TextureTarget::PROXY_TEXTURE_1D;
+    case GL_TEXTURE_1D_ARRAY: return TextureTarget::TEXTURE_1D_ARRAY;
+    case GL_PROXY_TEXTURE_1D_ARRAY: return TextureTarget::PROXY_TEXTURE_1D_ARRAY;
+    case GL_TEXTURE_2D: return TextureTarget::TEXTURE_2D;
+    case GL_PROXY_TEXTURE_2D: return TextureTarget::PROXY_TEXTURE_2D;
+    case GL_TEXTURE_2D_ARRAY: return TextureTarget::TEXTURE_2D_ARRAY;
+    case GL_PROXY_TEXTURE_2D_ARRAY: return TextureTarget::PROXY_TEXTURE_2D_ARRAY;
+    case GL_TEXTURE_2D_MULTISAMPLE: return TextureTarget::TEXTURE_2D_MULTISAMPLE;
+    case GL_PROXY_TEXTURE_2D_MULTISAMPLE: return TextureTarget::PROXY_TEXTURE_2D_MULTISAMPLE;
+    case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: return TextureTarget::TEXTURE_2D_MULTISAMPLE_ARRAY;
+    case GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY: return TextureTarget::PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY;
+    case GL_TEXTURE_3D: return TextureTarget::TEXTURE_3D;
+    case GL_PROXY_TEXTURE_3D: return TextureTarget::PROXY_TEXTURE_3D;
+    case GL_TEXTURE_RECTANGLE: return TextureTarget::TEXTURE_RECTANGLE;
+    case GL_PROXY_TEXTURE_RECTANGLE: return TextureTarget::PROXY_TEXTURE_RECTANGLE;
+    case GL_TEXTURE_CUBE_MAP: return TextureTarget::TEXTURE_CUBE_MAP;
+    case GL_PROXY_TEXTURE_CUBE_MAP: return TextureTarget::PROXY_TEXTURE_CUBE_MAP;
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_X: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X;
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_X: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X;
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_Y: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y;
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y;
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: return TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z;
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: return TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    case GL_TEXTURE_CUBE_MAP_ARRAY: return TextureTarget::TEXTURE_CUBE_MAP_ARRAY;
+    case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY: return TextureTarget::PROXY_TEXTURE_CUBE_MAP_ARRAY;
+    case GL_TEXTURE_BUFFER: return TextureTarget::TEXTURE_BUFFER;
+    default: return TextureTarget::TEXTURE_2D;
     }
-    return TextureTarget::TEXTURE_2D;
 }
 
 const int MAX_TEXTURE_IMAGE_UNITS = 32;

@@ -284,6 +284,8 @@ const GLubyte * glGetString( GLenum name ) {
 #if defined(VERSION_TYPE)
 #if VERSION_TYPE == VERSION_ALPHA
                 versionString += "·Alpha";
+#elif VERSION_TYPE == VERSION_BETA
+                versionString += "·Beta";
 #elif VERSION_TYPE == VERSION_DEVELOPMENT
                 versionString += "·Dev";
 #endif
