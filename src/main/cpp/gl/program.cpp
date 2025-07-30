@@ -147,11 +147,8 @@ void glUseProgram(GLuint program) {
 void glAttachShader(GLuint program, GLuint shader) {
     LOG()
     LOG_D("glAttachShader(%u, %u)", program, shader)
-    if (hardware->emulate_texture_buffer && shader_map_is_sampler_buffer_emulated[shader])
+    if (hardware->emulate_texture_buffer && shader_map_is_sampler_buffer_emulated[shader]) {
         program_map_is_sampler_buffer_emulated[program] = true;
-    if (shader_map_is_atomic_counter_emulated[shader]) {
-        program_map_is_atomic_counter_emulated[program] = true;
-		LOG_D("Shader %d is atomic counter emulated, setting program %d to atomic counter emulated", shader, program)
     }
 
     if (shader_map_is_atomic_counter_emulated[shader]) {
