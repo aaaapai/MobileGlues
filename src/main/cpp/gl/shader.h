@@ -22,8 +22,7 @@ extern struct shader_t shaderInfo;
 extern "C" {
 #endif
 
-GLAPI GLAPIENTRY void
-glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
+GLAPI GLAPIENTRY void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
 
 GLAPI GLAPIENTRY void glGetShaderiv(GLuint shader, GLenum pname, GLint *params);
 
