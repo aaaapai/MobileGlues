@@ -211,14 +211,6 @@ void InitGLESCapabilities() {
 
     }
 
-    if (global_settings.ext_dsa) {
-	AppendExtension("OpenGL44");
-        AppendExtension("OpenGL45");
-        AppendExtension("OpenGL46");
-        AppendExtension("GL_EXT_direct_state_access");
-        AppendExtension("GL_ARB_direct_state_access");
-    }
-
     if (global_settings.ext_compute_shader) {
         AppendExtension("GL_ARB_compute_shader");
     }
