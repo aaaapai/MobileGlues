@@ -6,7 +6,7 @@
 #include <format>
 #include <string_view>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if GLOBAL_DEBUG || DEBUG
 #pragma clang optimize off
