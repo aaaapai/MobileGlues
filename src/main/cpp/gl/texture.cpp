@@ -435,7 +435,7 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
                 // 唯一可行的GLES3.0标准模拟方案
                 LOG_D("Simulating GL_TEXTURE_LOD_BIAS_QCOM via textureGrad");
 
-/*
+
                 // 步骤1：创建/获取已关联的shader程序
                 GLuint current_program;
                 GLES.glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&current_program);
@@ -450,7 +450,7 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
                    }
                 }
 	        CHECK_GL_ERROR
-*/
+
                 return;
             }
         case GL_TEXTURE_MIN_FILTER:
@@ -480,8 +480,8 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
 
     if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
                 // 核心模拟实现
-                LOG_W("Don't support GL_TEXTURE_LOD_BIAS_QCOM!");
-/*
+                LOG_W("Doesn't support GL_TEXTURE_LOD_BIAS_QCOM!");
+
                 // 方法2：通过 Mipmap 级别近似模拟
                 GLint level = (param < 0) ? 0 : param;
                 GLES.glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, level);
@@ -490,7 +490,7 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
                 if (param < 0) {
                     GLES.glTexParameterf(target, GL_TEXTURE_MIN_LOD, (GLfloat)(-param));
                 }
-*/
+
                 return;
     }
 
