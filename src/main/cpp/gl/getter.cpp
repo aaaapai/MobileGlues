@@ -345,7 +345,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
                     break;
                 case GL_VERSION:
                     str = (const GLubyte*)
-                        (GLVersion.toString() + " MobileG鹿es").c_str();
+                        (GLVersion.toString() + " MobileGlues").c_str();
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
