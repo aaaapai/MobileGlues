@@ -565,9 +565,12 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
 	printf("12\n");
         return;
     }
-
         printf("13\n");
 	auto tex = GetTextureUnit(GetCurrentTextureUnitIndex()).GetBindingSlot(ConvertGLEnumToTextureTarget(target)).GetBoundObject();
+	if (tex == nullptr) {
+          LOG_E("Failed to get texture object for target: %s", glEnumToString(target));
+          return; // 提前退出，避免崩溃
+	}
         printf("14\n");
 	tex->target = ConvertGLEnumToTextureTarget(target);
         printf("15\n");
