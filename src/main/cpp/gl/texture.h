@@ -6,6 +6,7 @@
 #define MOBILEGLUES_TEXTURE_H
 
 #include <GL/gl.h>
+#include "texture.hpp"
 #include "ankerl/unordered_dense.h"
 
 #ifdef __cplusplus
