@@ -353,4 +353,17 @@ void glGetAttachedObjectsARB(GLhandleARB program, GLsizei maxCount, GLsizei* cou
     GLES.glGetAttachedShaders(program, maxCount, count, (GLuint*)objects);
 }
 
+
+void glActiveTextureARB(GLenum texture) {
+     glActiveTexture(texture);
+}
+
+void *glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+     glMapNamedBufferRange(buffer, offset, length, access);
+}
+
+void glGetFramebufferParameterivEXT(GLenum target, GLenum pname, GLint *params) {
+     glGetFramebufferParameteriv(target, pname, params);
+}
+
 //GLhandleARB glCreateProgramARB() { return glCreateProgram(); }
