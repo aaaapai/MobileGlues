@@ -7,7 +7,7 @@
 #include "../log.h"
 #include "fpe.hpp"
 
-#define DEBUG 1
+#define DEBUG 0
 
 GLuint currentListBase = 0;
 
