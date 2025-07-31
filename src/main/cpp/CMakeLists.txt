@@ -125,7 +125,7 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
                 android
                 log
-                egl
+                EGL
         )
 endif()
 
