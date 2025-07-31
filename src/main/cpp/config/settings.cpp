@@ -85,9 +85,9 @@ void init_settings() {
             angleConfig = AngleConfig::DisableIfPossible;
         noErrorConfig = NoErrorConfig::Auto;
         enableExtGL43 = false;
-        enableExtComputeShader = false;
+        enableExtComputeShader = true;
         enableExtTimerQuery = true;
-        enableExtDirectStateAccess = true;
+        enableExtDirectStateAccess = false;
         maxGlslCacheSize = 0;
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
