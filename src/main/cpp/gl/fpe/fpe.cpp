@@ -5,7 +5,7 @@
 #include "fpe.hpp"
 #include <glm/glm/gtc/type_ptr.hpp>
 
-#define DEBUG 0
+#define DEBUG 1
 
 glstate_t& glstate_t::get_instance() {
     static glstate_t s_glstate;
