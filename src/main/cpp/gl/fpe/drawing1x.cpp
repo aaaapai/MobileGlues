@@ -7,7 +7,7 @@
 #include "list.h"
 #include <bit>
 
-#define DEBUG 1
+#define DEBUG 0
 
 void glBegin( GLenum mode ) {
     LOG()
