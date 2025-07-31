@@ -1016,7 +1016,8 @@ static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
 
     bool atomicCounterEmulated = false;
-    std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
+    std::string mesaconv_glsl_str = GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code); //有病但我喜欢
+    std::string correct_glsl_str = preprocess_glsl(mesaconv_glsl_str, glsl_type, &atomicCounterEmulated);
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
