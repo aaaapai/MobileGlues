@@ -3,6 +3,7 @@
 //
 
 #include "texture.h"
+#include "texture.hpp"
 #include "framebuffer.h"
 #include "log.h"
 #include "../config/settings.h"
