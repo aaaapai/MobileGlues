@@ -19,6 +19,8 @@ struct framebuffer_t {
     struct attachment_t* read_attachment;
 };
 
+extern struct framebuffer_t* bound_framebuffer;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
