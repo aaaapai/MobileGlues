@@ -4,7 +4,7 @@
 #include "types.h"
 #include "transformation.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 void glstate_t::send_uniforms(int program) {
     LOG()
