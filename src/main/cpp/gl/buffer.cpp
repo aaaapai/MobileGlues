@@ -5,6 +5,7 @@
 #include "buffer.h"
 #include "ankerl/unordered_dense.h"
 #include "texture.h"
+#include "texture.hpp"
 
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
