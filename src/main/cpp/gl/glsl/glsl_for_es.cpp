@@ -24,7 +24,7 @@
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
 #if !defined(__APPLE__)
-extern char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
+char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
 
 static TBuiltInResource InitResources()
