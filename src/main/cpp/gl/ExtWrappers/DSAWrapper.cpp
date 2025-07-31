@@ -3,7 +3,7 @@
 //
 
 #include "DSAWrapper.h"
-#include "framebuffer.h"
+#include "../framebuffer.h"
 #include <cassert>
 #include "../texture.h"
 
