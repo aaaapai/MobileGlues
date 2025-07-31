@@ -532,41 +532,65 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 }
 
 void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width, GLsizei height,GLint border, GLenum format, GLenum type,const GLvoid* pixels) {
+    printf("1");
     LOG()
+    printf("2");
     GLenum transfer_format = format;
     //GLenum transfer_type = type;
 
+    printf("3");
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
           width,height,border,glEnumToString(format),glEnumToString(type), pixels)
+    printf("4");
     internal_convert(reinterpret_cast<GLenum *>(&internalFormat), &type, &format);
 
+    printf("5");
     LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
           width,height,border,glEnumToString(format),glEnumToString(type), pixels)
+    printf("6");
     GLenum rtarget = map_tex_target(target);
+    printf("7");
     if(rtarget == GL_PROXY_TEXTURE_2D) {
         int max1 = 4096;
+	printf("8");
         GLES.glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max1);
+	printf("9");
         set_gl_state_proxy_width(((width<<level)>max1)?0:width);
+	printf("10");
         set_gl_state_proxy_height(((height<<level)>max1)?0:height);
+	printf("11");
         set_gl_state_proxy_intformat(internalFormat);
+	printf("12");
         return;
     }
 
+        printf("13");
 	auto tex = GetTextureUnit(GetCurrentTextureUnitIndex()).GetBindingSlot(ConvertGLEnumToTextureTarget(target)).GetBoundObject();
+        printf("14");
 	tex->target = ConvertGLEnumToTextureTarget(target);
+        printf("15");
 	tex->internal_format = internalFormat;
+        printf("16");
 	tex->width = width;
+    printf("17");
     tex->height = height;
+    printf("18");
     tex->depth = 1;
+    printf("19");
     tex->swizzle_param[0] = GL_RED;
+    printf("20");
     tex->swizzle_param[1] = GL_GREEN;
+    printf("21");
     tex->swizzle_param[2] = GL_BLUE;
+    printf("22");
     tex->swizzle_param[3] = GL_ALPHA;
 
+    printf("23");
     if (transfer_format == GL_BGRA && tex->format != transfer_format && internalFormat == GL_RGBA8
                     && width <= 128 && height <= 128) {  // xaero has 64x64 tiles...hack here
+	printf("24");
         LOG_D("Detected GL_BGRA format @ tex = %d, do swizzle", tex->texture)
         if (tex->swizzle_param[0] == 0) { // assert this as never called glTexParameteri(..., GL_TEXTURE_SWIZZLE_R, ...)
             tex->swizzle_param[0] = GL_RED;
@@ -575,6 +599,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
             tex->swizzle_param[3] = GL_ALPHA;
         }
 
+	printf("25");
         GLint r = tex->swizzle_param[0];
         GLint g = tex->swizzle_param[1];
         GLint b = tex->swizzle_param[2];
@@ -585,6 +610,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
         tex->swizzle_param[3] = r;
         tex->format = transfer_format;
 
+	printf("26");
         GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, tex->swizzle_param[0]);
         GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, tex->swizzle_param[1]);
         GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, tex->swizzle_param[2]);
@@ -592,6 +618,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
         CHECK_GL_ERROR
     }
 
+    printf("27");
     tex->format = format;
  
     // Fix for 1.12
@@ -625,8 +652,10 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
         CHECK_GL_ERROR
     }*/
 
+    printf("28");
     GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 
+    printf("29");
     CHECK_GL_ERROR
 }
 
