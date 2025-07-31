@@ -533,7 +533,7 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width, GLsizei height,GLint border, GLenum format, GLenum type,const GLvoid* pixels) {
     LOG()
     GLenum transfer_format = format;
-    GLenum transfer_type = type;
+    //GLenum transfer_type = type;
 
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
@@ -594,7 +594,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
     tex->format = format;
  
     // Fix for 1.12
-    if (transfer_format == GL_BGRA && tex->format != transfer_format
+    /*if (transfer_format == GL_BGRA && tex->format != transfer_format
         && transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV)
     {
         internalFormat = GL_BGRA;
@@ -622,7 +622,7 @@ void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width,
 //        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, tex.swizzle_param[2]);
 //        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, tex.swizzle_param[3]);
         CHECK_GL_ERROR
-    }
+    }*/
 
     GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 
