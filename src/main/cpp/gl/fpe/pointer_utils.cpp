@@ -5,7 +5,7 @@
 #include "GL/gl.h"
 #include "../log.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int PointerUtils::type_to_bytes(GLenum type) {
     switch (type) {
