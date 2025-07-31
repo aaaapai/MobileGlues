@@ -3,7 +3,7 @@
 //
 #include "types.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 void fixed_function_draw_state_t::reset() {
     primitive = GL_NONE;
