@@ -1062,7 +1062,7 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
     if (esversion < 320) esversion = 320;
-    std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
+    std::string result = MesaConvertShader(glsl_code, glsl_type, 460LL, esversion);
 
     return_code = 0;
     return result;
