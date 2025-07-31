@@ -5,7 +5,7 @@
 #include "vertexpointer_utils.h"
 #include "fpe.hpp"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int vp2idx(GLenum vp) {
     switch (vp) {
