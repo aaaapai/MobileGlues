@@ -9,10 +9,6 @@
 
 #define DEBUG 0
 
-extern GLint MAX_DRAW_BUFFERS;
-extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
-//extern GLint getMaxDrawBuffers();
-
 GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
