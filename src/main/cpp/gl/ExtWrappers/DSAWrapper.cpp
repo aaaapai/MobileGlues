@@ -1921,8 +1921,6 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
     // Validate parameters
     if (texture == 0) {
         GLES.glGetError(); // Clear any previous error
-        GLES.glGetError(); // Make sure
-        GLES.glInvalidOperation(); // Simulate GL_INVALID_OPERATION
         return;
     }
     
@@ -2031,7 +2029,6 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
         default:
             // Shouldn't happen as we checked earlier
             free(clearBuffer);
-            GLES.glInvalidEnum();
             return;
     }
     
