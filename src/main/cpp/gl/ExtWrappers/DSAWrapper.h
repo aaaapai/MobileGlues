@@ -15,20 +15,6 @@
 
 extern "C" {
 
-  struct attachment_t {
-              GLenum textarget;
-              GLuint texture;
-              GLint level;
-  };
-  struct framebuffer_t {
-              GLenum current_target;
-              struct attachment_t* draw_attachment;
-              struct attachment_t* read_attachment;
-  };
-  extern struct framebuffer_t* bound_framebuffer;
-
-  GLint getMaxDrawBuffers();
-
 	/* Transform Feedback object functions */
 	GLAPI GLAPIENTRY void glCreateTransformFeedbacks(GLsizei n, GLuint* ids);
 	GLAPI GLAPIENTRY void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
