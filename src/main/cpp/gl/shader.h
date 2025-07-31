@@ -8,6 +8,7 @@
 #include <string>
 #include <ankerl/unordered_dense.h>
 #include "texture.h"
+#include "texture.hpp"
 
 struct shader_t {
     GLuint id;
