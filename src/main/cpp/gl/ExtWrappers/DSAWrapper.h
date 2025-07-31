@@ -27,6 +27,8 @@ extern "C" {
   };
   extern struct framebuffer_t* bound_framebuffer;
 
+  GLint getMaxDrawBuffers();
+
 	/* Transform Feedback object functions */
 	GLAPI GLAPIENTRY void glCreateTransformFeedbacks(GLsizei n, GLuint* ids);
 	GLAPI GLAPIENTRY void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
