@@ -1915,3 +1915,129 @@ GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, G
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
 }
+
+
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data) {
+    // Validate parameters
+    if (texture == 0) {
+        GLES.glGetError(); // Clear any previous error
+        GLES.glGetError(); // Make sure
+        GLES.glInvalidOperation(); // Simulate GL_INVALID_OPERATION
+        return;
+    }
+    
+    // Check if texture exists (simplified check)
+    GLint prevTex;
+    GLenum target;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    if (texture != (GLuint)prevTex) {
+        // Try other texture types
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex);
+        if (texture != (GLuint)prevTex) {
+            GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &prevTex);
+            if (texture != (GLuint)prevTex) {
+                GLES.glGetError(); // Clear any previous error
+                GLES.glInvalidOperation(); // Simulate GL_INVALID_OPERATION
+                return;
+            } else {
+                target = GL_TEXTURE_2D_ARRAY;
+            }
+        } else {
+            target = GL_TEXTURE_3D;
+        }
+    } else {
+        target = GL_TEXTURE_2D;
+    }
+    
+    // For GLES, we'll use glTexSubImage to achieve similar functionality
+    // This is not as efficient as the desktop version, but provides similar functionality
+    
+    // Create temporary buffer with the clear value repeated for the entire region
+    size_t elementSize = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elementSize = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_HALF_FLOAT:
+            elementSize = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elementSize = 4;
+            break;
+        default:
+            GLES.glInvalidEnum();
+            return;
+    }
+    
+    GLint components = 0;
+    switch (format) {
+        case GL_RED:
+            components = 1;
+            break;
+        case GL_RG:
+            components = 2;
+            break;
+        case GL_RGB:
+            components = 3;
+            break;
+        case GL_RGBA:
+            components = 4;
+            break;
+        case GL_DEPTH_COMPONENT:
+            components = 1;
+            break;
+        case GL_DEPTH_STENCIL:
+            components = 2;
+            break;
+        default:
+            GLES.glInvalidEnum();
+            return;
+    }
+    
+    size_t texelSize = elementSize * components;
+    size_t bufferSize = width * height * depth * texelSize;
+    
+    void *clearBuffer = NULL;
+    if (data == NULL) {
+        // If data is NULL, fill with zeros
+        clearBuffer = calloc(1, bufferSize);
+    } else {
+        // Repeat the provided value throughout the buffer
+        clearBuffer = malloc(bufferSize);
+        for (size_t i = 0; i < (size_t)(width * height * depth); i++) {
+            memcpy((char*)clearBuffer + (i * texelSize), data, texelSize);
+        }
+    }
+    
+    // Bind the texture
+    GLES.glBindTexture(target, texture);
+    
+    // Update the texture subregion
+    switch (target) {
+        case GL_TEXTURE_2D:
+            GLES.glTexSubImage2D(target, level, xoffset, yoffset, 
+                                width, height, format, type, clearBuffer);
+            break;
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_3D:
+            GLES.glTexSubImage3D(target, level, xoffset, yoffset, zoffset,
+                               width, height, depth, format, type, clearBuffer);
+            break;
+        default:
+            // Shouldn't happen as we checked earlier
+            free(clearBuffer);
+            GLES.glInvalidEnum();
+            return;
+    }
+    
+    // Restore previous texture binding
+    GLES.glBindTexture(target, (GLuint)prevTex);
+    
+    // Free temporary buffer
+    free(clearBuffer);
+}
