@@ -170,7 +170,8 @@ void InitGLESBaseExtensions() {
              "GL_ARB_multi_bind "
              "GL_KHR_no_error "
              "GL_ARB_clear_texture "
-             "GL_ARB_texture_view";
+	     "GL_ARB_vertex_program "
+             "GL_ARB_texture_view ";
 }
 
 void AppendExtension(const char* ext) {
