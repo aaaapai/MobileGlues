@@ -534,7 +534,7 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level,GLint internalFormat,GLsizei width, GLsizei height,GLint border, GLenum format, GLenum type,const GLvoid* pixels) {
     LOG()
     GLenum transfer_format = format;
-    //GLenum transfer_type = type;
+    GLenum transfer_type = type;
 
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: %d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target),level,glEnumToString(internalFormat),glEnumToString(internalFormat),
