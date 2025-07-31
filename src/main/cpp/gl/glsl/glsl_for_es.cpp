@@ -19,7 +19,7 @@
 #include "../../version.h"
 // #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 1
+#define DEBUG 0
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
@@ -836,7 +836,7 @@ int get_or_add_glsl_version(std::string& glsl) {
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
-    
+
     static shaderc_compiler_t compiler = nullptr;
     if(compiler == nullptr) {
         printf("shaderc\n");
@@ -954,6 +954,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 }
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
+
     spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
@@ -1016,8 +1017,7 @@ static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
 
     bool atomicCounterEmulated = false;
-    std::string mesaconv_glsl_str = GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code); //有病但我喜欢
-    std::string correct_glsl_str = preprocess_glsl(mesaconv_glsl_str, glsl_type, &atomicCounterEmulated);
+    std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
     LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
@@ -1062,7 +1062,7 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
     if (esversion < 320) esversion = 320;
-    std::string result = MesaConvertShader(glsl_code, glsl_type, 460LL, esversion);
+    std::string result = MesaConvertShader(glsl_code, glsl_type, 460LL, 460);
 
     return_code = 0;
     return result;
