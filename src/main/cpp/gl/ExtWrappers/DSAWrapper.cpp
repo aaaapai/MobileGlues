@@ -1935,7 +1935,6 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
             GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &prevTex);
             if (texture != (GLuint)prevTex) {
                 GLES.glGetError(); // Clear any previous error
-                GLES.glInvalidOperation(); // Simulate GL_INVALID_OPERATION
                 return;
             } else {
                 target = GL_TEXTURE_2D_ARRAY;
@@ -1968,7 +1967,7 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
             elementSize = 4;
             break;
         default:
-            GLES.glInvalidEnum();
+	    elementSize = 0;
             return;
     }
     
@@ -1993,7 +1992,7 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
             components = 2;
             break;
         default:
-            GLES.glInvalidEnum();
+	    components = 0;
             return;
     }
     
