@@ -3,6 +3,7 @@
 //
 
 #include "texture.h"
+#include "texture.hpp"
 
 #include <cstring>
 #include <vector>
