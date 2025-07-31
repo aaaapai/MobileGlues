@@ -7,7 +7,7 @@
 #include "list.h"
 #include "pointer_utils.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if GLOBAL_DEBUG || DEBUG
 #pragma clang optimize off
