@@ -3,6 +3,7 @@
 //
 
 #include "DSAWrapper.h"
+#include "framebuffer.h"
 #include <cassert>
 #include "../texture.h"
 
@@ -10,7 +11,7 @@
 
 extern GLint MAX_DRAW_BUFFERS;
 extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
-extern GLint getMaxDrawBuffers();
+//extern GLint getMaxDrawBuffers();
 
 GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
