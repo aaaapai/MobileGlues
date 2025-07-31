@@ -5,7 +5,7 @@
 #include "vertexpointer.h"
 #include "list.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 void glVertexPointer(GLint size,
                      GLenum type,
