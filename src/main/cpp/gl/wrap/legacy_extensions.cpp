@@ -5,6 +5,7 @@
 #include "../includes.h"
 #include "../log.h"
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "legacy_extensions.h"
 
 #define DEBUG 1
@@ -363,7 +364,7 @@ void *glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length
 }
 
 void glGetFramebufferParameterivEXT(GLenum target, GLenum pname, GLint *params) {
-     glGetFramebufferParameteriv(target, pname, params);
+     GLES.glGetFramebufferParameteriv(target, pname, params);
 }
 
 //GLhandleARB glCreateProgramARB() { return glCreateProgram(); }
