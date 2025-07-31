@@ -10,6 +10,7 @@
 
 #include "mg.h"
 #include "texture.h"
+#include "texture.hpp"
 #include <ankerl/unordered_dense.h>
 
 
