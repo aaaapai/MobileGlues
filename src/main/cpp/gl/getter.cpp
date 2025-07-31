@@ -182,7 +182,7 @@ void InitGLESBaseExtensions() {
              "GL_ARB_separate_shader_objects "
              "GL_KHR_no_error "
              "GL_ARB_clear_texture"
-             "GL_ARB_texture_view";
+             "GL_ARB_texture_view ";
 }
 
 void AppendExtension(const char* ext) {
@@ -279,7 +279,7 @@ const GLubyte * glGetString( GLenum name ) {
         }
         case GL_VERSION: {
             if (versionString.empty()) {
-                versionString = "4.0.0.0.0 MobileG鹿es ";
+                versionString = "4.0.0.0.0 MobileGlues ";
                 versionString += std::to_string(MAJOR) + "."
                                 +  std::to_string(MINOR) + "."
                                 +  std::to_string(REVISION);
@@ -345,7 +345,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
                     delimiter = ", ";
                     break;
                 case GL_VERSION:
-                    str = (const GLubyte*)"4.0.0.0.0 MobileG鹿es";
+                    str = (const GLubyte*)"4.0.0.0.0 MobileGlues";
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
