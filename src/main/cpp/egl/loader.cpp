@@ -3,6 +3,7 @@
 //
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <string.h>
 #include "loader.h"
 #include "../includes.h"
@@ -12,11 +13,18 @@
 
 #define DEBUG 0
 
+#define EGL_OPENGL_ES3_BIT_KHR 0x00000040
+
 static EGLDisplay eglDisplay = EGL_NO_DISPLAY;
 static EGLSurface eglSurface = EGL_NO_SURFACE;
 static EGLContext eglContext = EGL_NO_CONTEXT;
+static EGLBoolean Initialize_result = EGL_FALSE;
+static EGLBoolean BindAPI_result = EGL_FALSE;
+static EGLBoolean ChooseConfig_result = EGL_FALSE;
+static EGLBoolean MakeCurrent_result = EGL_FALSE;
 
-void init_target_egl() {
+void init_target_egl(void) {
+
     LOAD_EGL(eglGetProcAddress);
     LOAD_EGL(eglBindAPI);
     LOAD_EGL(eglInitialize);
@@ -37,12 +45,15 @@ void init_target_egl() {
             EGL_GREEN_SIZE, 8,
             EGL_BLUE_SIZE, 8,
             EGL_ALPHA_SIZE, 8,
-            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_DEPTH_SIZE, 24,
+            EGL_ALPHA_MASK_SIZE, 8,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
+            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
             EGL_NONE
     };
 
-    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE };
 
     EGLint pbAttribs[] = { EGL_WIDTH, 32, EGL_HEIGHT, 32, EGL_NONE };
 
@@ -55,29 +66,33 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (egl_eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+    Initialize_result = egl_eglInitialize(eglDisplay, NULL, NULL);
+    if (Initialize_result != EGL_TRUE) {
         LOG_E("eglInitialize failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
-    if (egl_eglBindAPI(EGL_OPENGL_ES_API) != EGL_TRUE) {
+    BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
+    if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
-    if (egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound) != EGL_TRUE) {
+    ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
+    if (ChooseConfig_result != EGL_TRUE) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     if (configsFound == 0) {
         configAttribs[6] = 0;
-        if (egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound) != EGL_TRUE) {
+        ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
+        if (ChooseConfig_result != EGL_TRUE) {
             LOG_E("Retry eglChooseConfig failed (0x%x)", egl_eglGetError());
             goto cleanup;
         }
         if (configsFound) {
-            LOG_D("Using config without alpha channel");
+            LOG_W("Using config without alpha channel");
         } else {
             LOG_E("No valid EGL config found");
             goto cleanup;
@@ -96,7 +111,8 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) != EGL_TRUE) {
+    MakeCurrent_result = egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
+    if (MakeCurrent_result != EGL_TRUE) {
         LOG_E("eglMakeCurrent failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
@@ -117,7 +133,7 @@ cleanup:
     LOG_E("EGL initialization failed");
 }
 
-void destroy_temp_egl_ctx() {
+void destroy_temp_egl_ctx(void) {
     LOAD_EGL(eglDestroySurface);
     LOAD_EGL(eglDestroyContext);
     LOAD_EGL(eglMakeCurrent);

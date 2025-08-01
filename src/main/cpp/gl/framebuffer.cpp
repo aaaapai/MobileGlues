@@ -2,6 +2,8 @@
 // Created by hanji on 2025/2/6.
 //
 
+#include "texture.h"
+#include "texture.hpp"
 #include "framebuffer.h"
 #include "log.h"
 #include "../config/settings.h"
@@ -10,12 +12,11 @@
 #define DEBUG 0
 
 struct framebuffer_t* bound_framebuffer;
-
 GLint MAX_DRAW_BUFFERS = 0;
 
 GLint getMaxDrawBuffers() {
     if (!MAX_DRAW_BUFFERS) {
-        GLES.glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MAX_DRAW_BUFFERS);
     }
     return MAX_DRAW_BUFFERS;
 }
@@ -89,7 +90,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= getMaxDrawBuffers()) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
@@ -106,6 +107,67 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     }
 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
+
+
+    GLenum error = GLES.glGetError();
+    if (error == GL_INVALID_OPERATION) {
+
+        struct attachment_t* attach;
+        if (target == GL_DRAW_FRAMEBUFFER) {
+            attach = bound_framebuffer->draw_attachment;
+        }
+
+        // Get the texture's internal format
+        GLint internalFormat;
+        GLint oldTexture;
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
+        GLES.glBindTexture(textarget, texture);
+        GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+        GLES.glBindTexture(textarget, oldTexture);
+        
+        // Try to find a compatible format using internal_convert
+        GLenum convertedFormat = internalFormat;
+        GLenum type = 0; // Not used for framebuffer attachment
+        GLenum format = 0; // Not used for framebuffer attachment
+        internal_convert(&convertedFormat, &type, &format);
+        
+        if (convertedFormat != static_cast<GLuint>(internalFormat)) {
+            LOG_D("Falling back from 0x%x to 0x%x due to format not supported", 
+                 internalFormat, convertedFormat);
+            
+            // Create new texture with fallback format
+            GLuint fallbackTex;
+            GLES.glGenTextures(1, &fallbackTex);
+            GLES.glBindTexture(textarget, fallbackTex);
+            
+            // Get original texture dimensions
+            GLint width, height;
+            GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_WIDTH, &width);
+            GLES.glGetTexLevelParameteriv(textarget, level, GL_TEXTURE_HEIGHT, &height);
+            
+            // Create texture with fallback format
+            GLES.glTexImage2D(
+                textarget, level, convertedFormat, width, height, 0,
+                format ? format : GL_RGBA, // Default to GL_RGBA if format not set
+                type ? type : GL_UNSIGNED_BYTE, // Default to GL_UNSIGNED_BYTE
+                nullptr
+            );
+            
+            // Try attaching the fallback texture
+            GLES.glFramebufferTexture2D(target, attachment, textarget, fallbackTex, level);
+            
+            if (GLES.glGetError() == GL_NO_ERROR) {
+                LOG_W("Fallback to format 0x%x succeeded", convertedFormat);
+                // Update bound texture if using framebuffer tracking
+                if (bound_framebuffer && attach) {
+                    attach[attachment - GL_COLOR_ATTACHMENT0].texture = fallbackTex;
+                }
+            } else {
+                LOG_E("ERROR: Fallback to format 0x%x failed", convertedFormat);
+                GLES.glDeleteTextures(1, &fallbackTex);
+            }
+        }
+    } //DeepSeek
 
     CHECK_GL_ERROR
 }
@@ -139,10 +201,10 @@ void glDrawBuffer(GLenum buffer) {
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         } else if (buffer >= GL_COLOR_ATTACHMENT0 &&
-                   buffer < GL_COLOR_ATTACHMENT0 + maxAttachments) {
+                   buffer < GL_COLOR_ATTACHMENT0 + static_cast<GLuint>(maxAttachments)) {
             auto *buffers = (GLenum *)alloca(maxAttachments * sizeof(GLenum));
             for (int i = 0; i < maxAttachments; i++) {
-                buffers[i] = (i == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
+                buffers[i] = (static_cast<GLuint>(i) == (buffer - GL_COLOR_ATTACHMENT0)) ? buffer : GL_NONE;
             }
             GLES.glDrawBuffers(maxAttachments, buffers);
         }
@@ -157,7 +219,7 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs) {
     GLenum new_bufs[n];
 
     for (int i = 0; i < n; i++) {
-        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
+        if (bufs[i] >= GL_COLOR_ATTACHMENT0 && bufs[i] <= GL_COLOR_ATTACHMENT0 + static_cast<GLuint>(getMaxDrawBuffers())) {
             GLenum target_attachment = GL_COLOR_ATTACHMENT0 + i;
             new_bufs[i] = target_attachment;
             rebind_framebuffer(bufs[i], target_attachment);
@@ -187,31 +249,5 @@ GLenum glCheckFramebufferStatus(GLenum target) {
         return GL_FRAMEBUFFER_COMPLETE;
     }
     return status;
-    CHECK_GL_ERROR
-}
-
-void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) {
-    LOG()
-
-    LOG_D("glFramebufferTexture(0x%x, 0x%x, %d, %d)", target, attachment, texture, level)
-
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
-        struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
-
-        if (attach) {
-            // Record generic texture as 2D for now
-            attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
-            attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
-            attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-        }
-
-        bound_framebuffer->current_target = target;
-    }
-
-    GLES.glFramebufferTexture(target, attachment, texture, level);
-
     CHECK_GL_ERROR
 }

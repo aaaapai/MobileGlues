@@ -26,6 +26,9 @@ enum class multidraw_mode_t : int {
     PreferMultidrawIndirect,
     DrawElements,
     Compute,
+    DeepSeekOne,
+    DeepSeekTwo,
+    Native,
     MaxValue
 };
 
@@ -165,5 +168,5 @@ extern global_settings_t global_settings;
 
 void init_settings();
 void init_settings_post();
-    
+
 #endif //MOBILEGLUES_PLUGIN_SETTINGS_H
