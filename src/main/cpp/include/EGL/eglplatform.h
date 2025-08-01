@@ -53,6 +53,23 @@
 typedef void* EGLNativeDisplayType;
 typedef void* EGLNativePixmapType;
 typedef void* EGLNativeWindowType;
+/* The types NativeDisplayType, NativeWindowType, and NativePixmapType
+ * are aliases of window-system-dependent types, such as X Display * or
+ * Windows Device Context. They must be defined in platform-specific
+ * code below. The EGL-prefixed versions of Native*Type are the same
+ * types, renamed in EGL 1.3 so all types in the API start with "EGL".
+ *
+ * Khronos STRONGLY RECOMMENDS that you use the default definitions
+ * provided below, since these changes affect both binary and source
+ * portability of applications using EGL running on different EGL
+ * implementations.
+ */
+
+#if defined(EGL_NO_PLATFORM_SPECIFIC_TYPES)
+
+typedef void *EGLNativeDisplayType;
+typedef void *EGLNativePixmapType;
+typedef void *EGLNativeWindowType;
 
 #elif defined(_WIN32) || defined(__VC32__) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__) /* Win32 and WinCE */
 #ifndef WIN32_LEAN_AND_MEAN
@@ -95,6 +112,38 @@ typedef struct gbm_bo* EGLNativePixmapType;
 typedef void* EGLNativeWindowType;
 
 #elif defined(__ANDROID__) || defined(ANDROID)
+=======
+typedef void *EGLNativePixmapType;
+typedef void *EGLNativeWindowType;
+
+#elif defined(WL_EGL_PLATFORM)
+
+typedef struct wl_display     *EGLNativeDisplayType;
+typedef struct wl_egl_pixmap  *EGLNativePixmapType;
+typedef struct wl_egl_window  *EGLNativeWindowType;
+
+#elif defined(__GBM__)
+
+typedef struct gbm_device  *EGLNativeDisplayType;
+typedef struct gbm_bo      *EGLNativePixmapType;
+typedef void               *EGLNativeWindowType;
+
+#elif defined(__ANDROID__) || defined(ANDROID)
+
+struct ANativeWindow;
+struct egl_native_pixmap_t;
+
+typedef void*                           EGLNativeDisplayType;
+typedef struct egl_native_pixmap_t*     EGLNativePixmapType;
+typedef struct ANativeWindow*           EGLNativeWindowType;
+
+#elif defined(USE_OZONE)
+
+typedef intptr_t EGLNativeDisplayType;
+typedef intptr_t EGLNativePixmapType;
+typedef intptr_t EGLNativeWindowType;
+
+#elif defined(USE_X11)
 
 struct ANativeWindow;
 struct egl_native_pixmap_t;
@@ -121,7 +170,6 @@ typedef Window   EGLNativeWindowType;
 
 #elif defined(__unix__)
 
-typedef void* EGLNativeDisplayType;
 typedef khronos_uintptr_t EGLNativePixmapType;
 typedef khronos_uintptr_t EGLNativeWindowType;
 
@@ -135,13 +183,10 @@ typedef void* EGLNativeWindowType;
 
 #include <kernel/image.h>
 
-typedef void* EGLNativeDisplayType;
 typedef khronos_uintptr_t  EGLNativePixmapType;
 typedef khronos_uintptr_t  EGLNativeWindowType;
 
 #elif defined(__Fuchsia__)
-
-typedef void* EGLNativeDisplayType;
 typedef khronos_uintptr_t  EGLNativePixmapType;
 typedef khronos_uintptr_t  EGLNativeWindowType;
 
@@ -172,4 +217,3 @@ typedef khronos_int32_t EGLint;
 #define EGL_CAST(type, value) ((type) (value))
 #endif
 
-#endif /* __eglplatform_h */

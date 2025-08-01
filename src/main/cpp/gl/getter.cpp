@@ -3,7 +3,10 @@
 //
 
 #include "getter.h"
+#include "../config/settings.h"
 #include "buffer.h"
+#include "fpe/fpe.hpp"
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <string>
 #include <format>
 #include <vector>
@@ -13,12 +16,35 @@
 
 Version GLVersion;
 
+void glGetFloatv(GLenum pname, GLfloat *params) {
+    LOG()
+    LOG_D("glGetFloatv, pname: %s", glEnumToString(pname))
+
+    switch (pname) {
+        case GL_MODELVIEW_MATRIX:{
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_MODELVIEW)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        case GL_PROJECTION_MATRIX:
+        {
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_PROJECTION)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        default:
+            GLES.glGetFloatv(pname, params);
+            LOG_D("  -> %.2f",*params)
+            CHECK_GL_ERROR
+    }
+}
+
 void glGetIntegerv(GLenum pname, GLint *params) {
     LOG()
     LOG_D("glGetIntegerv, pname: %s", glEnumToString(pname))
     switch (pname) {
         case GL_CONTEXT_PROFILE_MASK:
-            (*params) = GL_CONTEXT_CORE_PROFILE_BIT;
+            (*params) = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
             break;
         case GL_NUM_EXTENSIONS:
             static GLint num_extensions = -1;
@@ -59,6 +85,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             break;
         }
         case GL_ARRAY_BUFFER_BINDING:
+        case GL_QUERY_BUFFER_BINDING:
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
         case GL_COPY_READ_BUFFER_BINDING:
         case GL_COPY_WRITE_BUFFER_BINDING:
@@ -114,14 +141,38 @@ void InitGLESBaseExtensions() {
              "GL_ARB_shading_language_100 "
              "GL_ARB_imaging "
              "GL_ARB_draw_buffers_blend "
-             "OpenGL15 "
+             "GL_ARB_multitexture "
              "GL_ARB_shader_storage_buffer_object "
              "GL_ARB_shader_image_load_store "
              "GL_ARB_clear_texture "
              "GL_ARB_get_program_binary "
+             "GL_ARB_texture_float "
+             "GL_EXT_texture_filter_anisotropic "
+             "GL_ARB_point_sprite "
+             "GL_ARB_pixel_buffer_object "
+             "GL_ARB_texture_non_power_of_two "
+             "GL_ARB_vertex_buffer_object "
+             "GL_EXT_framebuffer_object "
+             "GL_ARB_framebuffer_object "
+             "GL_EXT_framebuffer_multisample_blit_scaled "
+             "GL_EXT_framebuffer_blit_layers "
+             "GL_EXT_framebuffer_blit "
+             "GL_ARB_occlusion_query "
+             "GL_ARB_program_interface_query "
+             "GL_ARB_texture_rectangle "
+             "GL_ARB_multisample "
+             "GL_EXT_framebuffer_multisample "
+             "GL_ARB_uniform_buffer_object "
+             "GL_ARB_shader_objects "
+             "GL_ARB_vertex_shader "
+             "GL_ARB_fragment_shader "
+             "GL_EXT_separate_shader_objects "
              "GL_ARB_separate_shader_objects "
              "GL_ARB_multi_bind "
-             "GL_KHR_no_error ";
+             "GL_KHR_no_error "
+             "GL_ARB_clear_texture "
+	     "GL_ARB_vertex_program "
+             "GL_ARB_texture_view ";
 }
 
 void AppendExtension(const char* ext) {
@@ -191,7 +242,7 @@ void set_es_version() {
     if (sscanf(ESVersionStr.c_str(), "OpenGL ES %d.%d", &major, &minor) == 2) {
         hardware->es_version = major * 100 + minor * 10;
     } else {
-        hardware->es_version = 300;
+        hardware->es_version = 320;
     }
     LOG_I("OpenGL ES Version: %s (%d)", ESVersionStr.c_str(), hardware->es_version)
     if (hardware->es_version < 300) {
@@ -220,7 +271,7 @@ const GLubyte * glGetString( GLenum name ) {
             if (versionString.empty()) {
                 versionString = GLVersion.toString();
                 if (GLVersion.toInt(2) == DEFAULT_GL_VERSION) {
-					versionString += " MobileGlues ";
+					versionString += " MobileG鹿es ";
                 }
                 else {
 					Version defaultVersion = Version(DEFAULT_GL_VERSION);
@@ -247,7 +298,7 @@ const GLubyte * glGetString( GLenum name ) {
             return (const GLubyte *)versionString.c_str();
         }
 
-        case GL_RENDERER: 
+        case GL_RENDERER:
         {
             if (rendererString == std::string("")) {
                 std::string gpuName = getGpuName();
@@ -258,9 +309,9 @@ const GLubyte * glGetString( GLenum name ) {
         }
         case GL_SHADING_LANGUAGE_VERSION:
             if (hardware->es_version < 310)
-                return (const GLubyte *) "4.00 MobileGlues with glslang and SPIRV-Cross";
+                return (const GLubyte *) "4.00 MobileGlues with glslang, SPIRV-Cross and shaderc";
             else
-                return (const GLubyte *) "4.60 MobileGlues with glslang and SPIRV-Cross";
+                return (const GLubyte *) "4.60 MobileGlues with glslang, SPIRV-Cross and shaderc";
         case GL_EXTENSIONS:
             return (const GLubyte *) GetExtensionsList().c_str();
         default:
@@ -299,7 +350,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
-                    str = (const GLubyte*)"4.60 MobileGlues with glslang and SPIRV-Cross";
+                    str = (const GLubyte*)"4.60 MobileGlues with glslang, SPIRV-Cross and shaderc";
                     break;
                 case GL_EXTENSIONS:
                     str = glGetString(GL_EXTENSIONS);
@@ -341,6 +392,36 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
     return nullptr;
 }
 
+void glQueryCounter(GLuint id, GLenum target) {
+    LOG()
+
+    GLES.glQueryCounterEXT(id, target);
+}
+
+void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params) {
+
+    LOG()
+    LOG_D("Entering glGetQueryObjectui64v(id=%u, pname=0x%X, params=%p)", id, pname, params);
+
+    if (!params) {
+        LOG_W("Warning: glGetQueryObjectui64v called with NULL params pointer");
+        return;
+    }
+
+    // GLES3 implementation - may require extension checks
+    if (pname == GL_QUERY_RESULT || pname == GL_QUERY_RESULT_AVAILABLE) {
+        GLES.glGetQueryObjectuivEXT(id, pname, (GLuint*)params); // Note: potential precision loss
+    } else if (pname == GL_QUERY_RESULT_NO_WAIT) {
+        // Check if extension is available
+            GLES.glGetQueryObjectuivEXT(id, pname, (GLuint*)params);
+    }
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        LOG_E("OpenGL error in glGetQueryObjectui64v: 0x%X", err);
+    }
+}
+
 void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params) {
     LOG()
     if (GLES.glGetQueryObjectivEXT) {
@@ -356,3 +437,4 @@ void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params) {
         CHECK_GL_ERROR
     }
 }
+

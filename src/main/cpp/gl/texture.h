@@ -5,15 +5,24 @@
 #ifndef MOBILEGLUES_TEXTURE_H
 #define MOBILEGLUES_TEXTURE_H
 
-#include <unordered_map>
+#include <GL/gl.h>
+#include "texture.hpp"
+#include "ankerl/unordered_dense.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <GL/gl.h>
+void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
+int nlevel(int size, int level);
+static int is_depth_format(GLenum format);
+static GLenum get_binding_for_target(GLenum target);
+std::shared_ptr<TextureObject> mgGetTexObjectByTarget(GLenum target);
+std::shared_ptr<TextureObject> mgGetTexObjectByID(unsigned texture);
 
+GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
+GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
 GLAPI GLAPIENTRY void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI GLAPIENTRY void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GLAPI GLAPIENTRY void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
@@ -37,58 +46,11 @@ GLAPI GLAPIENTRY void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei heig
 GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
 GLAPI GLAPIENTRY void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
 GLAPI GLAPIENTRY void glPixelStorei(GLenum pname, GLint param);
+GLAPI GLAPIENTRY void glGetCompressedTexImage(GLenum target, GLint level, void* pixels);
+GLAPI GLAPIENTRY void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize, void* pixels);
 
 #ifdef __cplusplus
 }
 #endif
-
-enum class TextureTarget : unsigned int {
-    TEXTURE_1D = 0,
-    PROXY_TEXTURE_1D,
-    TEXTURE_1D_ARRAY,
-    PROXY_TEXTURE_1D_ARRAY,
-    TEXTURE_2D,
-    PROXY_TEXTURE_2D,
-    TEXTURE_2D_ARRAY,
-    PROXY_TEXTURE_2D_ARRAY,
-    TEXTURE_2D_MULTISAMPLE,
-    PROXY_TEXTURE_2D_MULTISAMPLE,
-    TEXTURE_2D_MULTISAMPLE_ARRAY,
-    PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY,
-    TEXTURE_3D,
-    PROXY_TEXTURE_3D,
-    TEXTURE_RECTANGLE,
-    PROXY_TEXTURE_RECTANGLE,
-    TEXTURE_CUBE_MAP,
-    PROXY_TEXTURE_CUBE_MAP,
-    TEXTURE_CUBE_MAP_POSITIVE_X,
-    TEXTURE_CUBE_MAP_NEGATIVE_X,
-    TEXTURE_CUBE_MAP_POSITIVE_Y,
-    TEXTURE_CUBE_MAP_NEGATIVE_Y,
-    TEXTURE_CUBE_MAP_POSITIVE_Z,
-    TEXTURE_CUBE_MAP_NEGATIVE_Z,
-    TEXTURE_CUBE_MAP_ARRAY,
-    PROXY_TEXTURE_CUBE_MAP_ARRAY,
-    TEXTURE_BUFFER,
-    TEXTURES_COUNT
-};
-
-GLenum ConvertTextureTargetToGLEnum(TextureTarget target);
-TextureTarget ConvertGLEnumToTextureTarget(GLenum target);
-
-class TextureObject { // TODO: Make this a more standard class
-public:
-    TextureTarget target;
-    GLuint texture;
-    GLenum internal_format;
-    GLenum format;
-    GLint swizzle_param[4];
-    GLsizei width;
-    GLsizei height;
-    GLsizei depth;
-};
-
-std::shared_ptr<TextureObject> mgGetTexObjectByTarget(GLenum target);
-std::shared_ptr<TextureObject> mgGetTexObjectByID(unsigned texture);
 
 #endif
