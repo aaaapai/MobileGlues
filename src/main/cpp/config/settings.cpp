@@ -24,6 +24,7 @@ void init_settings() {
     global_settings.angle_depth_clear_fix_mode = AngleDepthClearFixMode::Disabled;
     global_settings.ext_direct_state_access = true;
     global_settings.custom_gl_version = { 0, 0, 0 }; // will go default
+	global_settings.fsr1_setting = FSR1_Quality_Preset::Disabled;
 
 #else
 
@@ -44,6 +45,8 @@ void init_settings() {
     multidraw_mode_t multidrawMode = success ? static_cast<multidraw_mode_t>(config_get_int("multidrawMode")) : multidraw_mode_t::Auto;
     AngleDepthClearFixMode angleDepthClearFixMode = success ? static_cast<AngleDepthClearFixMode>(config_get_int("angleDepthClearFixMode")) : AngleDepthClearFixMode::Disabled;
     int customGLVersionInt = success ? config_get_int("customGLVersion") : DEFAULT_GL_VERSION;
+	FSR1_Quality_Preset fsr1Setting = success ? static_cast<FSR1_Quality_Preset>(config_get_int("fsr1Setting")) : FSR1_Quality_Preset::Disabled;
+
     if (customGLVersionInt < 0) {
         customGLVersionInt = 0;
     }
@@ -67,6 +70,10 @@ void init_settings() {
     }
     if (customGLVersionInt == 0) {
         customGLVersionInt = DEFAULT_GL_VERSION; 
+	}
+ 
+    if (static_cast<int>(fsr1Setting) < 0 || static_cast<int>(fsr1Setting) >= static_cast<int>(FSR1_Quality_Preset::MaxValue)) {
+        fsr1Setting = FSR1_Quality_Preset::Disabled;
     }
 
     Version customGLVersion(customGLVersionInt);
@@ -90,6 +97,8 @@ void init_settings() {
         enableExtDirectStateAccess = false;
         maxGlslCacheSize = 0;
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
+		fsr1Setting = FSR1_Quality_Preset::Disabled;
+		multidrawMode = multidraw_mode_t::DrawElements;
     }
 
     AngleMode finalAngleMode = AngleMode::Disabled;
@@ -170,6 +179,7 @@ void init_settings() {
     global_settings.multidraw_mode = multidrawMode;
     global_settings.angle_depth_clear_fix_mode = angleDepthClearFixMode;
     global_settings.custom_gl_version = customGLVersion;
+	global_settings.fsr1_setting = fsr1Setting;
 #endif
 
     std::string draw_mode_str;
@@ -212,6 +222,7 @@ void init_settings() {
         LOG_V("[MobileGlues] Setting: customGLVersion             = %s",
             global_settings.custom_gl_version.toString().c_str());
     }
+	LOG_V("[MobileGlues] Setting: fsr1Setting                 = %i", static_cast<int>(global_settings.fsr1_setting))
 
 	GLVersion = global_settings.custom_gl_version.isEmpty() ? Version(DEFAULT_GL_VERSION) : global_settings.custom_gl_version;
 }

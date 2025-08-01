@@ -46,14 +46,14 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer) {
 
     LOG_D("glBindFramebuffer(0x%x, %d)", target, framebuffer)
 
-    /*if (framebuffer == 0 && target != GL_READ_FRAMEBUFFER) {
+    if (framebuffer == 0 && target != GL_READ_FRAMEBUFFER) {
         framebuffer = FSR1_Context::g_renderFBO;
         FSR1_Context::g_dirty = true;
     }
 
     if (target != GL_READ_FRAMEBUFFER) {
         set_gl_state_current_draw_fbo(framebuffer);
-    }*/
+    }
 
     GLES.glBindFramebuffer(target, framebuffer);
     CHECK_GL_ERROR_NO_INIT

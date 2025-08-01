@@ -26,6 +26,12 @@ namespace FSR1_Context {
 	extern GLuint g_renderFBO;
 	extern GLuint g_renderTexture;
 	extern GLuint g_depthStencilRBO;
+	extern GLuint g_quadVAO;
+	extern GLuint g_quadVBO;
+	extern GLuint g_fsrProgram;
+
+	extern GLuint g_targetFBO;
+	extern GLuint g_targetTexture;
 
 	extern GLuint g_currentDrawFBO;
 	extern GLint g_viewport[4];
@@ -34,6 +40,10 @@ namespace FSR1_Context {
 	extern GLsizei g_renderWidth;
 	extern GLsizei g_renderHeight;
 	extern bool g_dirty;
+
+	extern bool g_resolutionChanged;
+	extern GLsizei g_pendingWidth;
+	extern GLsizei g_pendingHeight;
 }
 
 extern bool fsrInitialized;

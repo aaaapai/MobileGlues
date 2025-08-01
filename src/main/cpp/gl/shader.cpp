@@ -126,7 +126,7 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
 }
 
 GLuint glCreateShader(GLenum shaderType) {
-    if (!fsrInitialized) {
+    if (global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled && !fsrInitialized) {
         InitFSRResources();
     }
 

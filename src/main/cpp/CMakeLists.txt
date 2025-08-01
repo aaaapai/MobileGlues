@@ -76,6 +76,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./includes
+        ./3rdparty/glm
         ./glm
         ./include/glm
         ./3rdparty/xxhash)

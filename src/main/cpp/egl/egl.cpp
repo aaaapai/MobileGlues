@@ -7,6 +7,7 @@
 #include "../gles/loader.h"
 #include "../gl/FSR1/FSR1.h"
 #include "../glx/lookup.h"
+#include "../config/settings.h"
 
 #define DEBUG 0
 
@@ -201,10 +202,15 @@ extern "C" {
 
     EGL_API EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
 		LOG_D("eglSwapBuffers, dpy: %p, surface: %p", dpy, surface);
-        ApplyFSR();
         LOAD_EGL(eglSwapBuffers)
-        EGLBoolean result = egl_eglSwapBuffers(dpy, surface);
-        CheckResolutionChange();
+        EGLBoolean result;
+        if (global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled) {
+            ApplyFSR();
+            result = egl_eglSwapBuffers(dpy, surface);
+            CheckResolutionChange();
+        } else {
+            result = egl_eglSwapBuffers(dpy, surface);
+        }
 		return result;
     }
 
