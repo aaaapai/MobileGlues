@@ -171,7 +171,7 @@ void InitGLESBaseExtensions() {
              "GL_ARB_multi_bind "
              "GL_KHR_no_error "
              "GL_ARB_clear_texture "
-	     "GL_ARB_vertex_program "
+	           "GL_ARB_vertex_program "
              "GL_ARB_texture_view ";
 }
 
@@ -275,7 +275,7 @@ const GLubyte * glGetString( GLenum name ) {
                 }
                 else {
 					Version defaultVersion = Version(DEFAULT_GL_VERSION);
-                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileGlues§r ";
+                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileG鹿es§r ";
                 }
 
                 versionString += std::to_string(MAJOR) + "."

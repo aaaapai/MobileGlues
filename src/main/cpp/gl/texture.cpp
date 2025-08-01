@@ -436,7 +436,6 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
                 // 唯一可行的GLES3.0标准模拟方案
                 LOG_D("Simulating GL_TEXTURE_LOD_BIAS_QCOM via textureGrad");
 
-
                 // 步骤1：创建/获取已关联的shader程序
                 GLuint current_program;
                 GLES.glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&current_program);

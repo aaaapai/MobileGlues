@@ -231,7 +231,7 @@ void proc_init() {
     init_settings_post();
 
 #ifndef __APPLE__
-    init_libshaderconv();
+    //init_libshaderconv();
     //init_watermark_res();
 #endif
     

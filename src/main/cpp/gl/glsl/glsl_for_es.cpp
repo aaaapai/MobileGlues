@@ -19,12 +19,12 @@
 #include "../../version.h"
 // #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 1
+#define DEBUG 0
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
 #if !defined(__APPLE__)
-char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
+extern char* (*MesaConvertShader)(const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
 
 static TBuiltInResource InitResources()
@@ -805,7 +805,7 @@ int get_or_add_glsl_version(std::string& glsl) {
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
-    
+
     static shaderc_compiler_t compiler = nullptr;
     if(compiler == nullptr) {
         printf("shaderc\n");
@@ -825,10 +825,10 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
     
-    GLint max_draw_buffers;
+    /*GLint max_draw_buffers;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
     std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
-    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);
+    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);*/
 
     shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
 
@@ -923,6 +923,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 }
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
+
     spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
@@ -1029,7 +1030,7 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
     if (esversion < 320) esversion = 320;
-    std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
+    std::string result = MesaConvertShader(glsl_code, glsl_type, 460LL, 460);
 
     return_code = 0;
     return result;
