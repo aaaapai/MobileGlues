@@ -4,6 +4,8 @@
 
 #include <GL/gl.h>
 #include "ankerl/unordered_dense.h"
+#include <iostream>
+#include <memory>
 
 template<typename T>
 void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents);
@@ -27,12 +29,12 @@ enum class TextureTarget : unsigned int {
     PROXY_TEXTURE_RECTANGLE,
     TEXTURE_CUBE_MAP,
     PROXY_TEXTURE_CUBE_MAP,
-    TEXTURE_CUBE_MAP_POSITIVE_X,
-    TEXTURE_CUBE_MAP_NEGATIVE_X,
-    TEXTURE_CUBE_MAP_POSITIVE_Y,
-    TEXTURE_CUBE_MAP_NEGATIVE_Y,
-    TEXTURE_CUBE_MAP_POSITIVE_Z,
-    TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    // TEXTURE_CUBE_MAP_POSITIVE_X,
+    // TEXTURE_CUBE_MAP_NEGATIVE_X,
+    // TEXTURE_CUBE_MAP_POSITIVE_Y,
+    // TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    // TEXTURE_CUBE_MAP_POSITIVE_Z,
+    // TEXTURE_CUBE_MAP_NEGATIVE_Z,
     TEXTURE_CUBE_MAP_ARRAY,
     PROXY_TEXTURE_CUBE_MAP_ARRAY,
     TEXTURE_BUFFER,
@@ -46,12 +48,15 @@ class TextureObject { // TODO: Make this a more standard class
 public:
     TextureTarget target;
     GLuint texture;
-    GLenum internal_format = 0;
+    GLenum internal_format;
     GLenum format;
     GLint swizzle_param[4];
-    GLsizei width = 0;
+    GLsizei width;
     GLsizei height;
     GLsizei depth;
 };
+
+std::shared_ptr<TextureObject> mgGetTexObjectByTarget(GLenum target);
+std::shared_ptr<TextureObject> mgGetTexObjectByID(unsigned texture);
 
 #endif
