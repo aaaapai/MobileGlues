@@ -14,6 +14,7 @@
 #include <glm/glm/ext/vector_relational.hpp>
 #include <glm/glm/ext/vector_float4.hpp>
 #include <glm/glm/ext/vector_float3.hpp>
+
 #define DEBUG 0
 
 int matrix_idx(GLenum matrix_mode) {

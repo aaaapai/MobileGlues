@@ -45,13 +45,15 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         gl/getter.cpp
         gl/pixel.cpp
         gl/ExtWrappers/DSAWrapper.cpp
+        gl/ExtWrappers/MultiBindWrapper.cpp
         gl/glsl/glsl_for_es.cpp
         gl/glsl/cache.cpp
+        gl/FSR1/FSR1.cpp
         
         gl/vertexattrib.cpp
         gl/wrap/legacy_extensions.cpp
         glx/lookup.cpp
-        egl/egl.c
+        egl/egl.cpp
         egl/loader.cpp
         gles/loader.cpp
         config/cJSON.c
@@ -74,7 +76,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./includes
+        ./3rdparty/glm
         ./glm
+        ./include/glm
         ./3rdparty/xxhash)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
@@ -125,7 +129,6 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
                 android
                 log
-                EGL
         )
 endif()
 

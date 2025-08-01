@@ -10,6 +10,7 @@
 
 #include "mg.h"
 #include "texture.h"
+#include "texture.hpp"
 #include <ankerl/unordered_dense.h>
 
 
@@ -86,11 +87,11 @@ void setupBufferTextureUniforms(GLuint program) {
             continue;
         }
         
-        GLint width = g_textures[texId].width;
+		auto texObject = mgGetTexObjectByID(texId);
         
         GLES.glUniform1i(locSampler, unit);
-        GLES.glUniform1i(locWidth, g_textures[texId].width);
-        GLES.glUniform1i(locHeight, g_textures[texId].height);
+        GLES.glUniform1i(locWidth, texObject->width);
+        GLES.glUniform1i(locHeight, texObject->height);
         
         GLES.glActiveTexture(GL_TEXTURE0 + prev_unit);
     }
@@ -103,8 +104,6 @@ void prepareForDraw() {
         setupBufferTextureUniforms(gl_state->current_program);
     }
 }
-
-#define DEBUG 0
 
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     LOG()
@@ -155,47 +154,23 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices
     LOG_D("glDrawElements, mode: %d, count: %d, type: %d, indices: %p", mode, count, type, indices)
 
     prepareForDraw();
-    //LOAD_GLES_FUNC(glGetError)
-    //GLenum pre_err = GLES.glGetError();
-    //if(pre_err != GL_NO_ERROR) {
-    //    LOG_D("Skipping due to prior error: 0x%04X", pre_err)
-    //    return;
-    //}
-    //if (!unexpected_error) {
-    //    LOG_D("es_glDrawElements, mode: %d, count: %d, type: %d, indices: %p", mode, count, type, indices)
     GLES.glDrawElements(mode, count, type, indices);
     CHECK_GL_ERROR
-    //} else {
-    //    unexpected_error = false;
-    //}
 }
 
 void glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format) {
-
     LOG()
     LOG_D("glBindImageTexture, unit: %d, texture: %d, level: %d, layered: %d, layer: %d, access: %d, format: %d",
           unit, texture, level, layered, layer, access, format)
-    //LOAD_GLES_FUNC(glGetError)
     GLES.glBindImageTexture(unit, texture, level, layered, layer, access, format);
     CHECK_GL_ERROR
-    //GLenum err;
-    //while((err = GLES.glGetError()) != GL_NO_ERROR) {
-    //    LOG_D("GL Error: 0x%04X", err)
-    //    unexpected_error = true;
-    //}
 }
 
 void glUniform1i(GLint location, GLint v0) {
     LOG()
     LOG_D("glUniform1i, location: %d, v0: %d", location, v0)
-    //LOAD_GLES_FUNC(glGetError)
     GLES.glUniform1i(location, v0);
     CHECK_GL_ERROR
-    //GLenum err;
-    //while((err = GLES.glGetError()) != GL_NO_ERROR) {
-    //    LOG_D("GL Error: 0x%04X", err)
-    //    unexpected_error = true;
-    //}
 }
 
 void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) {

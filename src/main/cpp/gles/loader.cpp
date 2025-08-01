@@ -88,9 +88,6 @@ void *open_lib(const char **names, const char *override) {
 
 void load_libs() {
 #ifndef __APPLE__
-    static int first = 1;
-    if (!first) return;
-    first = 0;
     const char *gles_override = global_settings.angle == AngleMode::Enabled ? GLES_ANGLE : nullptr;
     const char *egl_override = global_settings.angle == AngleMode::Enabled ? EGL_ANGLE : nullptr;
     gles = open_lib(gles3_lib, gles_override);
@@ -161,9 +158,7 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_disjoint_timer_query = 1;
             } else if (strcmp(extension, "GL_QCOM_texture_lod_bias") == 0) {
                 g_gles_caps.GL_QCOM_texture_lod_bias = 1;
-            } else if (strcmp(extension, "GL_EXT_texture_lod_bias") == 0) {
-                g_gles_caps.GL_EXT_texture_lod_bias = 1;
-            } else if (strcmp(extension, "GL_EXT_blend_func_extended") == 0) {
+	    } else if (strcmp(extension, "GL_EXT_blend_func_extended") == 0) {
                 g_gles_caps.GL_EXT_blend_func_extended = 1;
             } else if (strcmp(extension, "GL_EXT_texture_format_BGRA8888") == 0) {
                 g_gles_caps.GL_EXT_texture_format_BGRA8888 = 1;
@@ -204,23 +199,19 @@ void InitGLESCapabilities() {
         AppendExtension("GL_EXT_timer_query");
     }
 
-    if (global_settings.ext_gl43) {
-	AppendExtension("OpenGL41");
-        AppendExtension("OpenGL42");
-        AppendExtension("OpenGL43");
-
-    }
-
-    if (global_settings.ext_dsa) {
-	AppendExtension("OpenGL44");
-        AppendExtension("OpenGL45");
-        AppendExtension("OpenGL46");
-        AppendExtension("GL_EXT_direct_state_access");
-        AppendExtension("GL_ARB_direct_state_access");
-    }
-
     if (global_settings.ext_compute_shader) {
         AppendExtension("GL_ARB_compute_shader");
+    }
+
+    if (global_settings.ext_direct_state_access) {
+		AppendExtension("GL_ARB_direct_state_access");
+		AppendExtension("GL_EXT_direct_state_access");
+    }
+
+    int glVersion = GLVersion.toInt(2);
+    for (int ver = 10; ver <= glVersion; ++ver) {
+		LOG_D("Appending OpenGL extension for version %d", ver)
+		AppendExtension(("OpenGL" + std::to_string(ver)).c_str());
     }
 
     if (g_gles_caps.major > 3 || (g_gles_caps.major == 3 && g_gles_caps.minor >= 1)) {

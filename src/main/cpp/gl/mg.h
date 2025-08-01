@@ -54,6 +54,7 @@ FUNC_GL_STATE_SIZEI_DECLARATION(proxy_height)
 FUNC_GL_STATE_ENUM_DECLARATION(proxy_intformat)
 FUNC_GL_STATE_UINT_DECLARATION(current_program)
 FUNC_GL_STATE_UINT_DECLARATION(current_tex_unit)
+FUNC_GL_STATE_UINT_DECLARATION(current_draw_fbo)
 
 struct hardware_s {
     unsigned int es_version;
@@ -69,6 +70,7 @@ struct gl_state_s {
     
 	GLuint current_program;
 	GLuint current_tex_unit;
+	GLuint current_draw_fbo;
 };
 typedef struct gl_state_s *gl_state_t;
 extern gl_state_t gl_state;

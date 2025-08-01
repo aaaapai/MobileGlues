@@ -93,8 +93,30 @@ int init_fpe() {
 
     GLES.glBindVertexArray(g_glstate.fpe_state.fpe_vao);
     CHECK_GL_ERROR_NO_INIT
+
+    // 3. 绑定 VBO 和 IBO（数据稍后上传）
+    GLES.glBindBuffer(GL_ARRAY_BUFFER, g_glstate.fpe_state.fpe_vbo);
+    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_glstate.fpe_state.fpe_ibo);
+    CHECK_GL_ERROR_NO_INIT
+
+    // 4. 设置默认顶点属性（位置、纹理坐标等）
+    GLES.glEnableVertexAttribArray(0); // 位置属性
+    GLES.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    
+    GLES.glEnableVertexAttribArray(1); // 纹理坐标属性
+    GLES.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    CHECK_GL_ERROR_NO_INIT
+
     GLES.glBindVertexArray(0);
     CHECK_GL_ERROR_NO_INIT
+
+    // 6. 初始化固定管线的默认矩阵（关键！）
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, 800, 600, 0, -1, 1); // 示例：2D 正交投影
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     return 0;
 }

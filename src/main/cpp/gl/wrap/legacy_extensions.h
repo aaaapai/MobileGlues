@@ -150,6 +150,10 @@ GLAPI GLAPIENTRY void glGetProgramResourceLocationIndexARB(GLuint program, GLenu
 
 GLAPI GLAPIENTRY void glGetAttachedObjectsARB(GLhandleARB program, GLsizei maxCount, GLsizei* count, GLhandleARB* objects);
 
+GLAPI GLAPIENTRY void glActiveTextureARB(GLenum texture);
+GLAPI GLAPIENTRY void *glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+GLAPI GLAPIENTRY void glGetFramebufferParameterivEXT(GLenum target, GLenum pname, GLint *params);
+
 #ifdef __cplusplus
 }
 #endif

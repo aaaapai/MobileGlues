@@ -5,7 +5,9 @@
 #include "../includes.h"
 #include "../log.h"
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "legacy_extensions.h"
+#include "../ExtWrappers/DSAWrapper.h"
 
 #define DEBUG 0
 
@@ -351,6 +353,19 @@ void glGetAttachedObjectsARB(GLhandleARB program, GLsizei maxCount, GLsizei* cou
         return;
     }
     GLES.glGetAttachedShaders(program, maxCount, count, (GLuint*)objects);
+}
+
+
+void glActiveTextureARB(GLenum texture) {
+     glActiveTexture(texture);
+}
+
+void *glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+     glMapNamedBufferRange(buffer, offset, length, access);
+}
+
+void glGetFramebufferParameterivEXT(GLenum target, GLenum pname, GLint *params) {
+     GLES.glGetFramebufferParameteriv(target, pname, params);
 }
 
 //GLhandleARB glCreateProgramARB() { return glCreateProgram(); }

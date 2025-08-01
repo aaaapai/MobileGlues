@@ -6,6 +6,7 @@
 #include <GL/gl.h>
 #include <GL/glcorearb.h>
 #include "log.h"
+#include "../config/settings.h"
 #include "../gles/loader.h"
 #include "mg.h"
 #include "../version.h"
@@ -34,5 +35,7 @@ void set_es_version();
 #ifdef __cplusplus
 }
 #endif
+
+extern Version GLVersion;
 
 #endif //MOBILEGLUES_GETTER_H

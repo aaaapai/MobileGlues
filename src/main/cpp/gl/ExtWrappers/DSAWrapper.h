@@ -1,3 +1,4 @@
+#pragma once
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <regex.h>
@@ -14,20 +15,6 @@
 
 extern "C" {
 
-       struct attachment_t {
-              GLenum textarget;
-              GLuint texture;
-              GLint level;
-       };
-
-       struct framebuffer_t {
-              GLenum current_target;
-              struct attachment_t* draw_attachment;
-              struct attachment_t* read_attachment;
-       };
-       extern struct framebuffer_t* bound_framebuffer;
-
-
 	/* Transform Feedback object functions */
 	GLAPI GLAPIENTRY void glCreateTransformFeedbacks(GLsizei n, GLuint* ids);
 	GLAPI GLAPIENTRY void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
@@ -43,8 +30,8 @@ extern "C" {
 	GLAPI GLAPIENTRY void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 	GLAPI GLAPIENTRY void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
         GLAPI GLAPIENTRY void glClearBufferData (GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
-	GLAPI GLAPIENTRY void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data);
         GLAPI GLAPIENTRY void glClearBufferSubData (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+	GLAPI GLAPIENTRY void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void* data);
 	GLAPI GLAPIENTRY void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data);
 	GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access);
 	GLAPI GLAPIENTRY void* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
@@ -140,10 +127,13 @@ extern "C" {
 	GLAPI GLAPIENTRY void glCreateProgramPipelines(GLsizei n, GLuint* pipelines);
 
 	/* Query object functions */
-
 	GLAPI GLAPIENTRY void glCreateQueries(GLenum target, GLsizei n, GLuint* ids);
 	GLAPI GLAPIENTRY void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 	GLAPI GLAPIENTRY void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 	GLAPI GLAPIENTRY void glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 	GLAPI GLAPIENTRY void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+
+
+        GLAPI GLAPIENTRY void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data);
+
 }

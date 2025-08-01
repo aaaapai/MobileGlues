@@ -7,6 +7,10 @@
 
 #include <GL/gl.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct attachment_t {
     GLenum textarget;
     GLuint texture;
@@ -19,20 +23,16 @@ struct framebuffer_t {
     struct attachment_t* read_attachment;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+GLint getMaxDrawBuffers();
+
+extern struct framebuffer_t* bound_framebuffer;
 
 GLAPI GLAPIENTRY void glBindFramebuffer(GLenum target, GLuint framebuffer);
-
 GLAPI GLAPIENTRY void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-
+GLAPI GLAPIENTRY void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level);
 GLAPI GLAPIENTRY void glDrawBuffer(GLenum buf);
-
 GLAPI GLAPIENTRY void glDrawBuffers(GLsizei n, const GLenum *bufs);
-
 GLAPI GLAPIENTRY void glReadBuffer(GLenum src);
-
 GLAPI GLAPIENTRY GLenum glCheckFramebufferStatus(GLenum target);
 
 GLAPI GLAPIENTRY void glGenFramebuffers (GLsizei n, GLuint *framebuffers);

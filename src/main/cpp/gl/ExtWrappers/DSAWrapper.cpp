@@ -3,14 +3,11 @@
 //
 
 #include "DSAWrapper.h"
+#include "../framebuffer.h"
 #include <cassert>
 #include "../texture.h"
 
 #define DEBUG 0
-
-extern GLint MAX_DRAW_BUFFERS;
-extern void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment);
-extern GLint getMaxDrawBuffers();
 
 GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
@@ -735,7 +732,6 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 	LOG_D("[DSA] Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
 }
 
-
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
 	LOG()
 	LOG_D("[DSA] glNamedFramebufferTextureLayer, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d, layer: %d", framebuffer, attachment, texture, level, layer);
@@ -1060,8 +1056,12 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint*
 // texture
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> textureBindingStack;
 
+GLenum GetTexTarget(GLuint texture) {
+	return ConvertTextureTargetToGLEnum(mgGetTexObjectByID(texture)->target);
+}
+
 void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
-	GLenum target = possibleTarget ? possibleTarget : mgGetTexTarget(textureID);
+	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	GLenum bindingQuery = GetBindingQuery(target, true);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -1077,7 +1077,7 @@ void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
 }
 
 void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
-	GLenum target = possibleTarget ? possibleTarget : mgGetTexTarget(textureID);
+	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	auto stackIt = textureBindingStack.find(target);
 	if (stackIt == textureBindingStack.end() || stackIt->second.empty()) {
 		LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -1164,7 +1164,7 @@ void glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, 
 #define TEXTURE_OP_FUNC_BEGIN(func_name) \
     LOG() \
     LOG_D(#func_name ", texture: %u", texture); \
-    GLenum target = mgGetTexTarget(texture); \
+    GLenum target = GetTexTarget(texture); \
     temporarilyBindTexture(texture);
 
 #define TEXTURE_OP_FUNC_END \
@@ -1341,7 +1341,7 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 	}
 	GLint prevUnit = 0;
 	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
-	GLenum target = mgGetTexTarget(texture);
+	GLenum target = GetTexTarget(texture);
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(target, texture);
 	glActiveTexture(prevUnit);
@@ -1914,4 +1914,126 @@ GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, G
 	CHECK_GL_ERROR;
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
+}
+
+
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data) {
+    // Validate parameters
+    if (texture == 0) {
+        GLES.glGetError(); // Clear any previous error
+        return;
+    }
+    
+    // Check if texture exists (simplified check)
+    GLint prevTex;
+    GLenum target;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    if (texture != (GLuint)prevTex) {
+        // Try other texture types
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex);
+        if (texture != (GLuint)prevTex) {
+            GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &prevTex);
+            if (texture != (GLuint)prevTex) {
+                GLES.glGetError(); // Clear any previous error
+                return;
+            } else {
+                target = GL_TEXTURE_2D_ARRAY;
+            }
+        } else {
+            target = GL_TEXTURE_3D;
+        }
+    } else {
+        target = GL_TEXTURE_2D;
+    }
+    
+    // For GLES, we'll use glTexSubImage to achieve similar functionality
+    // This is not as efficient as the desktop version, but provides similar functionality
+    
+    // Create temporary buffer with the clear value repeated for the entire region
+    size_t elementSize = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elementSize = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_HALF_FLOAT:
+            elementSize = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elementSize = 4;
+            break;
+        default:
+	    elementSize = 0;
+            return;
+    }
+    
+    GLint components = 0;
+    switch (format) {
+        case GL_RED:
+            components = 1;
+            break;
+        case GL_RG:
+            components = 2;
+            break;
+        case GL_RGB:
+            components = 3;
+            break;
+        case GL_RGBA:
+            components = 4;
+            break;
+        case GL_DEPTH_COMPONENT:
+            components = 1;
+            break;
+        case GL_DEPTH_STENCIL:
+            components = 2;
+            break;
+        default:
+	    components = 0;
+            return;
+    }
+    
+    size_t texelSize = elementSize * components;
+    size_t bufferSize = width * height * depth * texelSize;
+    
+    void *clearBuffer = NULL;
+    if (data == NULL) {
+        // If data is NULL, fill with zeros
+        clearBuffer = calloc(1, bufferSize);
+    } else {
+        // Repeat the provided value throughout the buffer
+        clearBuffer = malloc(bufferSize);
+        for (size_t i = 0; i < (size_t)(width * height * depth); i++) {
+            memcpy((char*)clearBuffer + (i * texelSize), data, texelSize);
+        }
+    }
+    
+    // Bind the texture
+    GLES.glBindTexture(target, texture);
+    
+    // Update the texture subregion
+    switch (target) {
+        case GL_TEXTURE_2D:
+            GLES.glTexSubImage2D(target, level, xoffset, yoffset, 
+                                width, height, format, type, clearBuffer);
+            break;
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_3D:
+            GLES.glTexSubImage3D(target, level, xoffset, yoffset, zoffset,
+                               width, height, depth, format, type, clearBuffer);
+            break;
+        default:
+            // Shouldn't happen as we checked earlier
+            free(clearBuffer);
+            return;
+    }
+    
+    // Restore previous texture binding
+    GLES.glBindTexture(target, (GLuint)prevTex);
+    
+    // Free temporary buffer
+    free(clearBuffer);
 }

@@ -6,10 +6,8 @@
 #define MOBILEGLUES_TEXTURE_H
 
 #include <GL/gl.h>
+#include "texture.hpp"
 #include "ankerl/unordered_dense.h"
-
-template<typename T>
-void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents);
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +17,6 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
 int nlevel(int size, int level);
 static int is_depth_format(GLenum format);
 static GLenum get_binding_for_target(GLenum target);
-
 
 GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
@@ -53,19 +50,5 @@ GLAPI GLAPIENTRY void glGetnCompressedTexImage(GLenum target, GLint level, GLsiz
 #ifdef __cplusplus
 }
 #endif
-
-struct texture_t {
-    GLenum target;
-    GLuint texture;
-    GLenum internal_format = 0;
-    GLenum format;
-    GLint swizzle_param[4];
-    GLsizei width = 0;
-    GLsizei height;
-};
-
-extern ankerl::unordered_dense::map<GLuint, texture_t> g_textures;
-
-GLenum mgGetTexTarget(GLuint id);
 
 #endif

@@ -360,6 +360,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     const char* cachedESSL = Cache::get_instance().get(sha256_string.c_str());
     if (cachedESSL) {
         LOG_D("GLSL Hit Cache:\n%s\n-->\n%s", glsl_code, cachedESSL)
+
         bool atomicCounterEmulated = checkIfAtomicCounterBufferEmulated(std::string(cachedESSL));
         return_code = atomicCounterEmulated ? 1 : 0;
         return (char*)cachedESSL;
@@ -547,7 +548,6 @@ bool process_non_opaque_atomic_to_ssbo(std::string& source) {
             std::regex(R"(\batomicCounterAdd\s*\(\s*)" + var + R"(\s*,\s*([^)]+)\s*\))", std::regex::icase),
             "atomicAdd(" + var + ", $1)"
         );
-        
         source = std::regex_replace(source,
             std::regex(R"(\batomicCounter\s*\(\s*)" + var + R"(\s*\))", std::regex::icase),
             var
@@ -677,32 +677,6 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
-static void inject_atomicCounterAdd(std::string& glsl) {
-    if (glsl.find("atomicCounterAdd") == std::string::npos) {
-        return;
-    }
-
-    const std::regex defRegex(R"(uint\s+mg_atomicCounterAdd\s*\()", std::regex::ECMAScript);
-    if (std::regex_search(glsl, defRegex)) {
-        return;
-    }
-
-    const std::string atomicCounterAddImpl = R"(
-#define atomicCounterAdd mg_atomicCounterAdd
-
-uint mg_atomicCounterAdd(atomic_uint ac, uint val) {
-    uint old = atomicCounterIncrement(ac) - 1u;
-    for (uint i = 1u; i < val; ++i) {
-        atomicCounterIncrement(ac);
-    }
-    return old;
-}
-)";
-
-    size_t insertPos = find_insertion_point(glsl);
-    glsl.insert(insertPos, "\n" + atomicCounterAddImpl + "\n");
-}
-
 static inline void inject_temporal_filter(std::string& glsl) {
     const std::regex defRegex(R"(vec4\s+GI_TemporalFilter\s*\()", std::regex::ECMAScript);
 
@@ -769,7 +743,6 @@ void inject_mg_macro_definition(std::string& glslCode) {
     glslCode.insert(insertionPos, macro_definitions);
 }
 
-
 std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* atomicCounterEmulated) {
     std::string ret = glsl;
     // Remove lines beginning with `#line`
@@ -811,10 +784,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
     if (hardware->emulate_texture_buffer) {
         // Sampler buffer processing
         process_sampler_buffer(ret);
-    }
-
-    if (glsl_type == GL_COMPUTE_SHADER) {
-        inject_atomicCounterAdd(ret);
     }
 
     *atomicCounterEmulated = process_non_opaque_atomic_to_ssbo(ret);
@@ -1050,7 +1019,6 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     essl = forceSupporterOutput(essl);
 
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
-
     return_code = errc;
     if (return_code == 0) {
        return_code = atomicCounterEmulated ? 1 : 0;
