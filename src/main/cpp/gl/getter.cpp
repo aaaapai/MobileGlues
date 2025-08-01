@@ -10,6 +10,7 @@
 #include <string>
 #include <format>
 #include <vector>
+#include "FSR1/FSR1.h"
 
 #define DEBUG 0
 

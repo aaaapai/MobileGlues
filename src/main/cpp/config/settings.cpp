@@ -82,7 +82,7 @@ void init_settings() {
 
     if (fclVersion == 0 && zlVersion == 0 && pgwVersion == 0 && !var) {
         LOG_V("Unsupported launcher detected, force using default config.")
-            angleConfig = AngleConfig::DisableIfPossible;
+        angleConfig = AngleConfig::DisableIfPossible;
         noErrorConfig = NoErrorConfig::Auto;
         enableExtGL43 = false;
         enableExtComputeShader = true;
@@ -139,8 +139,8 @@ void init_settings() {
         global_settings.buffer_coherent_as_flush = (global_settings.angle == AngleMode::Disabled);
 
     if (global_settings.angle == AngleMode::Enabled) {
-        setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
-        setenv("LIBGL_EGL", "libEGL_angle.so", 1);
+        //setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
+        //setenv("LIBGL_EGL", "libEGL_angle.so", 1);
     }
 
     switch (noErrorConfig) {

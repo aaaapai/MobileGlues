@@ -12,6 +12,7 @@
 #include "../includes.h"
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
+#include "FSR1/FSR1.h"
 #include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
@@ -125,6 +126,10 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint *params) {
 }
 
 GLuint glCreateShader(GLenum shaderType) {
+    if (!fsrInitialized) {
+        InitFSRResources();
+    }
+
     LOG()
     LOG_D("glCreateShader(%s)", glEnumToString(shaderType))
     GLuint shader = GLES.glCreateShader(shaderType);
