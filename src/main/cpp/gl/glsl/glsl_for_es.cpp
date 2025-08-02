@@ -19,7 +19,7 @@
 #include "../../version.h"
 // #define FEATURE_PRE_CONVERTED_GLSL
 
-#define DEBUG 0
+#define DEBUG 1
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
