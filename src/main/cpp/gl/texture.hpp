@@ -56,7 +56,4 @@ public:
     GLsizei depth;
 };
 
-std::shared_ptr<TextureObject> mgGetTexObjectByTarget(GLenum target);
-std::shared_ptr<TextureObject> mgGetTexObjectByID(unsigned texture);
-
 #endif
