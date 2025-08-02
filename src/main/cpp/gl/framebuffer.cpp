@@ -121,14 +121,14 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
             if (attachment >= GL_COLOR_ATTACHMENT0 && attachment <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
                 attach_index = attachment - GL_COLOR_ATTACHMENT0;
             } else if (attachment == GL_DEPTH_ATTACHMENT) {
-                attach_index = max_color_attachments;
+                attach_index = getMaxDrawBuffers();
             } else if (attachment == GL_STENCIL_ATTACHMENT) {
-                attach_index = max_color_attachments + 1;
+                attach_index = getMaxDrawBuffers() + 1;
             } else if (attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
                 // Handle combined depth/stencil
-                attach_index = max_color_attachments;
-                bound_framebuffer->draw_attachment[max_color_attachments + 1].texture = texture;
-                bound_framebuffer->draw_attachment[max_color_attachments + 1].level = level;
+                attach_index = getMaxDrawBuffers();
+                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].texture = texture;
+                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].level = level;
             }
             
             attach[attach_index].textarget = GL_TEXTURE_2D; // For ES, we might not have other types
@@ -317,14 +317,14 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
                 attach_index = attachment - GL_COLOR_ATTACHMENT0;
             } else if (attachment == GL_DEPTH_ATTACHMENT) {
-                attach_index = max_color_attachments;
+                attach_index = getMaxDrawBuffers();
             } else if (attachment == GL_STENCIL_ATTACHMENT) {
-                attach_index = max_color_attachments + 1;
+                attach_index = getMaxDrawBuffers() + 1;
             } else if (attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
                 // Handle combined depth/stencil
-                attach_index = max_color_attachments;
-                bound_framebuffer->draw_attachment[max_color_attachments + 1].texture = texture;
-                bound_framebuffer->draw_attachment[max_color_attachments + 1].level = level;
+                attach_index = getMaxDrawBuffers();
+                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].texture = texture;
+                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].level = level;
             }
             
             attach[attach_index].textarget = GL_TEXTURE_2D; // For ES, we might not have other types
