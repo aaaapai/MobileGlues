@@ -6,7 +6,7 @@
 #include <cassert>
 #include "../texture.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 void glBindTextures(GLuint first, GLsizei count, const GLuint* textures) {
     GLuint prevUnit;
