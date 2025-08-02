@@ -17,6 +17,7 @@ void init_settings() {
 #if defined(__APPLE__)
     global_settings.angle = AngleMode::Disabled;
     global_settings.ignore_error = IgnoreErrorLevel::Partial;
+    global_settings.ext_gl43 = false;
     global_settings.ext_compute_shader = false;
     global_settings.max_glsl_cache_size = 30 * 1024 * 1024;
     global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
@@ -90,6 +91,7 @@ void init_settings() {
         LOG_V("Unsupported launcher detected, force using default config.")
         angleConfig = AngleConfig::DisableIfPossible;
         noErrorConfig = NoErrorConfig::Auto;
+	enableExtGL43 = false;
         enableExtComputeShader = true;
         enableExtTimerQuery = true;
         enableExtDirectStateAccess = false;
@@ -169,6 +171,7 @@ void init_settings() {
         break;
     }
 
+    global_settings.ext_gl43 = enableExtGL43;
     global_settings.ext_compute_shader = enableExtComputeShader;
     global_settings.ext_timer_query = enableExtTimerQuery;
     global_settings.ext_direct_state_access = enableExtDirectStateAccess;
