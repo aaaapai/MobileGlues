@@ -1244,11 +1244,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		return;
 	}
 	GLint prevUnit = 0;
-	GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = GetTexTarget(texture);
-	GLES.glActiveTexture(GL_TEXTURE0 + unit);
-	GLES.glBindTexture(target, texture);
-	GLES.glActiveTexture(prevUnit);
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(target, texture);
+	glActiveTexture(prevUnit);
 	LOG_D("[DSA] Bound texture %u to texture unit %u", texture, unit);
 }
 
@@ -1310,7 +1310,7 @@ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
 
 // vertex array
 static thread_local GLint prevVAO = -1;
-void temporarilyBindVertexArray(GLint vaoID) {
+static void temporarilyBindVertexArray(GLint vaoID) {
 	if (prevVAO == vaoID) {
 		prevVAO = -1;
 		return;
@@ -1321,7 +1321,7 @@ void temporarilyBindVertexArray(GLint vaoID) {
 	glBindVertexArray(vaoID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryVertexArrayBinding() {
+static void restoreTemporaryVertexArrayBinding() {
 	if (prevVAO == -1) {
 		return;
 	}
