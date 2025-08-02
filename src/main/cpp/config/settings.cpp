@@ -205,6 +205,8 @@ void init_settings() {
         static_cast<int>(global_settings.ignore_error))
     LOG_V("[MobileGlues] Setting: enableExtComputeShader      = %s",
         global_settings.ext_compute_shader ? "true" : "false")
+    LOG_V("[MobileGlues] Setting: enableExtGL43               = %s",
+        global_settings.ext_gl43 ? "true" : "false")
     LOG_V("[MobileGlues] Setting: enableExtTimerQuery         = %s",
         global_settings.ext_timer_query ? "true" : "false")
     LOG_V("[MobileGlues] Setting: enableExtDirectStateAccess  = %s",
