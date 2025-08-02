@@ -118,7 +118,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
                 
         if (attach) {
             GLuint attach_index = 0;
-            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + max_color_attachments) {
+            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
                 attach_index = attachment - GL_COLOR_ATTACHMENT0;
             } else if (attachment == GL_DEPTH_ATTACHMENT) {
                 attach_index = max_color_attachments;
@@ -314,7 +314,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
                 
         if (attach) {
             GLuint attach_index = 0;
-            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + max_color_attachments) {
+            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
                 attach_index = attachment - GL_COLOR_ATTACHMENT0;
             } else if (attachment == GL_DEPTH_ATTACHMENT) {
                 attach_index = max_color_attachments;
@@ -336,4 +336,15 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
 
     GLES.glFramebufferTexture(target, attachment, texture, level);
     CHECK_GL_ERROR
+}
+
+void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) {
+    LOG()
+    //TODO: LOG_D()
+
+    if (target == GL_FRAMEBUFFER) {
+        target = GL_DRAW_FRAMEBUFFER;
+    }
+
+    GLES.glFramebufferTextureLayer(target, attachment, texture, level, layer);
 }
