@@ -262,7 +262,7 @@ const GLubyte * glGetString( GLenum name ) {
     switch (name) {
         case GL_VENDOR: {
             if(vendorString.empty()) {
-                std::string vendor = "Swung0x48, BZLZHH, Tungsten";
+                std::string vendor = "Swung0x48, BZLZHH, Tungsten, 张三";
                 vendorString = vendor;
             }
             return (const GLubyte *)vendorString.c_str();
@@ -271,7 +271,7 @@ const GLubyte * glGetString( GLenum name ) {
             if (versionString.empty()) {
                 versionString = GLVersion.toString();
                 if (GLVersion.toInt(2) == DEFAULT_GL_VERSION) {
-					versionString += " MobileG鹿es ";
+					versionString += " IllegalGlues ";
                 }
                 else {
 					Version defaultVersion = Version(DEFAULT_GL_VERSION);
@@ -343,12 +343,12 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
 
             switch (target) {
                 case GL_VENDOR:
-                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten";
+                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten, 张三";
                     delimiter = ", ";
                     break;
                 case GL_VERSION:
                     str = (const GLubyte*)
-                        (GLVersion.toString() + " MobileGlues").c_str();
+                        (GLVersion.toString() + " IllegalGlues").c_str();
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
