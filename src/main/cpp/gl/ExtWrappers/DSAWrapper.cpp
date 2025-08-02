@@ -7,7 +7,7 @@
 #include <cassert>
 #include "../texture.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
@@ -1336,11 +1336,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		return;
 	}
 	GLint prevUnit = 0;
-	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
+	GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = GetTexTarget(texture);
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(target, texture);
-	glActiveTexture(prevUnit);
+	GLES.glActiveTexture(GL_TEXTURE0 + unit);
+	GLES.glBindTexture(target, texture);
+	GLES.glActiveTexture(prevUnit);
 	LOG_D("[DSA] Bound texture %u to texture unit %u", texture, unit);
 }
 
