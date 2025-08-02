@@ -692,8 +692,6 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 }
 */
 
-#undef DEBUG
-#define DEBUG 1
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) {
     LOG()
     LOG_D("glFramebufferTexture(0x%x, 0x%x, %d, %d)", target, attachment, texture, level)
@@ -743,8 +741,6 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
 	
 	LOG_D("[DSA] Attached texture %u to framebuffer %u with attachment 0x%X at level %d and layer %d", texture, framebuffer, attachment, level, layer);
 }
-#undef DEBUG
-#define DEBUG 0
 
 void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum mode) {
 	LOG()
