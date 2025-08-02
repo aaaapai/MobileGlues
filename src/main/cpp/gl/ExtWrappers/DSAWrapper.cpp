@@ -9,7 +9,7 @@
 
 #define DEBUG 1
 
-static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
+GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
 
@@ -95,7 +95,7 @@ static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 
 // buffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> bufferBindingStack;
-static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
+void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -110,7 +110,7 @@ static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFF
 	glBindBuffer(target, bufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-static void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
+void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	auto it = bufferBindingStack.find(target);
 	if (it == bufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -1310,7 +1310,7 @@ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
 
 // vertex array
 static thread_local GLint prevVAO = -1;
-static void temporarilyBindVertexArray(GLint vaoID) {
+void temporarilyBindVertexArray(GLint vaoID) {
 	if (prevVAO == vaoID) {
 		prevVAO = -1;
 		return;
@@ -1321,7 +1321,7 @@ static void temporarilyBindVertexArray(GLint vaoID) {
 	glBindVertexArray(vaoID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-static void restoreTemporaryVertexArrayBinding() {
+void restoreTemporaryVertexArrayBinding() {
 	if (prevVAO == -1) {
 		return;
 	}
