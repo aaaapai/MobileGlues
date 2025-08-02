@@ -90,7 +90,11 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    /*if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
+    if (target == GL_FRAMEBUFFER) {
+        target = GL_DRAW_FRAMEBUFFER;
+    }
+
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
@@ -103,38 +107,6 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
         }
 
-        bound_framebuffer->current_target = target;
-    }*/
-
-    if (target == GL_FRAMEBUFFER) {
-        target = GL_DRAW_FRAMEBUFFER;
-    }
-
-    if (bound_framebuffer) {
-        struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
-                
-        if (attach) {
-            GLuint attach_index = 0;
-            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment <= GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
-                attach_index = attachment - GL_COLOR_ATTACHMENT0;
-            } else if (attachment == GL_DEPTH_ATTACHMENT) {
-                attach_index = getMaxDrawBuffers();
-            } else if (attachment == GL_STENCIL_ATTACHMENT) {
-                attach_index = getMaxDrawBuffers() + 1;
-            } else if (attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
-                // Handle combined depth/stencil
-                attach_index = getMaxDrawBuffers();
-                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].texture = texture;
-                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].level = level;
-            }
-            
-            attach[attach_index].textarget = GL_TEXTURE_2D; // For ES, we might not have other types
-            attach[attach_index].texture = texture;
-            attach[attach_index].level = level;
-        }
         bound_framebuffer->current_target = target;
     }
 
@@ -292,7 +264,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         target = GL_DRAW_FRAMEBUFFER;
     }
 
-    /*if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
         struct attachment_t* attach =
             (target == GL_DRAW_FRAMEBUFFER)
                 ? bound_framebuffer->draw_attachment
@@ -302,34 +274,6 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
-        }
-        bound_framebuffer->current_target = target;
-    }*/
-
-    if (bound_framebuffer) {
-        struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
-                
-        if (attach) {
-            GLuint attach_index = 0;
-            if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + getMaxDrawBuffers()) {
-                attach_index = attachment - GL_COLOR_ATTACHMENT0;
-            } else if (attachment == GL_DEPTH_ATTACHMENT) {
-                attach_index = getMaxDrawBuffers();
-            } else if (attachment == GL_STENCIL_ATTACHMENT) {
-                attach_index = getMaxDrawBuffers() + 1;
-            } else if (attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
-                // Handle combined depth/stencil
-                attach_index = getMaxDrawBuffers();
-                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].texture = texture;
-                bound_framebuffer->draw_attachment[getMaxDrawBuffers() + 1].level = level;
-            }
-            
-            attach[attach_index].textarget = GL_TEXTURE_2D; // For ES, we might not have other types
-            attach[attach_index].texture = texture;
-            attach[attach_index].level = level;
         }
         bound_framebuffer->current_target = target;
     }
