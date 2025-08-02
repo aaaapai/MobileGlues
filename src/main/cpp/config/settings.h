@@ -152,6 +152,7 @@ typedef enum class FSR1_Quality_Preset : int { // may be useless
 struct global_settings_t {
     AngleMode angle;
     IgnoreErrorLevel ignore_error;
+    bool ext_gl43;
     bool ext_compute_shader;
     bool ext_timer_query;
     bool ext_direct_state_access;
