@@ -339,7 +339,7 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
 		return;
 	}
 	temporarilyBindBuffer(buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+	GLES.glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 	CHECK_GL_ERROR;
 	restoreTemporaryBufferBinding();
 	
@@ -441,10 +441,11 @@ GLboolean glUnmapNamedBuffer(GLuint buffer) {
 	LOG()
 	LOG_D("[DSA] glUnmapNamedBuffer, buffer: %u", buffer);
 	
-	if (buffer == 0) {
+	/*if (buffer == 0) {
 		LOG_E("[DSA] Invalid buffer ID for glUnmapNamedBuffer");
 		return GL_FALSE;
-	}
+	}*/
+
 	temporarilyBindBuffer(buffer);
 	GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
 	CHECK_GL_ERROR;
@@ -453,7 +454,7 @@ GLboolean glUnmapNamedBuffer(GLuint buffer) {
 	if (result == GL_FALSE) {
 		LOG_E("[DSA] Failed to unmap buffer %u", buffer);
 	} else {
-	LOG_D("[DSA] Unmapped buffer %u successfully", buffer);
+	        LOG_D("[DSA] Unmapped buffer %u successfully", buffer);
 	}
 	return result;
 }
@@ -467,7 +468,7 @@ void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr le
 		return;
 	}
 	temporarilyBindBuffer(buffer);
-	glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, length);
+	GLES.glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, length);
 	CHECK_GL_ERROR;
 	restoreTemporaryBufferBinding();
 	
@@ -1244,11 +1245,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		return;
 	}
 	GLint prevUnit = 0;
-	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
+	GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = GetTexTarget(texture);
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(target, texture);
-	glActiveTexture(prevUnit);
+	GLES.glActiveTexture(GL_TEXTURE0 + unit);
+	GLES.glBindTexture(target, texture);
+	GLES.glActiveTexture(prevUnit);
 	LOG_D("[DSA] Bound texture %u to texture unit %u", texture, unit);
 }
 
