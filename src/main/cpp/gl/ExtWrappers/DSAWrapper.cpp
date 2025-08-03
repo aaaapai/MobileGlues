@@ -9,7 +9,7 @@
 
 #define DEBUG 1
 
-GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
+static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
 
@@ -95,7 +95,7 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 
 // buffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> bufferBindingStack;
-void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
+static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -110,7 +110,7 @@ void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	glBindBuffer(target, bufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
+static void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	auto it = bufferBindingStack.find(target);
 	if (it == bufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -540,7 +540,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 
 // framebuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> framebufferBindingStack;
-void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -554,7 +554,7 @@ void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FR
 	glBindFramebuffer(target, framebufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
 	auto it = framebufferBindingStack.find(target);
 	if (it == framebufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -851,7 +851,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 
 // renderbuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> renderbufferBindingStack;
-void temporarilyBindRenderbuffer(GLuint renderbufferID) {
+static void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	GLenum bindingQuery = GetBindingQuery(GL_RENDERBUFFER);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -865,7 +865,7 @@ void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryRenderbufferBinding() {
+static void restoreTemporaryRenderbufferBinding() {
 	auto it = renderbufferBindingStack.find(GL_RENDERBUFFER);
 	if (it == renderbufferBindingStack.end() || it->second.empty()) {
 		LOG_D("[DSA] [Restore] no saved binding for GL_RENDERBUFFER");
@@ -960,11 +960,11 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint*
 // texture
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> textureBindingStack;
 
-GLenum GetTexTarget(GLuint texture) {
+static GLenum GetTexTarget(GLuint texture) {
 	return ConvertTextureTargetToGLEnum(mgGetTexObjectByID(texture)->target);
 }
 
-void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
+static void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
 	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	GLenum bindingQuery = GetBindingQuery(target, true);
 	GLint prev = 0;
@@ -980,7 +980,7 @@ void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
 	CHECK_GL_ERROR_NO_INIT;
 }
 
-void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
+static void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
 	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	auto stackIt = textureBindingStack.find(target);
 	if (stackIt == textureBindingStack.end() || stackIt->second.empty()) {
