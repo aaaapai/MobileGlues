@@ -315,7 +315,10 @@ const GLubyte * glGetString( GLenum name ) {
             else
                 return (const GLubyte *) "4.60 MobileGlues with glslang, SPIRV-Cross and shaderc";
         case GL_EXTENSIONS:
-            return (const GLubyte *) GetExtensionsList().c_str();
+            static const std::string extensions = []() {
+                   return GetExtensionsList();  // 只在第一次调用时初始化
+            }();
+            return reinterpret_cast<const GLubyte*>(extensions.c_str());
         default:
             return GLES.glGetString(name);
     }
