@@ -19,8 +19,8 @@
 template <typename Key, typename Value>
 using unordered_map = ankerl::unordered_dense::map<Key, Value>;
 
-GLuint bufSampelerProg;
-GLuint bufSampelerLoc;
+static GLuint bufSampelerProg;
+static GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
 extern unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
@@ -28,7 +28,7 @@ extern unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 unordered_map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
-void setupBufferTextureUniforms(GLuint program) {
+static void setupBufferTextureUniforms(GLuint program) {
     LOG_D("setupBufferTextureUniforms, program: %d", program);
 
     if (!program_map_is_sampler_buffer_emulated[program])
