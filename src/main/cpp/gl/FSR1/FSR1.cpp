@@ -47,10 +47,10 @@ namespace FSR1_Context {
 	GLuint g_depthStencilRBO = 0;
 	GLuint g_quadVAO = 0;
 	GLuint g_quadVBO = 0;
-    GLuint g_fsrProgram = 0;
+        GLuint g_fsrProgram = 0;
     
-    GLuint g_targetFBO = 0;
-    GLuint g_targetTexture = 0;
+        GLuint g_targetFBO = 0;
+        GLuint g_targetTexture = 0;
 
 	GLuint g_currentDrawFBO = 0;
 	GLint g_viewport[4] = { 0 };
@@ -194,7 +194,7 @@ void InitFullscreenQuad() {
     GLES.glBindVertexArray(0);
 }
 
-static bool fsrInitialized = false;
+bool fsrInitialized = false;
 void InitFSRResources() {
     fsrInitialized = true;
     GLStateGuard state;
