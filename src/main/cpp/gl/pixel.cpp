@@ -145,7 +145,6 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst,
                    GLenum src_format, GLenum src_type,
                    GLenum dst_format, GLenum dst_type, GLuint stride, GLuint align) {
     const colorlayout_t *src_color, *dst_color;
-    GLuint pixels = width * height;
     if(src_type==GL_INT8_REV) src_type=GL_UNSIGNED_BYTE;
     if(dst_type==GL_INT8_REV) dst_type=GL_UNSIGNED_BYTE;
     GLuint dst_size = height * widthalign(width * pixel_sizeof(dst_format, dst_type), align);
