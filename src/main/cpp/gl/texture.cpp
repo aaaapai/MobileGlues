@@ -103,7 +103,7 @@ TextureTarget ConvertGLEnumToTextureTarget(GLenum target) {
     }
 }
 
-const int MAX_TEXTURE_IMAGE_UNITS = 32;
+static const int MAX_TEXTURE_IMAGE_UNITS = 32;
 
 class TextureBindingSlot {
 public:
@@ -155,7 +155,7 @@ std::shared_ptr<TextureObject> GetOrCreateTextureObject(GLuint index) {
 	return BufferObjectsIDMap[index];
 }
 
-void ActivateTextureUnit(int unit) {
+static void ActivateTextureUnit(int unit) {
     if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
         LOG_E("Invalid texture unit: %d", unit);
         return;
@@ -163,11 +163,11 @@ void ActivateTextureUnit(int unit) {
     CurrentTextureUnitIndex = unit;
 }
 
-int GetCurrentTextureUnitIndex() {
+static int GetCurrentTextureUnitIndex() {
     return CurrentTextureUnitIndex;
 }
 
-TextureUnit& GetTextureUnit(int unit) {
+static TextureUnit& GetTextureUnit(int unit) {
     if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
         LOG_E("Invalid texture unit: %d", unit);
         return TextureUnits[0];
@@ -175,7 +175,7 @@ TextureUnit& GetTextureUnit(int unit) {
     return TextureUnits[unit];
 }
 
-void MarkTextureObjectForDeletion(unsigned texture) {
+static void MarkTextureObjectForDeletion(unsigned texture) {
     if (BufferObjectsIDMap.find(texture) == BufferObjectsIDMap.end()) {
         LOG_D("Texture %u not found in BufferObjectsIDMap map!", texture);
         return;
