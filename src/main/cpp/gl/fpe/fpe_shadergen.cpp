@@ -200,11 +200,10 @@ void add_vs_inout(const fixed_function_state_t& state, scratch_t& scratch, std::
         if (enabled || state.fpe_draw.current_data.sizes.data[i] > 0) {
             auto &vp = vpa.attributes[i];
 
-            if (enabled)
+            if (enabled) {
                 LOG_D("attrib #%d, cidx #%u: type = %s, size = %d, stride = %d, usage = %s, ptr = %p",
                       i, vpa.cidx(i), glEnumToString(vp.type), vp.size, vp.stride, glEnumToString(vp.usage), vp.pointer)
-            else
-            {
+            } else {
                 LOG_D("attrib #%d, cidx #%u: type = %s, usage = %s, size = %d (disabled)",
                       i, vpa.cidx(i), glEnumToString(vp.type), glEnumToString(vp.usage), state.fpe_draw.current_data.sizes.data[i])
             }
