@@ -90,7 +90,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    /*if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
@@ -104,9 +104,9 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
         }
 
         bound_framebuffer->current_target = target;
-    }*/
+    }
 
-    if (target == GL_FRAMEBUFFER) {
+    /*if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
     }
 
@@ -136,7 +136,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
             attach[attach_index].level = level;
         }
         bound_framebuffer->current_target = target;
-    }
+    }*/
 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
@@ -292,7 +292,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         target = GL_DRAW_FRAMEBUFFER;
     }
 
-    /*if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
         struct attachment_t* attach =
             (target == GL_DRAW_FRAMEBUFFER)
                 ? bound_framebuffer->draw_attachment
@@ -304,9 +304,9 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
         }
         bound_framebuffer->current_target = target;
-    }*/
+    }
 
-    if (bound_framebuffer) {
+    /*if (bound_framebuffer) {
         struct attachment_t* attach =
             (target == GL_DRAW_FRAMEBUFFER)
                 ? bound_framebuffer->draw_attachment
@@ -332,7 +332,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             attach[attach_index].level = level;
         }
         bound_framebuffer->current_target = target;
-    }
+    }*/
 
     GLES.glFramebufferTexture(target, attachment, texture, level);
     CHECK_GL_ERROR
@@ -342,9 +342,9 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
     LOG()
     //TODO: LOG_D()
 
-    if (target == GL_FRAMEBUFFER) {
+    /*if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
-    }
+    }*/
 
     GLES.glFramebufferTextureLayer(target, attachment, texture, level, layer);
 }
