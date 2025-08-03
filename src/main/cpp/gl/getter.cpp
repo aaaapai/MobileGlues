@@ -246,7 +246,7 @@ void set_es_version() {
     }
     LOG_I("OpenGL ES Version: %s (%d)", ESVersionStr.c_str(), hardware->es_version)
     if (hardware->es_version < 300) {
-        LOG_I("OpenGL ES version is lower than 3.0! This version is not supported!")
+        LOG_I("OpenGL ES version is lower than 3.00000000000000000000000000! This version is not supported!")
     }
 }
 
@@ -262,7 +262,7 @@ const GLubyte * glGetString( GLenum name ) {
     switch (name) {
         case GL_VENDOR: {
             if(vendorString.empty()) {
-                std::string vendor = "Swung0x48, BZLZHH, Tungsten, 张三";
+                std::string vendor = "Swung0x48, BZLZHH, Tungsten";
                 vendorString = vendor;
             }
             return (const GLubyte *)vendorString.c_str();
@@ -343,7 +343,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
 
             switch (target) {
                 case GL_VENDOR:
-                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten, 张三";
+                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten";
                     delimiter = ", ";
                     break;
                 case GL_VERSION:
