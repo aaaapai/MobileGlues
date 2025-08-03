@@ -73,7 +73,7 @@ void fixed_function_draw_state_t::compile_vertexattrib(vertex_pointer_array_t& v
                 .type = GL_FLOAT,
                 .normalized = GL_FALSE,
                 .stride = 0,
-                .pointer = (const void*)offset,
+                .pointer = (const void*)(intptr_t)offset,
 //                .varying = true
         };
         offset += sizes.vertex_size * sizeof(GLfloat);
@@ -89,7 +89,7 @@ void fixed_function_draw_state_t::compile_vertexattrib(vertex_pointer_array_t& v
                 .type = GL_FLOAT,
                 .normalized = GL_FALSE,
                 .stride = 0,
-                .pointer = (const void*)offset,
+                .pointer = (const void*)(intptr_t)offset,
 //                .varying = true
         };
         offset += sizes.normal_size * sizeof(GLfloat);
@@ -105,7 +105,7 @@ void fixed_function_draw_state_t::compile_vertexattrib(vertex_pointer_array_t& v
                 .type = GL_FLOAT,
                 .normalized = GL_FALSE,
                 .stride = 0,
-                .pointer = (const void*)offset,
+                .pointer = (const void*)(intptr_t)offset,
 //                .varying = true
         };
         offset += sizes.color_size * sizeof(GLfloat);
@@ -123,7 +123,7 @@ void fixed_function_draw_state_t::compile_vertexattrib(vertex_pointer_array_t& v
                     .type = GL_FLOAT,
                     .normalized = GL_FALSE,
                     .stride = 0,
-                    .pointer = (const void*)offset,
+                    .pointer = (const void*)(intptr_t)offset,
 //                    .varying = true
             };
             offset += sizes.texcoord_size[i] * sizeof(GLfloat);
