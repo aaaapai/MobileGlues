@@ -9,7 +9,7 @@
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
 
-#define DEBUG 1
+#define DEBUG 0
 
 GLint maxBufferId = 0;
 GLint maxArrayId = 0;
@@ -200,7 +200,7 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
         if (find_real_buffer(buffers[i])) {
             GLuint real_buff = find_real_buffer(buffers[i]);
             GLES.glDeleteBuffers(1, &real_buff);
-            CHECK_GL_ERROR
+            //CHECK_GL_ERROR
         }
         remove_buffer(buffers[i]);
     }
