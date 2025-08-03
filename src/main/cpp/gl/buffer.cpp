@@ -11,8 +11,8 @@ using unordered_map = ankerl::unordered_dense::map<K, V>;
 
 #define DEBUG 0
 
-GLint maxBufferId = 0;
-GLint maxArrayId = 0;
+static GLint maxBufferId = 0;
+static GLint maxArrayId = 0;
 
 unordered_map<GLuint, GLuint> g_gen_buffers;
 unordered_map<GLuint, GLuint> g_gen_arrays;
