@@ -292,7 +292,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         target = GL_DRAW_FRAMEBUFFER;
     }
 
-    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < getMaxDrawBuffers()) {
+    if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
         struct attachment_t* attach =
             (target == GL_DRAW_FRAMEBUFFER)
                 ? bound_framebuffer->draw_attachment
