@@ -545,7 +545,7 @@ static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (static_cast<GLuint>(prev) == renderbufferID) {
+	if (static_cast<GLuint>(prev) == framebufferID) {
 		framebufferBindingStack[target].push_back(-1);
 		return;
 	}
