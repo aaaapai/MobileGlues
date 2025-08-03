@@ -22,7 +22,7 @@ struct shader_t shaderInfo;
 ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
 ankerl::unordered_dense::map<GLuint, bool> shader_map_is_atomic_counter_emulated;
 
-bool can_run_essl3(unsigned int esversion, const char *glsl) {
+static bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
         return true; 
     }
@@ -40,13 +40,13 @@ bool can_run_essl3(unsigned int esversion, const char *glsl) {
     return esversion >= glsl_version;
 }
 
-bool is_direct_shader(const char *glsl)
+static bool is_direct_shader(const char *glsl)
 {
     bool es3_ability = can_run_essl3(hardware->es_version, glsl);
     return es3_ability;
 }
 
-bool check_if_sampler_buffer_used(std::string str) {
+static bool check_if_sampler_buffer_used(std::string str) {
     return str.find("samplerBuffer") != std::string::npos;
 }
 
