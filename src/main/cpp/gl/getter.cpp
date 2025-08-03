@@ -271,11 +271,11 @@ const GLubyte * glGetString( GLenum name ) {
             if (versionString.empty()) {
                 versionString = GLVersion.toString();
                 if (GLVersion.toInt(2) == DEFAULT_GL_VERSION) {
-					versionString += " IllegalGlues ";
+					versionString += " MobileGlues ";
                 }
                 else {
 					Version defaultVersion = Version(DEFAULT_GL_VERSION);
-                    versionString += " §4§l(" + defaultVersion.toString() + ") IllegalGlues§r ";
+                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileGlues§r ";
                 }
 
                 versionString += std::to_string(MAJOR) + "."
@@ -348,7 +348,7 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
                     break;
                 case GL_VERSION:
                     str = (const GLubyte*)
-                        (GLVersion.toString() + " IllegalGlues").c_str();
+                        (GLVersion.toString() + " MobileGlues").c_str();
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
