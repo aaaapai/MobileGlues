@@ -99,7 +99,7 @@ static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFF
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == bufferID) {
+		if (static_cast<GLuint>(prev) == bufferID) {
 		bufferBindingStack[target].push_back(-1);
 		return;
 	}
@@ -545,7 +545,7 @@ static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == framebufferID) {
+	if (static_cast<GLuint>(prev) == renderbufferID) {
 		framebufferBindingStack[target].push_back(-1);
 		return;
 	}
@@ -856,7 +856,7 @@ static void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	GLenum bindingQuery = GetBindingQuery(GL_RENDERBUFFER);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == renderbufferID) {
+	if (static_cast<GLuint>(prev) == renderbufferID) {
 		renderbufferBindingStack[GL_RENDERBUFFER].push_back(-1);
 		return;
 	}
@@ -1706,7 +1706,7 @@ static void pushXFB(GLuint xfb) {
 	LOG_D("[DSA] pushXFB, xfb: %u", xfb);
 	GLint prev = 0;
 	glGetIntegerv(GL_TRANSFORM_FEEDBACK_BINDING, &prev);
-	if (xfb == prev) {
+	if (xfb == static_cast<GLuint>(prev)) {
 		g_xfbBindingStack.push_back(-1);
 		return;
 	}
