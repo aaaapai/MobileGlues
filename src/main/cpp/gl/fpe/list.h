@@ -82,14 +82,14 @@ public:
     static GLuint genDisplayList(GLsizei range) {
         GLuint first = nextListId;
         nextListId += range;
-        for (GLuint i = first; i < first + range; ++i) {
+        for (GLuint i = first; i < first + static_cast<GLuint>(range); ++i) {
             lists[i] = std::vector<std::unique_ptr<GLCmd>>{};
         }
         return first;
     }
 
     static void deleteDisplayList(GLuint list, GLsizei range) {
-        for (GLuint i = 0; i < range; ++i) {
+        for (GLuint i = 0; i < static_cast<GLuint>(range); ++i) {
             lists.erase(list + i);
         }
     }
