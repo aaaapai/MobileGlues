@@ -140,7 +140,7 @@ struct Version {
     }
 };
 
-typedef enum class FSR1_Quality_Preset : int { // may be useless
+enum class FSR1_Quality_Preset : int { // may be useless
     Disabled = 0,
     UltraQuality, // 1
     Quality,      // 2 
