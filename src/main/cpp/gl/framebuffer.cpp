@@ -21,7 +21,7 @@ GLint getMaxDrawBuffers() {
     return MAX_DRAW_BUFFERS;
 }
 
-void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment) {
+static void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment) {
     if (!bound_framebuffer)
         return;
 
