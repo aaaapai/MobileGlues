@@ -176,7 +176,7 @@ int commit_fpe_state_on_draw(GLenum* mode, GLint* first, GLsizei* count) {
     int ret = 0;
 
     // Making sure it is a valid pointer rather than an offset into the buffer
-    if (vpa.starting_pointer != nullptr && vpa.starting_pointer > (void*)vpa.stride) {
+    if (vpa.starting_pointer != nullptr && vpa.starting_pointer > reinterpret_cast<void*>(static_cast<uintptr_t>(vpa.stride))) {
         LOG_D("VB @ 0x%x, size = %d * %d = %d", vpa.starting_pointer, *count, vpa.stride, *count * vpa.stride)
 
 #if DEBUG || GLOBAL_DEBUG
