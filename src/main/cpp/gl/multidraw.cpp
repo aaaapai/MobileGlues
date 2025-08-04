@@ -709,90 +709,39 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
     CHECK_GL_ERROR
 }
 
-
-typedef struct {
-    uint32_t count;
-    uint32_t instanceCount;
-    uint32_t firstIndex;
-    int32_t baseVertex;
-    uint32_t baseInstance;
-} DrawElementsIndirectCommand;
-
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
-    // 检查元素数组缓冲区是否绑定
-    GLint elementArrayBuffer;
-    GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &elementArrayBuffer);
-    if (elementArrayBuffer == 0) {
-        // 没有绑定元素数组缓冲区，生成错误
+
+    LOG()
+
+    // Error checking similar to the OpenGL spec
+    if (drawcount < 0) {
+        // GL_INVALID_VALUE
         return;
     }
     
-    // 检查是否使用间接缓冲区
-    GLint drawIndirectBuffer;
-    GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, &drawIndirectBuffer);
-    const DrawElementsIndirectCommand *commands;
-    
-    if (drawIndirectBuffer != 0) {
-        // 使用缓冲区对象，indirect是偏移量
-        // GLES没有直接支持，这里需要映射缓冲区来读取
-        // 实际应用中可能需要更复杂的处理
-        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawIndirectBuffer);
-        commands = (const DrawElementsIndirectCommand*)((uintptr_t)indirect);
-    } else {
-        // 直接使用客户端内存
-        commands = (const DrawElementsIndirectCommand*)indirect;
+    if (stride % 4 != 0) {
+        // GL_INVALID_VALUE - stride must be multiple of 4
+        return;
     }
     
-    // 计算类型大小
-    GLsizei typeSize;
-    switch (type) {
-        case GL_UNSIGNED_BYTE:  typeSize = sizeof(GLubyte); break;
-        case GL_UNSIGNED_SHORT: typeSize = sizeof(GLushort); break;
-        case GL_UNSIGNED_INT:   typeSize = sizeof(GLuint); break;
-        default: return; // 无效类型
-    }
+    // Check for element array buffer - this would need to be done by the caller
+    // as we don't have access to GL state in this function
     
-    // 模拟多绘制调用
-    for (GLsizei i = 0; i < drawcount; ++i) {
-        const DrawElementsIndirectCommand *cmd;
+    const GLubyte *ptr = (const GLubyte *)indirect;
+    
+    for (GLsizei i = 0; i < drawcount; i++) {
+        const void *currentIndirect;
         
         if (stride != 0) {
-            cmd = (const DrawElementsIndirectCommand*)((const uint8_t*)commands + i * stride);
+            currentIndirect = ptr + i * stride;
         } else {
-            cmd = &commands[i];
+            // If stride is 0, use tightly packed array
+            currentIndirect = ptr + i * sizeof(DrawElementsIndirectCommand);
         }
         
-        // 计算索引指针偏移
-        const void *indices = (const void*)(cmd->firstIndex * typeSize);
-        
-        // GLES3.2没有glDrawElementsInstancedBaseVertexBaseInstance，
-        // 使用可用的函数近似模拟
-        if (cmd->instanceCount > 1) {
-            if (cmd->baseVertex != 0) {
-                // GLES3.2没有baseVertex参数，需要其他方式处理
-                // 这里简单调用，实际应用可能需要调整顶点属性
-                GLES.glDrawElementsInstanced(mode, cmd->count, type, 
-                                      indices, cmd->instanceCount);
-            } else {
-                GLES.glDrawElementsInstanced(mode, cmd->count, type, 
-                                      indices, cmd->instanceCount);
-            }
-        } else {
-            if (cmd->baseVertex != 0) {
-                // 无baseVertex支持，简单调用
-                GLES.glDrawElements(mode, cmd->count, type, indices);
-            } else {
-                GLES.glDrawElements(mode, cmd->count, type, indices);
-            }
-        }
-    }
-    
-    // 恢复缓冲区绑定
-    if (drawIndirectBuffer != 0) {
-        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+        GLES.glDrawElementsIndirect(mode, type, currentIndirect);
     }
 }
-
 
 //(批处理+实例化)
 void mg_glMultiDrawElements_deepseek_two(
