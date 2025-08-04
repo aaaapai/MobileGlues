@@ -56,13 +56,13 @@ GLenum ConvertTextureTargetToGLEnum(TextureTarget target) {
     case TextureTarget::TEXTURE_RECTANGLE: return GL_TEXTURE_RECTANGLE;
     case TextureTarget::PROXY_TEXTURE_RECTANGLE: return GL_PROXY_TEXTURE_RECTANGLE;
     case TextureTarget::TEXTURE_CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
-    case TextureTarget::PROXY_TEXTURE_CUBE_MAP: return GL_PROXY_TEXTURE_CUBE_MAP;
-    // case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X: return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-    // case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X: return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-    // case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y: return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-    // case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-    // case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z: return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-    // case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    case TextureTarget::PROXY_TEXTURE_CUBE_MAP:
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X:
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z: return GL_PROXY_TEXTURE_CUBE_MAP;
     case TextureTarget::TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_CUBE_MAP_ARRAY;
     case TextureTarget::PROXY_TEXTURE_CUBE_MAP_ARRAY: return GL_PROXY_TEXTURE_CUBE_MAP_ARRAY;
     case TextureTarget::TEXTURE_BUFFER: return GL_TEXTURE_BUFFER;
