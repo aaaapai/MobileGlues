@@ -740,6 +740,56 @@ void glBindVertexArray(GLuint array) {
     CHECK_GL_ERROR
 }
 
+#include <GLES3/gl32.h>
+#include <stddef.h>
+
+void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, 
+                       const GLuint *buffers, const GLintptr *offsets, const GLintptr *sizes) {
+
+    LOG()
+    // 获取目标的最大绑定点数量
+    GLint max_bindings = 0;
+    switch (target) {
+        case GL_ATOMIC_COUNTER_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max_bindings);
+            break;
+        case GL_UNIFORM_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_SHADER_STORAGE_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_bindings);
+            break;
+    }
+    
+    // 处理NULL buffers情况 - 解除绑定
+    if (buffers == nullptr) {
+        for (GLsizei i = 0; i < count; i++) {
+            GLES.glBindBufferRange(target, first + i, 0, 0, 0);
+        }
+        return;
+    }
+    
+    // 逐个绑定缓冲
+    for (GLsizei i = 0; i < count; i++) {
+        // 检查缓冲名称是否有效
+        if (buffers[i] != 0) {
+            GLint isBuffer = 0;
+            GLES.glGetBufferParameteriv(buffers[i], GL_BUFFER_SIZE, &isBuffer);
+            if (isBuffer == 0) {
+                // 不是有效的缓冲对象，生成错误但继续处理其他绑定
+                GLES.glGetError(); // 清除之前的错误
+                continue;
+            }
+        }
+        
+        // 实际绑定操作
+        glBindBufferRange(target, first + i, buffers[i], offsets[i], sizes[i]);
+    }
+}
+
 extern "C" {
 GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
 GLAPI GLAPIENTRY void glBufferDataARB(GLenum target, GLsizeiptr size, const void* data, GLenum usage) __attribute__((alias("glBufferData")));
