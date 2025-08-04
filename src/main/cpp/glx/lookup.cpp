@@ -18,7 +18,7 @@
 
 std::string handle_multidraw_func_name(std::string name) {
     std::string namestr = name;
-    if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements") {
+    if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements" && namestr != "glMultiDrawElementsIndirect") {
         return name;
     } else {
         namestr = "mg_" + namestr;
