@@ -32,6 +32,7 @@ struct draw_elements_indirect_command_t {
     GLuint  instanceCount;
     GLuint  firstIndex;
     GLint   baseVertex;
+    GLuint  baseInstance;
     GLuint  reservedMustBeZero;
 };
 
