@@ -712,24 +712,11 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     LOG()
 
-    // 增强的错误检查
-    if (drawcount < 0) {
-        // GL_INVALID_VALUE
-        LOG_E("Invalid drawcount: %d", drawcount)
-        return;
-    }
-    
-    if (stride < 0 || (stride > 0 && stride % 4 != 0)) {
-        // GL_INVALID_VALUE - stride must be 0 or multiple of 4
-        LOG_E("Invalid stride: %d (must be 0 or multiple of 4)", stride)
-        return;
-    }
-    
-    if (!indirect && drawcount > 0) {
+    /*if (!indirect && drawcount > 0) {
         // GL_INVALID_VALUE - indirect cannot be NULL if drawcount > 0
-        LOG_E("Indirect pointer is NULL with drawcount > 0")
+        LOG_D("Indirect pointer is NULL with drawcount > 0")
         return;
-    }
+    }*/
     
     // 保存当前绑定的间接绘制缓冲区
     GLuint prevIndirectBuffer = 0;
