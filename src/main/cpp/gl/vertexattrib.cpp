@@ -394,20 +394,6 @@ static void vertex_attrib_format_helper(GLuint vaobj, GLuint attribindex,
     }
 }
 
-// 标准浮点顶点属性格式
-void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type,
-                         GLboolean normalized, GLuint relativeoffset) {
-    vertex_attrib_format_helper(0, attribindex, size, type, 
-                               normalized, GL_FALSE, relativeoffset);
-}
-
-// 整数顶点属性格式
-void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
-                          GLuint relativeoffset) {
-    vertex_attrib_format_helper(0, attribindex, size, type, 
-                              GL_FALSE, GL_TRUE, relativeoffset);
-}
-
 // 64位双精度模拟(使用float模拟)
 void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
                           GLuint relativeoffset) {
