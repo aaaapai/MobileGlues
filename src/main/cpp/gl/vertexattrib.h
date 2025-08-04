@@ -56,6 +56,19 @@ GLAPI GLAPIENTRY void glVertexAttrib4sv (GLuint index, const GLshort *v);
 GLAPI GLAPIENTRY void glVertexAttrib4ubv (GLuint index, const GLubyte *v);
 GLAPI GLAPIENTRY void glVertexAttrib4uiv (GLuint index, const GLuint *v);
 GLAPI GLAPIENTRY void glVertexAttrib4usv (GLuint index, const GLushort *v);
+GLAPI GLAPIENTRY void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type,
+                         GLboolean normalized, GLuint relativeoffset);
+GLAPI GLAPIENTRY void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLuint relativeoffset);
+GLAPI GLAPIENTRY void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                              GLenum type, GLboolean normalized,
+                              GLuint relativeoffset);
+GLAPI GLAPIENTRY void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLuint relativeoffset);
+GLAPI GLAPIENTRY void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLuint relativeoffset);
+GLAPI GLAPIENTRY void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLuint relativeoffset);
 
 #ifdef __cplusplus
 }
