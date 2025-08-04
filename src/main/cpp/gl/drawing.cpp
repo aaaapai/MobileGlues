@@ -19,8 +19,6 @@
 template <typename Key, typename Value>
 using unordered_map = ankerl::unordered_dense::map<Key, Value>;
 
-static GLuint bufSampelerProg;
-static GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
 extern unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
