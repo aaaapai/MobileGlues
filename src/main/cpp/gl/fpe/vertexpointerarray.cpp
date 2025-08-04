@@ -30,7 +30,7 @@ vertex_pointer_array_t vertex_pointer_array_t::normalize() {
         that.stride = attributes[first_va_idx].stride;
 
     // if not valid starting pointer
-    if (!(that.stride != 0 && that.starting_pointer != 0 && that.starting_pointer > (void*)that.stride)) {
+    if (!(that.stride != 0 && that.starting_pointer != nullptr && reinterpret_cast<uintptr_t>(that.starting_pointer) > static_cast<uintptr_t>(that.stride))) {
         that.starting_pointer = attributes[first_va_idx].pointer;
     }
 
