@@ -332,3 +332,115 @@ void glVertexAttrib4uiv (GLuint index, const GLuint *v) {
     GLfloat fv3 = ((GLfloat)v[3] / 4294967295.0f);
     GLES.glVertexAttrib4f(index, fv0, fv1, fv2, fv3);
 }
+
+// 模拟顶点属性格式函数的核心实现
+static void vertex_attrib_format_helper(GLuint vaobj, GLuint attribindex, 
+                                      GLint size, GLenum type, 
+                                      GLboolean normalized, 
+                                      GLboolean integer,
+                                      GLuint relativeoffset) {
+    // 参数验证
+    GLint max_attribs;
+    GLES.glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
+    if (attribindex >= (GLuint)max_attribs) {
+        glGetError(); // 触发GL_INVALID_VALUE
+        return;
+    }
+
+    // 检查size有效性
+    if (size != 1 && size != 2 && size != 3 && size != 4) {
+        glGetError(); // 触发GL_INVALID_VALUE
+        return;
+    }
+
+    // 检查type有效性
+    switch(type) {
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+        case GL_INT:
+        case GL_UNSIGNED_INT:
+        case GL_FLOAT:
+        case GL_HALF_FLOAT:
+        case GL_FIXED:
+            break;
+        default:
+            glGetError(); // 触发GL_INVALID_ENUM
+            return;
+    }
+
+    // 保存当前VAO绑定状态
+    GLint prev_vao;
+    GLES.glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prev_vao);
+    
+    // 绑定目标VAO
+    if (vaobj != 0) {
+        GLES.glBindVertexArray(vaobj);
+    }
+
+    // 设置顶点属性指针
+    if (integer) {
+        GLES.glVertexAttribIPointer(attribindex, size, type, 0, 
+                             (const void*)(intptr_t)relativeoffset);
+    } else {
+        GLES.glVertexAttribPointer(attribindex, size, type, normalized, 0,
+                            (const void*)(intptr_t)relativeoffset);
+    }
+
+    // 恢复之前的VAO绑定
+    if (vaobj != 0) {
+        GLES.glBindVertexArray(prev_vao);
+    }
+}
+
+// 标准浮点顶点属性格式
+void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type,
+                         GLboolean normalized, GLuint relativeoffset) {
+    vertex_attrib_format_helper(0, attribindex, size, type, 
+                               normalized, GL_FALSE, relativeoffset);
+}
+
+// 整数顶点属性格式
+void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLuint relativeoffset) {
+    vertex_attrib_format_helper(0, attribindex, size, type, 
+                              GL_FALSE, GL_TRUE, relativeoffset);
+}
+
+// VAO版本的浮点格式
+void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                              GLenum type, GLboolean normalized,
+                              GLuint relativeoffset) {
+    vertex_attrib_format_helper(vaobj, attribindex, size, type,
+                              normalized, GL_FALSE, relativeoffset);
+}
+
+// VAO版本的整数格式
+void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLuint relativeoffset) {
+    vertex_attrib_format_helper(vaobj, attribindex, size, type,
+                              GL_FALSE, GL_TRUE, relativeoffset);
+}
+
+// 64位双精度模拟(使用float模拟)
+void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLuint relativeoffset) {
+    if (type != GL_DOUBLE) {
+        glGetError(); // 触发GL_INVALID_ENUM
+        return;
+    }
+    vertex_attrib_format_helper(0, attribindex, size, GL_FLOAT,
+                              GL_FALSE, GL_FALSE, relativeoffset);
+}
+
+// VAO版本的64位双精度模拟
+void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLuint relativeoffset) {
+    if (type != GL_DOUBLE) {
+        glGetError(); // 触发GL_INVALID_ENUM
+        return;
+    }
+    vertex_attrib_format_helper(vaobj, attribindex, size, GL_FLOAT,
+                              GL_FALSE, GL_FALSE, relativeoffset);
+}
