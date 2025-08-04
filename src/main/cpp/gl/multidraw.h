@@ -60,6 +60,9 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLs
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_deepseek_two(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_native(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 
+GLAPI GLAPIENTRY void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
+GLAPI GLAPIENTRY void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
+
 #ifdef __cplusplus
 }
 #endif
