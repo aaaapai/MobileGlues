@@ -676,6 +676,34 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
+static void inject_shaderDrawParameters(std::string& glsl) {
+    const std::regex defRegex(R"(int\s+mg_gl_DrawID\s*;)", std::regex::ECMAScript);
+
+    if (glsl.find("gl_DrawID") == std::string::npos) {
+        return;
+    }
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    const std::string drawParametersImpl = R"(
+// GL_ARB_shader_draw_parameters emulation for GLES3.2
+#ifndef GL_ARB_shader_draw_parameters
+#define gl_DrawID mg_gl_DrawID
+#define gl_DrawIDARB mg_gl_DrawIDARB
+#define gl_BaseInstanceARB mg_gl_BaseInstanceARB
+
+uniform int mg_gl_DrawID;
+uniform int mg_gl_BaseInstanceARB;
+uniform int mg_gl_DrawIDARB;
+// If more draw parameters are needed, they can be added here
+#endif
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + drawParametersImpl + "\n");
+}
+
 static inline void inject_temporal_filter(std::string& glsl) {
     const std::regex defRegex(R"(vec4\s+GI_TemporalFilter\s*\()", std::regex::ECMAScript);
 
