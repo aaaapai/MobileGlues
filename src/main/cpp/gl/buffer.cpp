@@ -740,9 +740,6 @@ void glBindVertexArray(GLuint array) {
     CHECK_GL_ERROR
 }
 
-#include <GLES3/gl32.h>
-#include <stddef.h>
-
 void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, 
                        const GLuint *buffers, const GLintptr *offsets, const GLintptr *sizes) {
 
