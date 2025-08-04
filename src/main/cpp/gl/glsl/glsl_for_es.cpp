@@ -892,7 +892,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
+    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgSpvRules)) {
         LOG_E("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
         shaderc_result_release(optimized_glsl_res);
         errc = -1;
