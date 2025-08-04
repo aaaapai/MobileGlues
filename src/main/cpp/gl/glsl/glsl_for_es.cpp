@@ -826,6 +826,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
         inject_textureQueryLod(ret);
     }
 
+    inject_shaderDrawParameters(ret);
 
     // MobileGlues macros injection
     inject_mg_macro_definition(ret);
