@@ -408,21 +408,6 @@ void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
                               GL_FALSE, GL_TRUE, relativeoffset);
 }
 
-// VAO版本的浮点格式
-void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
-                              GLenum type, GLboolean normalized,
-                              GLuint relativeoffset) {
-    vertex_attrib_format_helper(vaobj, attribindex, size, type,
-                              normalized, GL_FALSE, relativeoffset);
-}
-
-// VAO版本的整数格式
-void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size,
-                               GLenum type, GLuint relativeoffset) {
-    vertex_attrib_format_helper(vaobj, attribindex, size, type,
-                              GL_FALSE, GL_TRUE, relativeoffset);
-}
-
 // 64位双精度模拟(使用float模拟)
 void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
                           GLuint relativeoffset) {
@@ -431,16 +416,5 @@ void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
         return;
     }
     vertex_attrib_format_helper(0, attribindex, size, GL_FLOAT,
-                              GL_FALSE, GL_FALSE, relativeoffset);
-}
-
-// VAO版本的64位双精度模拟
-void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size,
-                               GLenum type, GLuint relativeoffset) {
-    if (type != GL_DOUBLE) {
-        glGetError(); // 触发GL_INVALID_ENUM
-        return;
-    }
-    vertex_attrib_format_helper(vaobj, attribindex, size, GL_FLOAT,
                               GL_FALSE, GL_FALSE, relativeoffset);
 }
