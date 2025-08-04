@@ -710,37 +710,80 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
 }
 
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
-
     LOG()
 
-    // Error checking similar to the OpenGL spec
+    // 增强的错误检查
     if (drawcount < 0) {
         // GL_INVALID_VALUE
+        LOG_E("Invalid drawcount: %d", drawcount)
         return;
     }
     
-    if (stride % 4 != 0) {
-        // GL_INVALID_VALUE - stride must be multiple of 4
+    if (stride < 0 || (stride > 0 && stride % 4 != 0)) {
+        // GL_INVALID_VALUE - stride must be 0 or multiple of 4
+        LOG_E("Invalid stride: %d (must be 0 or multiple of 4)", stride)
         return;
     }
     
-    // Check for element array buffer - this would need to be done by the caller
-    // as we don't have access to GL state in this function
+    if (!indirect && drawcount > 0) {
+        // GL_INVALID_VALUE - indirect cannot be NULL if drawcount > 0
+        LOG_E("Indirect pointer is NULL with drawcount > 0")
+        return;
+    }
+    
+    // 保存当前绑定的间接绘制缓冲区
+    GLuint prevIndirectBuffer = 0;
+    GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, (GLint*)&prevIndirectBuffer);
+    
+    // 如果没有绑定缓冲区，使用客户端内存模式
+    if (prevIndirectBuffer == 0 && indirect) {
+        // 使用现有的缓冲区管理代码
+        if (!g_indirect_cmds_inited) {
+            GLES.glGenBuffers(1, &g_indirectbuffer);
+            g_indirect_cmds_inited = true;
+        }
+        
+        // 绑定我们的间接缓冲区
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_indirectbuffer);
+        
+        // 确保缓冲区足够大
+        size_t requiredSize = drawcount * (stride ? stride : sizeof(draw_elements_indirect_command_t));
+        if (g_cmdbufsize * sizeof(draw_elements_indirect_command_t) < requiredSize) {
+            size_t newSize = g_cmdbufsize;
+            while (newSize * sizeof(draw_elements_indirect_command_t) < requiredSize) {
+                newSize *= 2;
+            }
+            
+            GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, 
+                            newSize * sizeof(draw_elements_indirect_command_t),
+                            NULL, GL_DYNAMIC_DRAW);
+            g_cmdbufsize = newSize;
+        }
+        
+        // 上传数据到缓冲区
+        GLES.glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, requiredSize, indirect);
+    }
     
     const GLubyte *ptr = (const GLubyte *)indirect;
     
+    // 计算实际步长
+    size_t effectiveStride = stride;
+    if (stride == 0) {
+        effectiveStride = sizeof(draw_elements_indirect_command_t);
+    }
+    
+    // 执行间接绘制
     for (GLsizei i = 0; i < drawcount; i++) {
-        const void *currentIndirect;
-        
-        if (stride != 0) {
-            currentIndirect = ptr + i * stride;
-        } else {
-            // If stride is 0, use tightly packed array
-            currentIndirect = ptr + i * sizeof(DrawElementsIndirectCommand);
-        }
-        
+        const void *currentIndirect = ptr + i * effectiveStride;
         GLES.glDrawElementsIndirect(mode, type, currentIndirect);
     }
+    
+    // 恢复之前绑定的缓冲区
+    if (prevIndirectBuffer == 0 && indirect) {
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prevIndirectBuffer);
+    }
+    
+    CHECK_GL_ERROR
 }
 
 //(批处理+实例化)
