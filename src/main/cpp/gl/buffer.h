@@ -109,6 +109,8 @@ GLAPI GLAPIENTRY GLboolean glIsVertexArray(GLuint array);
 
 GLAPI GLAPIENTRY void glBindVertexArray(GLuint array);
 
+GLAPI GLAPIENTRY void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes);
+
 #ifdef __cplusplus
 }
 #endif
