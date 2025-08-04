@@ -740,14 +740,6 @@ void glBindVertexArray(GLuint array) {
     CHECK_GL_ERROR
 }
 
-void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
-
-    LOG()
-    // Bind the buffer to the generic binding point
-    glBindBuffer(target, buffer);
-    glBindBufferRange(target, index, buffer, offset, size);
-}
-
 extern "C" {
 GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
 GLAPI GLAPIENTRY void glBufferDataARB(GLenum target, GLsizeiptr size, const void* data, GLenum usage) __attribute__((alias("glBufferData")));
