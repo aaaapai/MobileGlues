@@ -86,43 +86,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
     func_ptr(mode, counts, type, indices, primcount, basevertex);
 }
 
-void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
-    static glMultiDrawElementsBaseVertex_t func_ptr = nullptr;
-
-    if (func_ptr == nullptr) {
-        switch (global_settings.multidraw_mode) {
-            case multidraw_mode_t::PreferIndirect:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_indirect;
-                break;
-            case multidraw_mode_t::PreferBaseVertex:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_basevertex;
-                break;
-            case multidraw_mode_t::PreferMultidrawIndirect:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_multiindirect;
-                break;
-            case multidraw_mode_t::DrawElements:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
-                break;
-            case multidraw_mode_t::Compute:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_compute;
-                break;
-            case multidraw_mode_t::DeepSeekOne:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
-                break;
-            case multidraw_mode_t::DeepSeekTwo:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
-                break;
-            case multidraw_mode_t::Native:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_native;
-                break;
-            default:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
-                break;
-        }
-    }
-
-    func_ptr(mode, counts, type, indices, primcount, basevertex);
-}
+typedef void (*glMultiDrawElementsIndirect_t)(GLenum, GLenum, const void *, GLsizei, GLsizei);
 
 void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     static glMultiDrawElementsIndirect_t func_ptr = nullptr;
