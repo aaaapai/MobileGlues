@@ -172,6 +172,7 @@ void InitGLESBaseExtensions() {
              "GL_KHR_no_error "
              "GL_ARB_clear_texture "
 	     "GL_ARB_vertex_program "
+	     "GL_ARB_shader_draw_parameters "
              "GL_ARB_texture_view ";
 }
 
