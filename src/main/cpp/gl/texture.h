@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format);
-int nlevel(int size, int level);
 static int is_depth_format(GLenum format);
 static GLenum get_binding_for_target(GLenum target);
 std::shared_ptr<TextureObject> mgGetTexObjectByTarget(GLenum target);
