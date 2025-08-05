@@ -40,7 +40,7 @@ int isProxyTexture(GLenum target) {
     return 0;
 }
 
-int inline nlevel(int size, int level) {
+static int inline nlevel(int size, int level) {
     if (size) {
         size >>= level;
         if (!size) size = 1;
