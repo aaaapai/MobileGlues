@@ -681,6 +681,7 @@ static void inject_shaderDrawParameters(std::string& glsl) {
 
     // 检查是否使用了扩展中的任何标识符
     if (glsl.find("gl_DrawID") == std::string::npos && 
+        glsl.find("gl_DrawIDARB") == std::string::npos && 
         glsl.find("gl_BaseInstanceARB") == std::string::npos &&
         glsl.find("gl_BaseVertexARB") == std::string::npos) {
         return;
@@ -690,36 +691,7 @@ static void inject_shaderDrawParameters(std::string& glsl) {
     }
 
     const std::string drawParametersImpl = R"(
-// GL_ARB_shader_draw_parameters emulation for GLES3.2
-#ifndef GL_ARB_shader_draw_parameters
-#define gl_DrawID mg_gl_DrawID
-#define gl_DrawIDARB mg_gl_DrawIDARB
-#define gl_BaseInstanceARB mg_gl_BaseInstanceARB
-#define gl_BaseVertexARB mg_gl_BaseVertexARB
-#define gl_InstanceID mg_gl_InstanceID_Emulated
-
-// 核心模拟逻辑
-uniform int mg_gl_DrawID;
-uniform int mg_gl_DrawIDARB;
-uniform int mg_gl_BaseInstanceARB;
-uniform int mg_gl_BaseVertexARB;
-
-// 因为GLES没有gl_InstanceID，我们也需要模拟它
-int mg_gl_InstanceID_Emulated = gl_InstanceID; // 回退到原生支持（如果存在）
-
-// 如果使用gl_InstanceID但需要基实例偏移
-#if defined(USE_BASE_INSTANCE)
-#undef mg_gl_InstanceID_Emulated
-int mg_gl_InstanceID_Emulated = gl_InstanceID - mg_gl_BaseInstanceARB;
-#endif
-
-// 顶点着色器中使用的模拟gl_VertexID（如果需要）
-#ifdef VERTEX_SHADER
-#define gl_VertexID (mg_gl_VertexID_Emulated)
-int mg_gl_VertexID_Emulated = gl_VertexID - mg_gl_BaseVertexARB;
-#endif
-
-#endif // GL_ARB_shader_draw_parameters emulation
+#extension GL_ARB_shader_draw_parameters : enable
 )";
 
     size_t insertPos = find_insertion_point(glsl);
