@@ -48,8 +48,7 @@ void init_target_egl(void) {
             EGL_DEPTH_SIZE, 24,
             EGL_ALPHA_MASK_SIZE, 8,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
-            EGL_CONFORMANT, EGL_OPENGL_ES3_BIT_KHR,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
             EGL_NONE
     };
 
@@ -79,7 +78,7 @@ void init_target_egl(void) {
     }
 
     ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
-    if (ChooseConfig_result != EGL_TRUE) {
+    if (ChooseConfig_result != EGL_TRUE && ChooseConfig_result != EGL_SUCCESS) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
