@@ -109,7 +109,7 @@ std::string getGPUInfo() {
 
     const EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     EGLContext ctx = egl_func::eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
-    if (ctx == EGL_NO_CONTEXT) {
+    if (ctx == EGL_NO_CONTEXT && ctx != (void *)EGL_SUCCESS) {
         egl_func::eglTerminate(display);
         dlclose(egllib);
         return std::string();
