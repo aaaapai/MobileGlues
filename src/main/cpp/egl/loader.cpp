@@ -98,13 +98,13 @@ void init_target_egl(void) {
     }
 
     eglContext = egl_eglCreateContext(eglDisplay, pbufConfig, EGL_NO_CONTEXT, ctxAttribs);
-    if (eglContext == EGL_NO_CONTEXT && eglContext != EGL_SUCCESS) {
+    if (eglContext == EGL_NO_CONTEXT && eglContext != (void *)EGL_SUCCESS) {
         LOG_E("eglCreateContext failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     eglSurface = egl_eglCreatePbufferSurface(eglDisplay, pbufConfig, pbAttribs);
-    if (eglSurface == EGL_NO_SURFACE && eglSurface != EGL_SUCCESS) {
+    if (eglSurface == EGL_NO_SURFACE && eglSurface != (void *)EGL_SUCCESS) {
         LOG_E("eglCreatePbufferSurface failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
