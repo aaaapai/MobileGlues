@@ -99,7 +99,7 @@ std::string getGPUInfo() {
         EGL_NONE
     };
     EGLint numConfigs = 0;
-    if ((egl_func::eglChooseConfig(display, attribs, nullptr, 0, &numConfigs) != EGL_TRUE && egl_func::eglChooseConfig(display, attribs, nullptr, 0, &numConfigs) != EGL_SUCCESS) || numConfigs == 0) {
+    if (egl_func::eglChooseConfig(display, attribs, nullptr, 0, &numConfigs) != EGL_TRUE || numConfigs == 0) {
         egl_func::eglTerminate(display);
         dlclose(egllib);
         return std::string();
@@ -109,13 +109,13 @@ std::string getGPUInfo() {
 
     const EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     EGLContext ctx = egl_func::eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
-    if (ctx == EGL_NO_CONTEXT && ctx != (void *)EGL_SUCCESS) {
+    if (ctx == EGL_NO_CONTEXT) {
         egl_func::eglTerminate(display);
         dlclose(egllib);
         return std::string();
     }
 
-    if (egl_func::eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx) != EGL_TRUE && egl_func::eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx) != EGL_SUCCESS) {
+    if (egl_func::eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx) != EGL_TRUE) {
         egl_func::eglDestroyContext(display, ctx);
         egl_func::eglTerminate(display);
         dlclose(egllib);
