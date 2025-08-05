@@ -94,10 +94,8 @@ std::string getGPUInfo() {
         EGL_RED_SIZE,    8,
         EGL_ALPHA_SIZE,  8,
         EGL_DEPTH_SIZE, 24,
-        EGL_ALPHA_MASK_SIZE, 8,
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
-        EGL_CONFORMANT, EGL_OPENGL_ES3_BIT_KHR,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_NONE
     };
     EGLint numConfigs = 0;
@@ -109,7 +107,7 @@ std::string getGPUInfo() {
     EGLConfig config;
     egl_func::eglChooseConfig(display, attribs, &config, 1, &numConfigs);
 
-    const EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+    const EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     EGLContext ctx = egl_func::eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
     if (ctx == EGL_NO_CONTEXT) {
         egl_func::eglTerminate(display);
