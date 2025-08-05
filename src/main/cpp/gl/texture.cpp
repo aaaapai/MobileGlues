@@ -29,7 +29,7 @@
 
 #define DEBUG 0
 
-int nlevel(int size, int level) {
+static int inline nlevel(int size, int level) {
     if (size) {
         size >>= level;
         if (!size) size = 1;
