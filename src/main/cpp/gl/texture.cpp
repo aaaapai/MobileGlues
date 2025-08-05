@@ -29,17 +29,6 @@
 
 #define DEBUG 0
 
-int isProxyTexture(GLenum target) {
-    switch (target) {
-        case GL_PROXY_TEXTURE_1D:
-        case GL_PROXY_TEXTURE_2D:
-        case GL_PROXY_TEXTURE_3D:
-        case GL_PROXY_TEXTURE_RECTANGLE_ARB:
-            return 1;
-    }
-    return 0;
-}
-
 static int inline nlevel(int size, int level) {
     if (size) {
         size >>= level;
@@ -1405,24 +1394,3 @@ void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize, void*
     glGetCompressedTexImage(target, level, pixels);
 }
 
-void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params) {
-
-    LOG()
-
-    // NSLog("glGetTexLevelParameteriv(%x, %d, %x, %p)", target, level, pname, params);
-    if (isProxyTexture(target)) {
-        switch (pname) {
-            case GL_TEXTURE_WIDTH:
-                (*params) = nlevel(proxy_width,level);
-                break;
-            case GL_TEXTURE_HEIGHT:
-                (*params) = nlevel(proxy_height,level);
-                break;
-            case GL_TEXTURE_INTERNAL_FORMAT:
-                (*params) = proxy_intformat;
-                break;
-        }
-    } else {
-        GLES.glGetTexLevelParameteriv(target, level, pname, params);
-    }
-}
