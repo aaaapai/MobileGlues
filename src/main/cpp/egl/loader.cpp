@@ -98,19 +98,19 @@ void init_target_egl(void) {
     }
 
     eglContext = egl_eglCreateContext(eglDisplay, pbufConfig, EGL_NO_CONTEXT, ctxAttribs);
-    if (eglContext == EGL_NO_CONTEXT) {
+    if (eglContext == EGL_NO_CONTEXT && eglContext != EGL_SUCCESS) {
         LOG_E("eglCreateContext failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     eglSurface = egl_eglCreatePbufferSurface(eglDisplay, pbufConfig, pbAttribs);
-    if (eglSurface == EGL_NO_SURFACE) {
+    if (eglSurface == EGL_NO_SURFACE && eglSurface != EGL_SUCCESS) {
         LOG_E("eglCreatePbufferSurface failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     MakeCurrent_result = egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-    if (MakeCurrent_result != EGL_TRUE) {
+    if (MakeCurrent_result != EGL_TRUE && MakeCurrent_result != EGL_SUCCESS) {
         LOG_E("eglMakeCurrent failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
