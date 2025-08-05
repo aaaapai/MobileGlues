@@ -1022,32 +1022,32 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     }
     const char* s[] = { correct_glsl_str.c_str() };
     int errc = 0;
-    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
+    /*std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
     if (errc != 0) {
         return_code = -1;
         return "";
-    }
+    }*/
     errc = 0;
-    std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
+    /*std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
     if (errc != 0) {
         return_code = -2;
         return "";
-    }
+    }*/
 
     // Post-processing ESSL
 
     if (glsl_type != GL_COMPUTE_SHADER) {
-        essl = removeLayoutBinding(essl);
+        correct_glsl_str = removeLayoutBinding(correct_glsl_str);
     }
-    essl = processOutColorLocations(essl);
-    essl = forceSupporterOutput(essl);
+    correct_glsl_str = processOutColorLocations(correct_glsl_str);
+    correct_glsl_str = forceSupporterOutput(correct_glsl_str);
 
-    LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
+    //LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
     return_code = errc;
     if (return_code == 0) {
        return_code = atomicCounterEmulated ? 1 : 0;
     }
-    return essl;
+    return correct_glsl_str;
 }
 
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
