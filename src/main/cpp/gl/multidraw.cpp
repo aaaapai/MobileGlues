@@ -712,12 +712,9 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     LOG()
 
-    /*if (!indirect && drawcount > 0) {
-        // GL_INVALID_VALUE - indirect cannot be NULL if drawcount > 0
-        LOG_D("Indirect pointer is NULL with drawcount > 0")
-        return;
-    }*/
-    
+    void prepareForDraw();
+    prepareForDraw();
+
     // 保存当前绑定的间接绘制缓冲区
     GLuint prevIndirectBuffer = 0;
     GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, (GLint*)&prevIndirectBuffer);
