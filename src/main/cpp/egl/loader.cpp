@@ -51,9 +51,9 @@ void init_target_egl(void) {
             EGL_NONE
     };
 
-    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
 
-    EGLint pbAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
+    EGLint pbAttribs[] = { EGL_WIDTH, 32, EGL_HEIGHT, 32, EGL_NONE };
 
     EGLConfig pbufConfig;
     EGLint configsFound = 0;
@@ -70,7 +70,7 @@ void init_target_egl(void) {
         goto cleanup;
     }
 
-    BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
+    BindAPI_result = egl_eglBindAPI(EGL_OPENGL_API);
     if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
