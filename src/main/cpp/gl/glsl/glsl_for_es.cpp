@@ -782,6 +782,9 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
 
+    //For Optifine and angle desktopgl
+    replace_all(ret, "#extension GL_EXT_blend_func_extended : enable", "#extension GL_EXT_shader_non_constant_global_initializers : enable");
+
     // Replace deprecated syntax
     if (glsl_type == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
