@@ -55,7 +55,7 @@ void init_target_egl(void) {
 
     EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE };
 
-    EGLint pbAttribs[] = { EGL_WIDTH, 32, EGL_HEIGHT, 32, EGL_NONE };
+    EGLint pbAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
 
     EGLConfig pbufConfig;
     EGLint configsFound = 0;
