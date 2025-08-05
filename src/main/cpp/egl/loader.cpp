@@ -51,7 +51,7 @@ void init_target_egl(void) {
             EGL_NONE
     };
 
-    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE };
+    EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
 
     EGLint pbAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
 
@@ -77,7 +77,7 @@ void init_target_egl(void) {
     }
 
     ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
-    if (ChooseConfig_result != EGL_TRUE && ChooseConfig_result != EGL_SUCCESS) {
+    if (ChooseConfig_result != EGL_TRUE) {
         LOG_E("eglChooseConfig failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
@@ -98,19 +98,19 @@ void init_target_egl(void) {
     }
 
     eglContext = egl_eglCreateContext(eglDisplay, pbufConfig, EGL_NO_CONTEXT, ctxAttribs);
-    if (eglContext == EGL_NO_CONTEXT && eglContext != (void *)EGL_SUCCESS) {
+    if (eglContext == EGL_NO_CONTEXT) {
         LOG_E("eglCreateContext failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     eglSurface = egl_eglCreatePbufferSurface(eglDisplay, pbufConfig, pbAttribs);
-    if (eglSurface == EGL_NO_SURFACE && eglSurface != (void *)EGL_SUCCESS) {
+    if (eglSurface == EGL_NO_SURFACE) {
         LOG_E("eglCreatePbufferSurface failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
 
     MakeCurrent_result = egl_eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-    if (MakeCurrent_result != EGL_TRUE && MakeCurrent_result != EGL_SUCCESS) {
+    if (MakeCurrent_result != EGL_TRUE) {
         LOG_E("eglMakeCurrent failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
