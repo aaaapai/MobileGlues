@@ -676,6 +676,32 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
+static void inject_gl_DepthRange(std::string& glsl) {
+    const std::regex defRegex(R"(uniform\s+(lowp\s+)?int\s+gl_NumSamples\s*;)", std::regex::ECMAScript);
+
+    if (glsl.find("gl_DepthRange") == std::string::npos) {
+        return;
+    }
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    const std::string gl_DepthRangeImpl = R"(
+uniform lowp int gl_NumSamples;
+
+struct gl_DepthRangeParameters {
+    float near;
+    float far;
+    float diff;
+};
+uniform gl_DepthRangeParameters gl_DepthRange;
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + gl_DepthRangeImpl + "\n");
+
+}
+
 static void inject_shaderDrawParameters(std::string& glsl) {
     const std::regex defRegex(R"(// GL_ARB_shader_draw_parameters emulation)", std::regex::ECMAScript);
 
@@ -797,6 +823,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum glsl_type, bool* ato
     if (!g_gles_caps.GL_EXT_texture_query_lod) {
         inject_textureQueryLod(ret);
     }
+
+    inject_gl_DepthRange(ret);
 
     inject_shaderDrawParameters(ret);
 
