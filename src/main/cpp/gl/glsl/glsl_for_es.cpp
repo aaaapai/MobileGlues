@@ -677,7 +677,7 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
 }
 
 static void inject_gl_DepthRange(std::string& glsl) {
-    const std::regex defRegex(R"(uniform\s+(lowp\s+)?int\s+gl_NumSamples\s*;)", std::regex::ECMAScript);
+const std::regex defRegex(R"(uniform\s+gl_DepthRangeParameters\s+gl_DepthRange\s*;)", std::regex::ECMAScript);
 
     if (glsl.find("gl_DepthRange") == std::string::npos) {
         return;
@@ -687,8 +687,6 @@ static void inject_gl_DepthRange(std::string& glsl) {
     }
 
     const std::string gl_DepthRangeImpl = R"(
-uniform lowp int gl_NumSamples;
-
 struct gl_DepthRangeParameters {
     float near;
     float far;
