@@ -686,13 +686,14 @@ const std::regex defRegex(R"(uniform\s+gl_DepthRangeParameters\s+gl_DepthRange\s
         return;
     }
 
+    replace_all(glsl, "gl_DepthRange", "mg_gl_DepthRange");
     const std::string gl_DepthRangeImpl = R"(
-struct gl_DepthRangeParameters {
+struct mg_gl_DepthRangeParameters {
     float near;
     float far;
     float diff;
 };
-uniform gl_DepthRangeParameters gl_DepthRange;
+uniform mg_gl_DepthRangeParameters mg_gl_DepthRange;
 )";
 
     size_t insertPos = find_insertion_point(glsl);
