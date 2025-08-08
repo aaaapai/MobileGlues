@@ -24,14 +24,14 @@ void load_libs();
 #define INIT_GLES_FUNC(name)                                                \
     {                                                                       \
         LOG_D("INIT_GLES_FUNC(%s)", #name);                                 \
-        GLES.name = (name##_PTR)proc_address(gles, #name);           \
+        GLES.name = (name##_PTR)proc_address(gles, #name);                  \
         if (GLES.name == NULL)\
-            LOG_W("Error: GLES function " #name " is NULL\n"); \
+            LOG_W("Error: GLES function " #name " is NULL\n");              \
     }
 #else
 #define INIT_GLES_FUNC(name)                                                \
     {                                                                       \
-        GLES.name = (name##_PTR)proc_address(gles, #name);           \
+        GLES.name = (name##_PTR)proc_address(gles, #name);                  \
     }
 #endif
 

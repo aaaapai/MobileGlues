@@ -34,6 +34,7 @@ static const char *lib_ext[] = {
 #ifndef NO_GBM
         "so.19",
 #endif
+        "",
         "so",
         "so.1",
         "so.2",
@@ -43,6 +44,7 @@ static const char *lib_ext[] = {
 };
 
 static const char *gles3_lib[] = {
+        "libGLESv2.so.2",
         "libGLESv3_CM",
         "libGLESv3",
         nullptr
@@ -61,6 +63,7 @@ const char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
+    LOG_D("LIBGL: loading %s (override: %s)", names[0], override ? override : "(null)")
 
     char path_name[PATH_MAX + 1];
     int flags = RTLD_LOCAL | RTLD_NOW;
@@ -78,10 +81,16 @@ void *open_lib(const char **names, const char *override) {
             for (int e = 0; lib_ext[e]; e++) {
                 snprintf(path_name, PATH_MAX, "%s%s.%s", path_prefix[p], names[i], lib_ext[e]);
                 if ((lib = dlopen(path_name, flags))) {
+                    LOG_D("LIBGL:loaded: %s\n", path_name)
                     return lib;
                 }
             }
         }
+    }
+    if (lib == nullptr) {
+        LOG_D("LIBGL:failed to load")
+    } else {
+        LOG_D("LIBGL:loaded")
     }
     return lib;
 }
@@ -90,8 +99,24 @@ void load_libs() {
 #ifndef __APPLE__
     const char *gles_override = global_settings.angle == AngleMode::Enabled ? GLES_ANGLE : nullptr;
     const char *egl_override = global_settings.angle == AngleMode::Enabled ? EGL_ANGLE : nullptr;
+#ifndef __ANDROID__
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
+#else
+    void* gles_lib = dlopen("libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL);
+    if (!gles_lib) {
+        gles_lib = dlopen("libGLESv2.so.2", RTLD_LAZY | RTLD_GLOBAL);
+    }
+
+    if (!gles_lib) {
+        fprintf(stderr, "GLES load failed: %s\n", dlerror());
+    }
+    gles = gles_lib;
+    egl = dlopen("libEGL.so", RTLD_LAZY);
+    if (!egl) {
+        LOG_E("LIBGL: failed to load libEGL.so")
+    }
+#endif
 #else
     gles = (void*)(~(uintptr_t)0);
     egl = (void*)(~(uintptr_t)0);
@@ -221,6 +246,7 @@ void InitGLESCapabilities() {
 
 void init_target_gles() {
     init_gl_state();
+    LOAD_EGL(eglGetProcAddress);
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
     INIT_GLES_FUNC(glMultiDrawElementsEXT)

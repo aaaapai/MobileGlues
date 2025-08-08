@@ -57,27 +57,38 @@ std::string handle_multidraw_func_name(std::string name) {
     return namestr;
 }
 
-void *glXGetProcAddress(const char *name) {
-    LOG()
-    std::string real_func_name = handle_multidraw_func_name(std::string(name));
 
+void* get_self_handle() {
+    static void* handle = NULL;
+    if (!handle) {
+        Dl_info info;
+        dladdr((void*)&get_self_handle, &info);
+        handle = dlopen(info.dli_fname, RTLD_LAZY | RTLD_NOLOAD);
+    }
+    return handle;
+}
+
+__GLXextFuncPtr glXGetProcAddress(const GLubyte * name) {
+    LOG()
+    std::string real_func_name = handle_multidraw_func_name(std::string((const char*)name));
 #ifdef __APPLE__
     return dlsym((void*)(~(uintptr_t)0), real_func_name.c_str());
 #else
     
+    void* self = get_self_handle();
     void* proc = nullptr;
 
-    proc = dlsym(RTLD_DEFAULT, real_func_name.c_str());
+    proc = dlsym(self, real_func_name.c_str());
 
     if (!proc) {
         LOG_W("Failed to get OpenGL function: %s", real_func_name.c_str())
         return nullptr;
     }
 
-    return proc;
+    return reinterpret_cast<__GLXextFuncPtr>(proc);
 #endif
 }
 
-void *glXGetProcAddressARB(const char *name) {
+__GLXextFuncPtr glXGetProcAddressARB(const GLubyte * name) {
     return glXGetProcAddress(name);
 }

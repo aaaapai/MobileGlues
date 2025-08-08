@@ -5,6 +5,7 @@
 #ifndef MOBILEGLUES_TEXTURE_H
 #define MOBILEGLUES_TEXTURE_H
 
+#include <memory>
 #include <GL/gl.h>
 #include "texture.hpp"
 #include "ankerl/unordered_dense.h"

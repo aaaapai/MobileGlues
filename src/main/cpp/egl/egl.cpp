@@ -227,6 +227,6 @@ extern "C" {
     }
 
     EGL_API EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char* procname) {
-        return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(glXGetProcAddress(procname));
+        return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(glXGetProcAddress((const GLubyte*)procname));
     }
 }

@@ -25,14 +25,14 @@ FILE* file;
 #endif
 
 void start_log() {
-#ifndef __APPLE__
-    file = fopen(log_file_path.c_str(), "a");
+#ifdef __ANDROID__
+    file = fopen(log_file_path, "a");
 #endif
 }
 
 
 void write_log(const char* format, ...) {
-#ifndef __APPLE__
+#ifdef __ANDROID__
     if (file == nullptr) {
         return;
     }
@@ -52,7 +52,7 @@ void write_log(const char* format, ...) {
 
 
 void write_log_n(const char* format, ...) {
-#ifndef __APPLE__
+#ifdef __ANDROID__
     if (file == nullptr) {
         return;
     }
@@ -66,7 +66,7 @@ void write_log_n(const char* format, ...) {
 }
 
 void clear_log() {
-#ifndef __APPLE__
+#ifdef __ANDROID__
     file = fopen(log_file_path.c_str(), "w");
     if (file == nullptr) {
         return;

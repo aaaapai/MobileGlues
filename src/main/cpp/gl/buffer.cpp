@@ -567,7 +567,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage
 void* glMapBuffer(GLenum target, GLenum access) {
     LOG()
     LOG_D("glMapBuffer, target = %s, access = %s", glEnumToString(target), glEnumToString(access))
-    if(g_gles_caps.GL_OES_mapbuffer) {
+    if(g_gles_caps.GL_OES_mapbuffer && GLES.glMapBufferOES) {
         return GLES.glMapBufferOES(target, access);
     }
     if (get_binding_query(target) == 0) {
@@ -638,7 +638,7 @@ void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitf
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
     LOG_D("%s(%s)", __func__, glEnumToString(target));
-    if(g_gles_caps.GL_OES_mapbuffer)
+    if(g_gles_caps.GL_OES_mapbuffer && GLES.glMapBufferOES)
         return GLES.glUnmapBuffer(target);
 
     GLint buffer;

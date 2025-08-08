@@ -8,6 +8,8 @@
 
 #define FORCE_SYNC_WITH_LOG_FILE 0
 
+#define GLOBAL_DEBUG_FORCE_OFF 0
+
 #define GLOBAL_DEBUG 0
 
 #define GLOBAL_DEBUG_MAIN 1

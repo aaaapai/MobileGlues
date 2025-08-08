@@ -199,7 +199,12 @@ std::string getBeforeThirdSpace(const std::string& str) {
 }
 
 std::string getGpuName() {
-    std::string gpuName = std::string((char *)GLES.glGetString(GL_RENDERER));
+    char* name = (char *)GLES.glGetString(GL_RENDERER);
+    if (!name) {
+        LOG_E("getGpuName: Failed to get GLES.glGetString(GL_RENDERER)")
+        return "<unknown>";
+    }
+    std::string gpuName = std::string(name);
 
     if (gpuName.empty()) {
         return "<unknown>";
@@ -252,14 +257,28 @@ void set_es_version() {
 }
 
 std::string getGLESName() {
-    return getBeforeThirdSpace(std::string((char *)GLES.glGetString(GL_VERSION)));
+    char* str = (char *)GLES.glGetString(GL_VERSION);
+    if (!str) {
+        LOG_E("getGLESName: Failed to get GLES.glGetString(GL_VERSION)")
+        return "<unknown>";
+    }
+    return getBeforeThirdSpace(std::string(str));
 }
 
+static bool gles_initialized = false;
 static std::string rendererString;
 static std::string vendorString;
 static std::string versionString;
+void init_target_gles();
 const GLubyte * glGetString( GLenum name ) {
     LOG()
+    if (!gles_initialized) {
+        load_libs();
+        init_target_egl();
+        init_target_gles();
+        gles_initialized=true;
+    }
+    LOG_D("glGetString, %d", name)
     switch (name) {
         case GL_VENDOR: {
             if(vendorString.empty()) {

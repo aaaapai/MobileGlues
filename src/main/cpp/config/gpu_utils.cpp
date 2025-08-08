@@ -4,7 +4,7 @@
 
 #include "gpu_utils.h"
 #include "../gles/loader.h"
-#if !defined(__APPLE__)
+#ifdef __ANDROID__
 #include "vulkan/vulkan.h"
 #endif
 
@@ -182,7 +182,7 @@ int hasVulkan12() {
     if (!vulkan_lib)
         return 0;
 
-#ifndef __APPLE__
+#ifdef __ANDROID__
     
     typedef VkResult (*PFN_vkEnumerateInstanceExtensionProperties)(const char*, uint32_t*, VkExtensionProperties*);
     typedef VkResult (*PFN_vkCreateInstance)(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*);
