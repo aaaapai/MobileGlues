@@ -15,6 +15,7 @@
 #define DEBUG 0
 
 Version GLVersion;
+static bool gles_initialized = false;
 
 void glGetFloatv(GLenum pname, GLfloat *params) {
     LOG()
@@ -171,8 +172,8 @@ void InitGLESBaseExtensions() {
              "GL_ARB_multi_bind "
              "GL_KHR_no_error "
              "GL_ARB_clear_texture "
-	     "GL_ARB_vertex_program "
-	     "GL_ARB_shader_draw_parameters "
+	         "GL_ARB_vertex_program "
+	         "GL_ARB_shader_draw_parameters "
              "GL_ARB_texture_view ";
 }
 
@@ -265,7 +266,6 @@ std::string getGLESName() {
     return getBeforeThirdSpace(std::string(str));
 }
 
-static bool gles_initialized = false;
 static std::string rendererString;
 static std::string vendorString;
 static std::string versionString;
