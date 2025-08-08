@@ -26,6 +26,9 @@ enum class multidraw_mode_t : int {
     PreferMultidrawIndirect,
     DrawElements,
     Compute,
+    DeepSeekOne,
+    DeepSeekTwo,
+    Native,
     MaxValue
 };
 
@@ -137,19 +140,18 @@ struct Version {
     }
 };
 
-typedef enum class FSR1_Quality_Preset : int { // may be useless
+enum class FSR1_Quality_Preset : int { // may be useless
     Disabled = 0,
     UltraQuality, // 1
     Quality,      // 2 
-	Balanced,     // 3
-	Performance,  // 4
-	MaxValue      // 5
+    Balanced,     // 3
+    Performance,  // 4
+    MaxValue      // 5
 };
 
 struct global_settings_t {
     AngleMode angle;
     IgnoreErrorLevel ignore_error;
-    bool ext_gl43;
     bool ext_compute_shader;
     bool ext_timer_query;
     bool ext_direct_state_access;
@@ -157,13 +159,13 @@ struct global_settings_t {
     size_t max_glsl_cache_size;
     multidraw_mode_t multidraw_mode;
     AngleDepthClearFixMode angle_depth_clear_fix_mode;
-	Version custom_gl_version;
-	FSR1_Quality_Preset fsr1_setting;
+    Version custom_gl_version;
+    FSR1_Quality_Preset fsr1_setting;
 };
 
 extern global_settings_t global_settings;
 
 void init_settings();
 void init_settings_post();
-    
+
 #endif //MOBILEGLUES_PLUGIN_SETTINGS_H

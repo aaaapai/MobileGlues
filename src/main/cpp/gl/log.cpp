@@ -4,8 +4,7 @@
 
 #include "log.h"
 #include <unistd.h>
-#include <unordered_map>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <mutex>
 
 #include <GL/gl.h>
@@ -1107,7 +1106,7 @@ void log_unique_function(const char* func_name) {
     if (!func_name || strlen(func_name) < 2 || strncmp(func_name, "gl", 2) != 0) {
         return;
     }
-    static std::unordered_set<std::string> logged_functions;
+    static ankerl::unordered_dense::set<std::string> logged_functions;
     static std::mutex log_mutex;
     std::string func_str(func_name);
 

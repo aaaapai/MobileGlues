@@ -1,31 +1,28 @@
-cmake_minimum_required(VERSION 3.22.1)
+cmake_minimum_required(VERSION 3.31.5)
 
 project("mobileglues")
 
+enable_language(C)
 enable_language(CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(CMAKE_C_STANDARD 17)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(LINUX)
-set(ANDROID_ABI linux_amd64)
-endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -flto -mllvm -polly-run-inliner -mllvm -polly-run-dce -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -march=armv8-a+simd -fvisibility=hidden -Wall -Wextra -ferror-limit=0 -Wno-return-type -Wno-unused-parameter -Wno-c++98-compat -Wno-c++98-compat-pedantic -DGLM_FORCE_INTRINSICS -Wno-unicode-whitespace -Wno-format -Wno-unused-function")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -flto -mllvm -polly-run-inliner -mllvm -polly-run-dce -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -march=armv8-a+simd -fvisibility=hidden -Wall -Wextra -ferror-limit=0 -Wno-return-type -Wno-unused-parameter -Wno-c++98-compat -Wno-c++98-compat-pedantic -DGLM_FORCE_INTRINSICS -fno-rtti -stdlib=libc++ -Wno-unicode-whitespace -Wno-format -Wno-unused-function -Wno-vla-cxx-extension")
 
-if(MACOS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -fvisibility=default -funwind-tables -g -D_THREAD_SAFE -fPIC -stdlib=libc++")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -g -std=gnu99 -funwind-tables -O3 -fvisibility=hidden")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
-else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -fvisibility=hidden -funwind-tables -g -D_THREAD_SAFE -fPIC")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -g -std=gnu99 -funwind-tables -O3 -fvisibility=hidden")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
-        set(CMAKE_ANDROID_STL_TYPE c++_static)
-endif()
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -flto -O3 -Wl,-plugin-opt=-emulated-tls=0 -Wl,--strip-all -fvisibility=hidden -Wl,-O3 -Wl,--gc-sections -Wl,--as-needed -static-libstdc++")
 
-#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_ANDROID_STL_TYPE c++_static)
+set(CMAKE_ANDROID_LD "lld")
+
+set(CMAKE_BUILD_TYPE Release)
 
 set(PROFILING OFF)
+
 
 find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/)
 
@@ -54,6 +51,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         gl/FSR1/FSR1.cpp
         
         gl/vertexattrib.cpp
+        gl/wrap/legacy_extensions.cpp
         glx/lookup.cpp
         egl/egl.cpp
         egl/loader.cpp
@@ -62,11 +60,25 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         config/config.cpp
         config/gpu_utils.cpp
         config/settings.cpp
+        gl/fpe/fpe.cpp
+        gl/fpe/state.cpp
+        gl/fpe/transformation.cpp
+        gl/fpe/vertexpointer.cpp
+        gl/fpe/fpe_shadergen.cpp
+        gl/fpe/list.cpp
+        gl/fpe/pointer_utils.cpp
+        gl/fpe/drawing1x.cpp
+        gl/fpe/vertexpointer_utils.cpp
+        gl/fpe/drawstate1x.cpp
+        gl/fpe/glstate.cpp
+        gl/fpe/vertexpointerarray.cpp
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./includes
         ./3rdparty/glm
+        ./glm
+        ./include/glm
         ./3rdparty/xxhash)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
@@ -123,8 +135,7 @@ else()
         find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/)
         target_link_libraries(${CMAKE_PROJECT_NAME}
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.so
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libGenericCodeGen.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang-default-resource-limits.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libMachineIndependent.a
@@ -137,6 +148,8 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c-shared.so
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc.so
                 android
                 log
         )

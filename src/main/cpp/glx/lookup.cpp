@@ -12,12 +12,13 @@
 #include "../gl/log.h"
 #include "../gl/envvars.h"
 #include "../config/settings.h"
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
 std::string handle_multidraw_func_name(std::string name) {
     std::string namestr = name;
-    if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements") {
+    if (namestr != "glMultiDrawElementsBaseVertex" && namestr != "glMultiDrawElements" && namestr != "glMultiDrawElementsIndirect") {
         return name;
     } else {
         namestr = "mg_" + namestr;
@@ -38,6 +39,15 @@ std::string handle_multidraw_func_name(std::string name) {
             break;
         case multidraw_mode_t::Compute:
             namestr += "_compute";
+            break;
+        case multidraw_mode_t::DeepSeekOne:
+            namestr += "_deepseek_one";
+            break;
+        case multidraw_mode_t::DeepSeekTwo:
+            namestr += "_deepseek_two";
+            break;
+        case multidraw_mode_t::Native:
+            namestr += "_native";
             break;
         default:
             LOG_W("get_multidraw_func() cannot determine multidraw emulation mode!")

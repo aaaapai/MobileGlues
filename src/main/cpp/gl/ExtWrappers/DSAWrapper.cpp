@@ -3,12 +3,13 @@
 //
 
 #include "DSAWrapper.h"
+#include "../framebuffer.h"
 #include <cassert>
 #include "../texture.h"
 
 #define DEBUG 0
 
-GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
+static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
 
@@ -49,7 +50,15 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	case GL_TEXTURE_2D_MULTISAMPLE:        return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
 	case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:  return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
 	case GL_TEXTURE_3D:                    return GL_TEXTURE_BINDING_3D;
-	case GL_TEXTURE_CUBE_MAP:              return GL_TEXTURE_BINDING_CUBE_MAP;
+	case GL_TEXTURE_CUBE_MAP:
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+	    return GL_TEXTURE_BINDING_CUBE_MAP;
+
 	case GL_TEXTURE_CUBE_MAP_ARRAY:        return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
 	case GL_TEXTURE_RECTANGLE:             return GL_TEXTURE_BINDING_RECTANGLE;
 
@@ -61,6 +70,23 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	case GL_DEBUG_OUTPUT:                  return GL_DEBUG_OUTPUT;
 	case GL_DEBUG_OUTPUT_SYNCHRONOUS:      return GL_DEBUG_OUTPUT_SYNCHRONOUS;
 
+	case GL_PATCH_VERTICES:                return GL_PATCH_VERTICES;
+	case GL_SCISSOR_BOX:                   return GL_SCISSOR_BOX;
+
+	case GL_BLEND:                         return GL_BLEND;
+	case GL_VIEWPORT:                      return GL_VIEWPORT;
+
+	case GL_PROXY_TEXTURE_4D_SGIS:         return GL_PROXY_TEXTURE_4D_SGIS;
+	case GL_TEXTURE_4D_SGIS:               return GL_TEXTURE_4D_BINDING_SGIS;
+
+	case GL_ELEMENT_ARRAY_BUFFER_BINDING:  return GL_PARAMETER_BUFFER_BINDING_ARB;
+	case GL_PROXY_TEXTURE_2D:              return GL_PROXY_TEXTURE_2D;
+	case GL_PROXY_TEXTURE_3D:              return GL_PROXY_TEXTURE_3D;
+	case GL_VERTEX_SHADER_EXT:             return GL_VERTEX_SHADER_BINDING_EXT;
+	case GL_DETAIL_TEXTURE_2D_SGIS:        return GL_DETAIL_TEXTURE_2D_BINDING_SGIS;
+	case GL_PROXY_TEXTURE_2D_STACK_MESAX:  return GL_TEXTURE_2D_STACK_BINDING_MESAX;
+	case GL_PARAMETER_BUFFER:              return GL_PARAMETER_BUFFER_BINDING;
+
 	default:
 		LOG_E("[DSA] GetBindingQuery: unknown target %u", target);
 		return 0;
@@ -69,11 +95,11 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 
 // buffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> bufferBindingStack;
-void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
+static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == bufferID) {
+		if (static_cast<GLuint>(prev) == bufferID) {
 		bufferBindingStack[target].push_back(-1);
 		return;
 	}
@@ -84,7 +110,7 @@ void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	glBindBuffer(target, bufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
+static void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	auto it = bufferBindingStack.find(target);
 	if (it == bufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -107,6 +133,142 @@ void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	if (it->second.empty())
 		bufferBindingStack.erase(it);
 }
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data)
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(GetBindingQuery(target, false));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer)
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size)
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer")
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type))
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < static_cast<size_t>(size); i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
+                              GLintptr offset, GLsizeiptr size, 
+                              GLenum format, GLenum type, 
+                              const void *data) {
+    // 检查参数有效性
+    if (offset < 0 || size <= 0) {
+        return;
+    }
+    
+    // 根据内部格式确定清除值的大小
+    GLsizeiptr clearSize = size;
+    void* clearData = NULL;
+    
+    // 如果提供了数据指针，直接使用它
+    if (data != NULL) {
+        clearData = (void*)data;
+    } else {
+        // 如果没有提供数据，创建一个默认的清除值
+        // 这里简化处理，实际应根据internalformat创建适当的默认值
+        GLubyte zero = 0;
+        clearData = &zero;
+        clearSize = 1; // 简化处理，实际应根据格式调整
+    }
+    
+    // 绑定缓冲区
+    GLint prevBuffer;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prevBuffer);
+            break;
+        default:
+            LOG_W("Warning: Unsupported buffers")
+            return;
+    }
+    
+    // 使用glBufferSubData更新缓冲区数据
+    glBufferSubData(target, offset, clearSize, clearData);
+    
+    // 恢复之前绑定的缓冲区
+    glBindBuffer(target, prevBuffer);
+} //DeepSeek
 
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
 	LOG()
@@ -177,7 +339,7 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
 		return;
 	}
 	temporarilyBindBuffer(buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+	GLES.glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 	CHECK_GL_ERROR;
 	restoreTemporaryBufferBinding();
 	
@@ -279,10 +441,11 @@ GLboolean glUnmapNamedBuffer(GLuint buffer) {
 	LOG()
 	LOG_D("[DSA] glUnmapNamedBuffer, buffer: %u", buffer);
 	
-	if (buffer == 0) {
+	/*if (buffer == 0) {
 		LOG_E("[DSA] Invalid buffer ID for glUnmapNamedBuffer");
 		return GL_FALSE;
-	}
+	}*/
+
 	temporarilyBindBuffer(buffer);
 	GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
 	CHECK_GL_ERROR;
@@ -291,7 +454,7 @@ GLboolean glUnmapNamedBuffer(GLuint buffer) {
 	if (result == GL_FALSE) {
 		LOG_E("[DSA] Failed to unmap buffer %u", buffer);
 	} else {
-	LOG_D("[DSA] Unmapped buffer %u successfully", buffer);
+	        LOG_D("[DSA] Unmapped buffer %u successfully", buffer);
 	}
 	return result;
 }
@@ -305,7 +468,7 @@ void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr le
 		return;
 	}
 	temporarilyBindBuffer(buffer);
-	glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, length);
+	GLES.glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, length);
 	CHECK_GL_ERROR;
 	restoreTemporaryBufferBinding();
 	
@@ -378,11 +541,11 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 
 // framebuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> framebufferBindingStack;
-void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == framebufferID) {
+	if (static_cast<GLuint>(prev) == framebufferID) {
 		framebufferBindingStack[target].push_back(-1);
 		return;
 	}
@@ -392,7 +555,7 @@ void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FR
 	glBindFramebuffer(target, framebufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
 	auto it = framebufferBindingStack.find(target);
 	if (it == framebufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -462,15 +625,18 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
 	LOG()
-	LOG_D("[DSA] glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level);
-	
+	LOG_D("[DSA] glNamedFramebufferTexture, framebuffer: %u, attachment: 0x%X, texture: %u, level: %d", framebuffer, attachment, texture, level)
+
 	temporarilyBindFramebuffer(framebuffer);
+
 	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, texture, level);
-	LOG_D("[DSA] glFramebufferTexture called: attachment=0x%X, texture=%u, level=%d", attachment, texture, level);
-	CHECK_GL_ERROR;
+	LOG_D("[DSA] glFramebufferTexture called: attachment=0x%X, texture=%u, level=%d", attachment, texture, level)
+
+	CHECK_GL_ERROR
+
 	restoreTemporaryFramebufferBinding(GL_DRAW_FRAMEBUFFER);
 	
-	LOG_D("[DSA] Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level);
+	LOG_D("[DSA] Attached texture %u to framebuffer %u with attachment 0x%X at level %d", texture, framebuffer, attachment, level)
 }
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) {
@@ -686,11 +852,11 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 
 // renderbuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> renderbufferBindingStack;
-void temporarilyBindRenderbuffer(GLuint renderbufferID) {
+static void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	GLenum bindingQuery = GetBindingQuery(GL_RENDERBUFFER);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
-	if (prev == renderbufferID) {
+	if (static_cast<GLuint>(prev) == renderbufferID) {
 		renderbufferBindingStack[GL_RENDERBUFFER].push_back(-1);
 		return;
 	}
@@ -700,7 +866,7 @@ void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryRenderbufferBinding() {
+static void restoreTemporaryRenderbufferBinding() {
 	auto it = renderbufferBindingStack.find(GL_RENDERBUFFER);
 	if (it == renderbufferBindingStack.end() || it->second.empty()) {
 		LOG_D("[DSA] [Restore] no saved binding for GL_RENDERBUFFER");
@@ -795,11 +961,11 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint*
 // texture
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> textureBindingStack;
 
-GLenum GetTexTarget(GLuint texture) {
+static GLenum GetTexTarget(GLuint texture) {
 	return ConvertTextureTargetToGLEnum(mgGetTexObjectByID(texture)->target);
 }
 
-void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
+static void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
 	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	GLenum bindingQuery = GetBindingQuery(target, true);
 	GLint prev = 0;
@@ -815,7 +981,7 @@ void temporarilyBindTexture(GLuint textureID, GLenum possibleTarget = 0) {
 	CHECK_GL_ERROR_NO_INIT;
 }
 
-void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
+static void restoreTemporaryTextureBinding(GLuint textureID, GLenum possibleTarget = 0) {
 	GLenum target = possibleTarget ? possibleTarget : GetTexTarget(textureID);
 	auto stackIt = textureBindingStack.find(target);
 	if (stackIt == textureBindingStack.end() || stackIt->second.empty()) {
@@ -1079,11 +1245,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		return;
 	}
 	GLint prevUnit = 0;
-	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
+	GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = GetTexTarget(texture);
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(target, texture);
-	glActiveTexture(prevUnit);
+	GLES.glActiveTexture(GL_TEXTURE0 + unit);
+	GLES.glBindTexture(target, texture);
+	GLES.glActiveTexture(prevUnit);
 	LOG_D("[DSA] Bound texture %u to texture unit %u", texture, unit);
 }
 
@@ -1540,7 +1706,7 @@ static void pushXFB(GLuint xfb) {
 	LOG_D("[DSA] pushXFB, xfb: %u", xfb);
 	GLint prev = 0;
 	glGetIntegerv(GL_TRANSFORM_FEEDBACK_BINDING, &prev);
-	if (xfb == prev) {
+	if (xfb == static_cast<GLuint>(prev)) {
 		g_xfbBindingStack.push_back(-1);
 		return;
 	}
@@ -1653,4 +1819,126 @@ GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, G
 	CHECK_GL_ERROR;
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
+}
+
+
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data) {
+    // Validate parameters
+    if (texture == 0) {
+        GLES.glGetError(); // Clear any previous error
+        return;
+    }
+    
+    // Check if texture exists (simplified check)
+    GLint prevTex;
+    GLenum target;
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+    if (texture != (GLuint)prevTex) {
+        // Try other texture types
+        GLES.glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex);
+        if (texture != (GLuint)prevTex) {
+            GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &prevTex);
+            if (texture != (GLuint)prevTex) {
+                GLES.glGetError(); // Clear any previous error
+                return;
+            } else {
+                target = GL_TEXTURE_2D_ARRAY;
+            }
+        } else {
+            target = GL_TEXTURE_3D;
+        }
+    } else {
+        target = GL_TEXTURE_2D;
+    }
+    
+    // For GLES, we'll use glTexSubImage to achieve similar functionality
+    // This is not as efficient as the desktop version, but provides similar functionality
+    
+    // Create temporary buffer with the clear value repeated for the entire region
+    size_t elementSize = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elementSize = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_HALF_FLOAT:
+            elementSize = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elementSize = 4;
+            break;
+        default:
+	    elementSize = 0;
+            return;
+    }
+    
+    GLint components = 0;
+    switch (format) {
+        case GL_RED:
+            components = 1;
+            break;
+        case GL_RG:
+            components = 2;
+            break;
+        case GL_RGB:
+            components = 3;
+            break;
+        case GL_RGBA:
+            components = 4;
+            break;
+        case GL_DEPTH_COMPONENT:
+            components = 1;
+            break;
+        case GL_DEPTH_STENCIL:
+            components = 2;
+            break;
+        default:
+	    components = 0;
+            return;
+    }
+    
+    size_t texelSize = elementSize * components;
+    size_t bufferSize = width * height * depth * texelSize;
+    
+    void *clearBuffer = NULL;
+    if (data == NULL) {
+        // If data is NULL, fill with zeros
+        clearBuffer = calloc(1, bufferSize);
+    } else {
+        // Repeat the provided value throughout the buffer
+        clearBuffer = malloc(bufferSize);
+        for (size_t i = 0; i < (size_t)(width * height * depth); i++) {
+            memcpy((char*)clearBuffer + (i * texelSize), data, texelSize);
+        }
+    }
+    
+    // Bind the texture
+    GLES.glBindTexture(target, texture);
+    
+    // Update the texture subregion
+    switch (target) {
+        case GL_TEXTURE_2D:
+            GLES.glTexSubImage2D(target, level, xoffset, yoffset, 
+                                width, height, format, type, clearBuffer);
+            break;
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_3D:
+            GLES.glTexSubImage3D(target, level, xoffset, yoffset, zoffset,
+                               width, height, depth, format, type, clearBuffer);
+            break;
+        default:
+            // Shouldn't happen as we checked earlier
+            free(clearBuffer);
+            return;
+    }
+    
+    // Restore previous texture binding
+    GLES.glBindTexture(target, (GLuint)prevTex);
+    
+    // Free temporary buffer
+    free(clearBuffer);
 }

@@ -21,6 +21,9 @@
 #define VERSION_RC_NUMBER 1
 #endif
 
+#define VERSION_NUM \
+    (MAJOR * 1000 + MINOR * 100 + REVISION * 10 + PATCH)
+
 #define VERSION_SUFFIX ""
 
 #define MOBILEGLUES_VERSION_H

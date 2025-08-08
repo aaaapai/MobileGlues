@@ -2,7 +2,10 @@
 // Created by BZLZHH on 2025/1/27.
 //
 
+#include <stdarg.h>
 #include <unistd.h>
+#include <fstream>
+#include <format>
 #include "mg.h"
 
 #define DEBUG 0
@@ -27,6 +30,7 @@ void start_log() {
 #endif
 }
 
+
 void write_log(const char* format, ...) {
 #ifdef __ANDROID__
     if (file == nullptr) {
@@ -38,18 +42,18 @@ void write_log(const char* format, ...) {
     va_end(args);
     fprintf(file, "\n");
     fflush(file);
+
 #if FORCE_SYNC_WITH_LOG_FILE == 1
     int fd = fileno(file);
     fsync(fd);
 #endif
-    // Todo: close file
-    //fclose(file);
 #endif
 }
 
+
 void write_log_n(const char* format, ...) {
 #ifdef __ANDROID__
-    if (file == NULL) {
+    if (file == nullptr) {
         return;
     }
     va_list args;
@@ -63,7 +67,7 @@ void write_log_n(const char* format, ...) {
 
 void clear_log() {
 #ifdef __ANDROID__
-    file = fopen(log_file_path, "w");
+    file = fopen(log_file_path.c_str(), "w");
     if (file == nullptr) {
         return;
     }
@@ -71,13 +75,13 @@ void clear_log() {
 #endif
 }
 
-GLenum pname_convert(GLenum pname){
+GLenum pname_convert(GLenum pname) {
     switch (pname) {
-        // TODO: Realize GL_TEXTURE_LOD_BIAS for other devices.
         case GL_TEXTURE_LOD_BIAS:
             return GL_TEXTURE_LOD_BIAS_QCOM;
+        default:
+            return pname;
     }
-    return pname;
 }
 
 GLenum map_tex_target(GLenum target) {
@@ -86,12 +90,12 @@ GLenum map_tex_target(GLenum target) {
         case GL_TEXTURE_3D:
         case GL_TEXTURE_RECTANGLE_ARB:
             return GL_TEXTURE_2D;
-            
+
         case GL_PROXY_TEXTURE_1D:
         case GL_PROXY_TEXTURE_3D:
         case GL_PROXY_TEXTURE_RECTANGLE_ARB:
             return GL_PROXY_TEXTURE_2D;
-            
+
         default:
             return target;
     }

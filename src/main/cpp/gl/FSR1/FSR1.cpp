@@ -47,10 +47,10 @@ namespace FSR1_Context {
 	GLuint g_depthStencilRBO = 0;
 	GLuint g_quadVAO = 0;
 	GLuint g_quadVBO = 0;
-    GLuint g_fsrProgram = 0;
+        GLuint g_fsrProgram = 0;
     
-    GLuint g_targetFBO = 0;
-    GLuint g_targetTexture = 0;
+        GLuint g_targetFBO = 0;
+        GLuint g_targetTexture = 0;
 
 	GLuint g_currentDrawFBO = 0;
 	GLint g_viewport[4] = { 0 };
@@ -196,7 +196,7 @@ void InitFullscreenQuad() {
 
 bool fsrInitialized = false;
 void InitFSRResources() {
-	fsrInitialized = true;
+    fsrInitialized = true;
     GLStateGuard state;
 
     FSR1_Context::g_fsrProgram = CompileFSRShader();
@@ -207,6 +207,17 @@ void InitFSRResources() {
 
     glUseProgram(FSR1_Context::g_fsrProgram);
     glUniform1i(inputTexLoc, 0);
+
+    glm::vec4 const0 = {
+        1.0f, 1.0f, 1.0f, 1.0f  // 默认值，后续会在 ApplyFSR 中动态更新
+    };
+    glUniform4fv(const0Loc, 1, reinterpret_cast<const GLfloat*>(&const0));
+
+    glm::vec2 viewportSize = { 
+        static_cast<float>(FSR1_Context::g_renderWidth), 
+        static_cast<float>(FSR1_Context::g_renderHeight) 
+    };
+    glUniform2fv(viewportSizeLoc, 1, reinterpret_cast<const GLfloat*>(&viewportSize));
     glUseProgram(0);
 
     InitFullscreenQuad();
