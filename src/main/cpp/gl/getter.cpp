@@ -171,8 +171,8 @@ void InitGLESBaseExtensions() {
              "GL_ARB_multi_bind "
              "GL_KHR_no_error "
              "GL_ARB_clear_texture "
-	     "GL_ARB_vertex_program "
-	     "GL_ARB_shader_draw_parameters "
+	         "GL_ARB_vertex_program "
+	         "GL_ARB_shader_draw_parameters "
              "GL_ARB_texture_view ";
 }
 
@@ -265,19 +265,11 @@ std::string getGLESName() {
     return getBeforeThirdSpace(std::string(str));
 }
 
-static bool gles_initialized = false;
 static std::string rendererString;
 static std::string vendorString;
 static std::string versionString;
-void init_target_gles();
 const GLubyte * glGetString( GLenum name ) {
     LOG()
-    if (!gles_initialized) {
-        load_libs();
-        init_target_egl();
-        init_target_gles();
-        gles_initialized=true;
-    }
     LOG_D("glGetString, %d", name)
     switch (name) {
         case GL_VENDOR: {

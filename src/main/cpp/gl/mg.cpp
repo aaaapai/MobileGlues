@@ -26,7 +26,7 @@ FILE* file;
 
 void start_log() {
 #ifdef __ANDROID__
-    file = fopen(log_file_path, "a");
+    file = fopen(log_file_path.c_str(), "a");
 #endif
 }
 
