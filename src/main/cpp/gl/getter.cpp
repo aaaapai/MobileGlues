@@ -15,7 +15,6 @@
 #define DEBUG 0
 
 Version GLVersion;
-static bool gles_initialized = false;
 
 void glGetFloatv(GLenum pname, GLfloat *params) {
     LOG()
@@ -269,15 +268,8 @@ std::string getGLESName() {
 static std::string rendererString;
 static std::string vendorString;
 static std::string versionString;
-void init_target_gles();
 const GLubyte * glGetString( GLenum name ) {
     LOG()
-    if (!gles_initialized) {
-        load_libs();
-        init_target_egl();
-        init_target_gles();
-        gles_initialized=true;
-    }
     LOG_D("glGetString, %d", name)
     switch (name) {
         case GL_VENDOR: {
