@@ -104,6 +104,12 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
+    if(texture == 0) {
+        attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
+        rebind_framebuffer(target, attachment);
+        return;
+    }
+
     if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
         struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
@@ -301,6 +307,12 @@ GLenum glCheckFramebufferStatus(GLenum target) {
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) {
     LOG()
     LOG_D("glFramebufferTexture(0x%x, 0x%x, %d, %d)", target, attachment, texture, level)
+
+    if(texture == 0) {
+        attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
+        rebind_framebuffer(target, attachment);
+        return;
+    }
 
     if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
