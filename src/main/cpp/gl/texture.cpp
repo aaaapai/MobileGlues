@@ -59,13 +59,7 @@ GLenum ConvertTextureTargetToGLEnum(TextureTarget target) {
     case TextureTarget::TEXTURE_RECTANGLE: return GL_TEXTURE_RECTANGLE;
     case TextureTarget::PROXY_TEXTURE_RECTANGLE: return GL_PROXY_TEXTURE_RECTANGLE;
     case TextureTarget::TEXTURE_CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
-    case TextureTarget::PROXY_TEXTURE_CUBE_MAP:
-    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_X:
-    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_X:
-    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Y:
-    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Y:
-    case TextureTarget::TEXTURE_CUBE_MAP_POSITIVE_Z:
-    case TextureTarget::TEXTURE_CUBE_MAP_NEGATIVE_Z: return GL_PROXY_TEXTURE_CUBE_MAP;
+    case TextureTarget::PROXY_TEXTURE_CUBE_MAP: return GL_PROXY_TEXTURE_CUBE_MAP;
     case TextureTarget::TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_CUBE_MAP_ARRAY;
     case TextureTarget::PROXY_TEXTURE_CUBE_MAP_ARRAY: return GL_PROXY_TEXTURE_CUBE_MAP_ARRAY;
     case TextureTarget::TEXTURE_BUFFER: return GL_TEXTURE_BUFFER;
@@ -773,10 +767,14 @@ static int is_depth_format(GLenum format) {
 
 static GLenum get_binding_for_target(GLenum target) {
     switch(target) {
+		case GL_TEXTURE: return GL_TEXTURE_BINDING_2D;
+	    case GL_TEXTURE_1D: return GL_TEXTURE_BINDING_1D;
+	    case GL_TEXTURE_1D_ARRAY: return GL_TEXTURE_BINDING_1D_ARRAY;
         case GL_TEXTURE_2D: return GL_TEXTURE_BINDING_2D;
         case GL_TEXTURE_2D_MULTISAMPLE: return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
-        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
         case GL_TEXTURE_2D_ARRAY: return GL_TEXTURE_BINDING_2D_ARRAY;
+		case GL_TEXTURE_3D: return GL_TEXTURE_BINDING_3D;
         case GL_TEXTURE_CUBE_MAP_ARRAY: return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
         case GL_TEXTURE_BUFFER: return GL_TEXTURE_BUFFER_BINDING;
         case GL_TEXTURE_CUBE_MAP:
