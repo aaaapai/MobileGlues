@@ -99,7 +99,7 @@ void load_libs() {
 #ifndef __APPLE__
     const char *gles_override = global_settings.angle == AngleMode::Enabled ? GLES_ANGLE : nullptr;
     const char *egl_override = global_settings.angle == AngleMode::Enabled ? EGL_ANGLE : nullptr;
-#ifndef __ANDROID__
+#ifdef __ANDROID__
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
 #else
