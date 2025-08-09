@@ -125,7 +125,7 @@ void glClear(GLbitfield mask) {
     LOG()
     LOG_D("glClear, mask = 0x%x", mask)
 
-    /*if (global_settings.angle == AngleMode::Enabled &&
+    if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
         fabs(currentDepthValue - 1.0f) <= 0.001f) {
         if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
@@ -138,10 +138,10 @@ void glClear(GLbitfield mask) {
         }
         // Clear again
         GLES.glClear(mask);
-    } else {*/
+    } else {
         GLES.glClear(mask);
     
-    //}
+    }
 
     CHECK_GL_ERROR
 }
@@ -211,12 +211,12 @@ static void applyPolygonMode() {
     if (s_polyState.front == GL_LINE || s_polyState.back == GL_LINE) {
         if (s_polyState.wireframeProgram == 0) {
             const char* vs = R"glsl(
-                #version 300 es
+                #version 320 es
                 layout(location=0) in vec4 aPos;
                 void main() { gl_Position = aPos; }
             )glsl";
             const char* fs = R"glsl(
-                #version 300 es
+                #version 320 es
                 precision highp float;
                 out vec4 FragColor;
                 void main() { FragColor = vec4(1.0); }
@@ -228,7 +228,7 @@ static void applyPolygonMode() {
     else if (s_polyState.front == GL_POINT || s_polyState.back == GL_POINT) {
         if (s_polyState.pointProgram == 0) {
             const char* vs = R"glsl(
-                #version 300 es
+                #version 320 es
                 layout(location=0) in vec4 aPos;
                 void main() { 
                     gl_Position = aPos; 
@@ -236,7 +236,7 @@ static void applyPolygonMode() {
                 }
             )glsl";
             const char* fs = R"glsl(
-                #version 300 es
+                #version 320 es
                 precision highp float;
                 out vec4 FragColor;
                 void main() { FragColor = vec4(1.0); }
