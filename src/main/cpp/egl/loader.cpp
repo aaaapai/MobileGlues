@@ -89,6 +89,7 @@ void init_target_egl(void) {
 
     if (configsFound == 0) {
         configAttribs[6] = 0;
+        configAttribs[7] = 0;
         ChooseConfig_result = egl_eglChooseConfig(eglDisplay, configAttribs, &pbufConfig, 1, &configsFound);
         if (ChooseConfig_result != EGL_TRUE) {
             LOG_E("Retry eglChooseConfig failed (0x%x)", egl_eglGetError());
