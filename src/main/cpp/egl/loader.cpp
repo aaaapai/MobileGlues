@@ -10,6 +10,7 @@
 #include "../gl/log.h"
 #include "../gl/envvars.h"
 #include "../gles/loader.h"
+#include "../config/settings.h"
 
 #define DEBUG 0
 
