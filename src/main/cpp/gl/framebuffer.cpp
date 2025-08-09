@@ -381,6 +381,12 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
     LOG()
     //TODO: LOG_D()
 
+    if(texture == 0) {
+        attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
+        rebind_framebuffer(target, attachment);
+        return;
+    }
+
     if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
@@ -393,6 +399,7 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
+            attach[attachment - GL_COLOR_ATTACHMENT0].layers = layer;
           }
             bound_framebuffer->current_target = target;
         }
@@ -407,6 +414,7 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
+            attach[attachment - GL_COLOR_ATTACHMENT0].layers = layer;
           }
             bound_framebuffer->current_target = target;
         }
