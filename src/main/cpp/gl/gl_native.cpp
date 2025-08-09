@@ -74,7 +74,7 @@ NATIVE_FUNCTION_HEAD(void, glGetBooleanv, GLenum pname, GLboolean *data) NATIVE_
 NATIVE_FUNCTION_HEAD(void, glGetBufferParameteriv, GLenum target, GLenum pname, GLint *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetBufferParameteriv, target,pname,params)
 //NATIVE_FUNCTION_HEAD(GLenum, glGetError) NATIVE_FUNCTION_END(GLenum, glGetError)
 //NATIVE_FUNCTION_HEAD(void, glGetFloatv, GLenum pname, GLfloat *data) NATIVE_FUNCTION_END_NO_RETURN(void, glGetFloatv, pname,data)
-NATIVE_FUNCTION_HEAD(void, glGetFramebufferAttachmentParameteriv, GLenum target, GLenum attachment, GLenum pname, GLint *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetFramebufferAttachmentParameteriv, target,attachment,pname,params)
+//NATIVE_FUNCTION_HEAD(void, glGetFramebufferAttachmentParameteriv, GLenum target, GLenum attachment, GLenum pname, GLint *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetFramebufferAttachmentParameteriv, target,attachment,pname,params)
 //NATIVE_FUNCTION_HEAD(void, glGetIntegerv, GLenum pname, GLint *data) NATIVE_FUNCTION_END_NO_RETURN(void, glGetIntegerv, pname,data)
 //NATIVE_FUNCTION_HEAD(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params) NATIVE_FUNCTION_END_NO_RETURN(void, glGetProgramiv, program,pname,params)
 NATIVE_FUNCTION_HEAD(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog) NATIVE_FUNCTION_END_NO_RETURN(void, glGetProgramInfoLog, program,bufSize,length,infoLog)
