@@ -44,6 +44,8 @@ GLAPI GLAPIENTRY void glFramebufferTexture(GLenum target, GLenum attachment, GLu
 
 GLAPI GLAPIENTRY void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 
+GLAPI GLAPIENTRY void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params);
+
 #ifdef __cplusplus
 }
 #endif
