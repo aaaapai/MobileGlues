@@ -142,9 +142,16 @@ void destroy_temp_egl_ctx(void) {
     LOAD_EGL(eglMakeCurrent);
     LOAD_EGL(eglTerminate);
 
+    if (eglDisplay == EGL_NO_DISPLAY) return;
     egl_eglMakeCurrent(eglDisplay, 0, 0, EGL_NO_CONTEXT);
+    LOG_V("egl_eglMakeCurrent successfully for destroy_temp_egl_ctx");
+    if (eglSurface == EGL_NO_SURFACE) return;
     egl_eglDestroySurface(eglDisplay, eglSurface);
+    LOG_V("egl_eglDestroySurface successfully for destroy_temp_egl_ctx");
+    if (eglContext == EGL_NO_CONTEXT) return;
     egl_eglDestroyContext(eglDisplay, eglContext);
+    LOG_V("egl_eglDestroyContext successfully for destroy_temp_egl_ctx");
 
     egl_eglTerminate(eglDisplay);
+    LOG_V("egl_eglTerminate successfully for destroy_temp_egl_ctx");
 }
