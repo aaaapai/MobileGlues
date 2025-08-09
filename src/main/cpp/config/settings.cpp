@@ -145,8 +145,8 @@ void init_settings() {
         global_settings.buffer_coherent_as_flush = (global_settings.angle == AngleMode::Disabled);
 
     if (global_settings.angle == AngleMode::Enabled) {
-        //setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
-        //setenv("LIBGL_EGL", "libEGL_angle.so", 1);
+        setenv("LIBGL_GLES", "libGLESv2_angle.so", 1);
+        setenv("LIBGL_EGL", "libmobileglues.so", 1);
     }
 
     switch (noErrorConfig) {
