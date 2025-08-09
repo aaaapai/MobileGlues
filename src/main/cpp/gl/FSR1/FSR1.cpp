@@ -334,7 +334,7 @@ void ApplyFSR() {
 
     glUseProgram(FSR1_Context::g_fsrProgram);
 
-    GLES.glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
 
     glm::vec4 const0 = {
