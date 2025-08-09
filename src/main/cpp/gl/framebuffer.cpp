@@ -348,3 +348,68 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
 
     GLES.glFramebufferTextureLayer(target, attachment, texture, level, layer);
 }
+
+void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params) {
+    // 首先处理 GLES3.2 原生支持的参数
+    switch (pname) {
+        // GLES3.2 完全支持的参数
+        case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+        case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+        case GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE:
+        case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE:
+        case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+            GLES.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
+            return;
+
+        // 分层附件 (GL_FRAMEBUFFER_ATTACHMENT_LAYERED)
+        case 0x8DA7: // GL_FRAMEBUFFER_ATTACHMENT_LAYERED
+            // GLES 不支持真正的分层附件，返回 GL_FALSE
+            *params = GL_FALSE;
+            return;
+            
+        // 纹理层 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER)
+        case 0x8CD4: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER
+            // GLES 不支持纹理层，返回 0
+            *params = 0;
+            return;
+            
+        // 多重采样 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES)
+        case 0x8D6C: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES
+            // 查询是否有多重采样
+            GLint samples = 0;
+            GLES.glGetIntegerv(GL_SAMPLES, &samples);
+            *params = samples > 1 ? samples : 1;
+            return;
+            
+        // 附件对象的纹理目标 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET)
+        case 0x8CD6: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET
+        {
+            GLint type;
+            GLES.glGetFramebufferAttachmentParameteriv(target, attachment, 
+                GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+                
+            if (type == GL_TEXTURE) {
+                GLint name;
+                GLES.glGetFramebufferAttachmentParameteriv(target, attachment,
+                    GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &name);
+                    
+                *params = GL_TEXTURE_2D;
+            } else {
+                *params = GL_NONE;
+            }
+            return;
+        }
+            
+        default:
+            // 未知参数，设置默认值
+            *params = 0;
+            return;
+    }
+}
