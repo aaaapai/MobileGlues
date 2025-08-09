@@ -15,7 +15,7 @@ struct attachment_t {
     GLenum textarget;
     GLuint texture;
     GLint level;
-    GLuint lauers;
+    GLuint layers;
 };
 
 struct framebuffer_t {
