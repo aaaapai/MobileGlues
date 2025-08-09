@@ -71,11 +71,11 @@ void init_target_egl(void) {
         goto cleanup;
     }
 
-    /*if (global_settings.angle == AngleMode::Enabled) {
+    if (global_settings.angle == AngleMode::Enabled) {
         BindAPI_result = egl_eglBindAPI(EGL_OPENGL_API);
-    } else {*/
+    } else {
         BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
-    //}
+    }
     if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
