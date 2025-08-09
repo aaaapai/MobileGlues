@@ -29,15 +29,15 @@ struct GLStateGuard {
     }
 
     ~GLStateGuard() {
-        GLES.glUseProgram(prevProgram);
+        glUseProgram(prevProgram);
         GLES.glBindVertexArray(prevVAO);
-        GLES.glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
-        GLES.glActiveTexture(prevActiveTexture);
-        GLES.glBindTexture(GL_TEXTURE_2D, prevTexture);
+        glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
+        glActiveTexture(prevActiveTexture);
+        glBindTexture(GL_TEXTURE_2D, prevTexture);
         //GLES.glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
-        GLES.glBindRenderbuffer(GL_RENDERBUFFER, prevRenderbuffer);
-        GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
-        GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, prevRenderbuffer);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
     }
 };
 
@@ -177,12 +177,12 @@ void InitFullscreenQuad() {
     };
 
     GLES.glGenVertexArrays(1, &FSR1_Context::g_quadVAO);
-    GLES.glGenBuffers(1, &FSR1_Context::g_quadVBO);
+    glGenBuffers(1, &FSR1_Context::g_quadVBO);
 
     GLES.glBindVertexArray(FSR1_Context::g_quadVAO);
-    GLES.glBindBuffer(GL_ARRAY_BUFFER, FSR1_Context::g_quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, FSR1_Context::g_quadVBO);
 
-    GLES.glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
     GLES.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     GLES.glEnableVertexAttribArray(0);
@@ -190,7 +190,7 @@ void InitFullscreenQuad() {
     GLES.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     GLES.glEnableVertexAttribArray(1);
 
-    GLES.glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     GLES.glBindVertexArray(0);
 }
 
@@ -222,9 +222,9 @@ void InitFSRResources() {
 
     InitFullscreenQuad();
 
-    GLES.glGenTextures(1, &FSR1_Context::g_renderTexture);
-    GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
-    GLES.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight,
+    glGenTextures(1, &FSR1_Context::g_renderTexture);
+    glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight,
         0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -232,21 +232,21 @@ void InitFSRResources() {
 	GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     
-    GLES.glGenRenderbuffers(1, &FSR1_Context::g_depthStencilRBO);
-    GLES.glBindRenderbuffer(GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
+    glGenRenderbuffers(1, &FSR1_Context::g_depthStencilRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
     GLES.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
 		FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight);
     
-    GLES.glGenFramebuffers(1, &FSR1_Context::g_renderFBO);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
-    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+    glGenFramebuffers(1, &FSR1_Context::g_renderFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, FSR1_Context::g_renderTexture, 0);
-    GLES.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
         GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
 
-    GLES.glGenTextures(1, &FSR1_Context::g_targetTexture);
-    GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_targetTexture);
-    GLES.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
+    glGenTextures(1, &FSR1_Context::g_targetTexture);
+    glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_targetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
         0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -254,12 +254,12 @@ void InitFSRResources() {
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    GLES.glGenFramebuffers(1, &FSR1_Context::g_targetFBO);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
-    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+    glGenFramebuffers(1, &FSR1_Context::g_targetFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, FSR1_Context::g_targetTexture, 0);
     
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
 }
 
 void RecreateFSRFBO() {
@@ -273,7 +273,7 @@ void RecreateFSRFBO() {
     
     GLES.glGenTextures(1, &FSR1_Context::g_renderTexture);
     GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
-    GLES.glTexImage2D(
+    glTexImage2D(
         GL_TEXTURE_2D, 0,
         GL_RGBA32F,
         FSR1_Context::g_renderWidth,
@@ -288,20 +288,20 @@ void RecreateFSRFBO() {
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    GLES.glGenRenderbuffers(1, &FSR1_Context::g_depthStencilRBO);
-    GLES.glBindRenderbuffer(GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
+    glGenRenderbuffers(1, &FSR1_Context::g_depthStencilRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
 	GLES.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
         FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight);
-    GLES.glGenFramebuffers(1, &FSR1_Context::g_renderFBO);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
-    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+    glGenFramebuffers(1, &FSR1_Context::g_renderFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, FSR1_Context::g_renderTexture, 0);
-    GLES.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
         GL_RENDERBUFFER, FSR1_Context::g_depthStencilRBO);
         
-    GLES.glGenTextures(1, &FSR1_Context::g_targetTexture);
-    GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_targetTexture);
-    GLES.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
+    glGenTextures(1, &FSR1_Context::g_targetTexture);
+    glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_targetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
         0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -310,11 +310,11 @@ void RecreateFSRFBO() {
     GLES.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     GLES.glGenFramebuffers(1, &FSR1_Context::g_targetFBO);
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
-    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, FSR1_Context::g_targetTexture, 0);
 
-	GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
     GLES.glViewport(0, 0, FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight);
 
 	LOG_D("FSR1 resources recreated: render %dx%d, target %dx%d", 
@@ -327,15 +327,15 @@ std::vector<std::pair<GLsizei, GLsizei>> g_viewportStack;
 void ApplyFSR() {
     GLStateGuard state;
     
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
     GLES.glViewport(0, 0, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight);
     GLES.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    GLES.glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    GLES.glUseProgram(FSR1_Context::g_fsrProgram);
+    glUseProgram(FSR1_Context::g_fsrProgram);
 
     GLES.glActiveTexture(GL_TEXTURE0);
-    GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
+    glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
 
     glm::vec4 const0 = {
         float(FSR1_Context::g_renderWidth) / FSR1_Context::g_targetWidth,
@@ -351,18 +351,18 @@ void ApplyFSR() {
     GLES.glUniform2fv(glGetUniformLocation(FSR1_Context::g_fsrProgram, "uViewportSize"), 1, reinterpret_cast<const GLfloat*>(&viewportSize));
 
     GLES.glBindVertexArray(FSR1_Context::g_quadVAO);
-    GLES.glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     GLES.glBindVertexArray(0);
     
-    GLES.glBindFramebuffer(GL_READ_FRAMEBUFFER, FSR1_Context::g_targetFBO);
-    GLES.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    GLES.glBlitFramebuffer(
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, FSR1_Context::g_targetFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(
         0, 0, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
         0, 0, FSR1_Context::g_targetWidth, FSR1_Context::g_targetHeight,
         GL_COLOR_BUFFER_BIT, GL_LINEAR
     );
 
-    GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
     GLES.glViewport(0, 0, FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight);
 }
 
