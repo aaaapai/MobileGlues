@@ -48,7 +48,7 @@ void init_target_egl(void) {
             EGL_ALPHA_SIZE, 8,
             EGL_DEPTH_SIZE, 24,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT|EGL_PBUFFER_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
             EGL_NONE
     };
 
@@ -71,11 +71,11 @@ void init_target_egl(void) {
         goto cleanup;
     }
 
-    if (global_settings.angle == AngleMode::Enabled) {
+    /*if (global_settings.angle == AngleMode::Enabled) {
         BindAPI_result = egl_eglBindAPI(EGL_OPENGL_API);
-    } else {
+    } else {*/
         BindAPI_result = egl_eglBindAPI(EGL_OPENGL_ES_API);
-    }
+    //}
     if (BindAPI_result != EGL_TRUE) {
         LOG_E("eglBindAPI failed (0x%x)", egl_eglGetError());
         goto cleanup;
