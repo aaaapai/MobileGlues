@@ -161,7 +161,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     GLES.glFramebufferTexture2D(target, attachment, textarget, texture, level);
 
 
-    GLenum error = GLES.glGetError();
+    /*GLenum error = GLES.glGetError();
     if (error == GL_INVALID_OPERATION) {
 
         struct attachment_t* attach;
@@ -219,7 +219,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
                 GLES.glDeleteTextures(1, &fallbackTex);
             }
         }
-    } //DeepSeek
+    } //DeepSeek */
 
     CHECK_GL_ERROR
 }
@@ -312,7 +312,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             (target == GL_DRAW_FRAMEBUFFER)
                 ? bound_framebuffer->draw_attachment
                 : bound_framebuffer->read_attachment;
-
+    
     if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
@@ -333,10 +333,6 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         }
         target = GL_READ_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-          struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
           if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
@@ -351,6 +347,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
             attach[attachment - GL_COLOR_ATTACHMENT0].level = level;
+            attach[attachment - GL_COLOR_ATTACHMENT0].layers = layer;
         }
         bound_framebuffer->current_target = target;
     }
@@ -426,10 +423,6 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
             bound_framebuffer->current_target = target;
         }
     } else if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-        struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
         if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
@@ -445,6 +438,11 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
 void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params) {
 
     LOG()
+
+    struct attachment_t* attach =
+            (target == GL_DRAW_FRAMEBUFFER)
+                ? bound_framebuffer->draw_attachment
+                : bound_framebuffer->read_attachment;
 
     // 首先处理 GLES3.2 原生支持的参数
     switch (pname) {
@@ -464,46 +462,11 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
         {
             GLES.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
             return;
-        }
-
-        // 分层附件 (GL_FRAMEBUFFER_ATTACHMENT_LAYERED)
-        case GL_FRAMEBUFFER_ATTACHMENT_LAYERED: {// GL_FRAMEBUFFER_ATTACHMENT_LAYERED
-            // GLES 不支持真正的分层附件，返回 GL_FALSE
-            *params = GL_FALSE;
-            return;
         } 
         
         // 纹理层 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER)
         case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER: {// GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER
-            // GLES 不支持纹理层，返回 0
-            *params = 0;
-            return;
-        }
-        
-        // 多重采样 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES)
-        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES: {
-            // 查询是否有多重采样
-            GLint samples = 0;
-            GLES.glGetIntegerv(GL_SAMPLES, &samples);
-            *params = samples > 1 ? samples : 1;
-            return;
-        }
-        // 附件对象的纹理目标 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET)
-        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET:
-        {
-            GLint type;
-            GLES.glGetFramebufferAttachmentParameteriv(target, attachment, 
-                GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
-                
-            if (type == GL_TEXTURE) {
-                GLint name;
-                GLES.glGetFramebufferAttachmentParameteriv(target, attachment,
-                    GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &name);
-                    
-                *params = GL_TEXTURE_2D;
-            } else {
-                *params = GL_NONE;
-            }
+            *params = attach[attachment - GL_COLOR_ATTACHMENT0].layers;
             return;
         }
             
@@ -512,4 +475,5 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
             return;
         }
     }
+
 }
