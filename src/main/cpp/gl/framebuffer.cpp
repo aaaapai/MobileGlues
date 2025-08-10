@@ -110,11 +110,11 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
                 ? bound_framebuffer->draw_attachment
                 : bound_framebuffer->read_attachment;
     
-    if(texture == 0) {
+    /*if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
         return;
-    }
+    }*/
 
     if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
 
@@ -284,11 +284,6 @@ GLenum glCheckFramebufferStatus(GLenum target) {
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) {
     LOG()
     LOG_D("glFramebufferTexture(0x%x, 0x%x, %d, %d)", target, attachment, texture, level)
-
-    struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
     
     /*if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
@@ -319,6 +314,11 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         }
     } else*/ if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
         if (attach) {
+            struct attachment_t* attach =
+              (target == GL_DRAW_FRAMEBUFFER)
+                ? bound_framebuffer->draw_attachment
+                : bound_framebuffer->read_attachment;
+
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
             attach[attachment - GL_COLOR_ATTACHMENT0].texture = texture;
@@ -368,11 +368,11 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
                 ? bound_framebuffer->draw_attachment
                 : bound_framebuffer->read_attachment;
 
-    if(texture == 0) {
+    /*if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
         return;
-    }
+    }*/
 
     if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
