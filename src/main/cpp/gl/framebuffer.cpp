@@ -104,7 +104,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
-    struct attachment_t* attach;
+    struct attachment_t* attach = nullptr;
     if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
