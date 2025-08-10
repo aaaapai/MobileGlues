@@ -1245,11 +1245,11 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
 		return;
 	}
 	GLint prevUnit = 0;
-	GLES.glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &prevUnit);
 	GLenum target = GetTexTarget(texture);
-	GLES.glActiveTexture(GL_TEXTURE0 + unit);
-	GLES.glBindTexture(target, texture);
-	GLES.glActiveTexture(prevUnit);
+    glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(target, texture);
+	glActiveTexture(prevUnit);
 	LOG_D("[DSA] Bound texture %u to texture unit %u", texture, unit);
 }
 
