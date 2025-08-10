@@ -24,7 +24,7 @@ GLint getMaxDrawBuffers() {
 static void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment) {
     if (!bound_framebuffer) return;
 
-    struct attachment_t* attach;
+    struct attachment_t* attach = nullptr;
     if (bound_framebuffer->current_target == GL_DRAW_FRAMEBUFFER) {
         attach = bound_framebuffer->draw_attachment;
     } else {
@@ -308,6 +308,11 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
     LOG()
     LOG_D("glFramebufferTexture(0x%x, 0x%x, %d, %d)", target, attachment, texture, level)
 
+    struct attachment_t* attach =
+            (target == GL_DRAW_FRAMEBUFFER)
+                ? bound_framebuffer->draw_attachment
+                : bound_framebuffer->read_attachment;
+
     if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
@@ -317,10 +322,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
     if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-          struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
+
           if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
@@ -344,10 +346,6 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
             bound_framebuffer->current_target = target;
         }
     } else if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-        struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
         if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
@@ -393,6 +391,11 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
     LOG()
     //TODO: LOG_D()
 
+    struct attachment_t* attach =
+            (target == GL_DRAW_FRAMEBUFFER)
+                ? bound_framebuffer->draw_attachment
+                : bound_framebuffer->read_attachment;
+
     if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
@@ -402,10 +405,6 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
     if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-          struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
           if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
@@ -417,10 +416,6 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
         }
         target = GL_READ_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
-          struct attachment_t* attach =
-            (target == GL_DRAW_FRAMEBUFFER)
-                ? bound_framebuffer->draw_attachment
-                : bound_framebuffer->read_attachment;
           if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
