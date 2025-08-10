@@ -104,6 +104,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 
     LOG_D("glFramebufferTexture2D(0x%x, 0x%x, 0x%x, %d, %d)", target, attachment, textarget, texture, level)
 
+    struct attachment_t* attach;
     if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
@@ -111,7 +112,6 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
     }
 
     if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 <= static_cast<GLuint>(getMaxDrawBuffers())) {
-        struct attachment_t* attach;
         if (target == GL_DRAW_FRAMEBUFFER)
             attach = bound_framebuffer->draw_attachment;
         else
@@ -448,6 +448,9 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
 }
 
 void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params) {
+
+    LOG()
+
     // 首先处理 GLES3.2 原生支持的参数
     switch (pname) {
         // GLES3.2 完全支持的参数
@@ -463,31 +466,35 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
         case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
         case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
         case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+        {
             GLES.glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
             return;
+        }
 
         // 分层附件 (GL_FRAMEBUFFER_ATTACHMENT_LAYERED)
-        case 0x8DA7: // GL_FRAMEBUFFER_ATTACHMENT_LAYERED
+        case GL_FRAMEBUFFER_ATTACHMENT_LAYERED: {// GL_FRAMEBUFFER_ATTACHMENT_LAYERED
             // GLES 不支持真正的分层附件，返回 GL_FALSE
             *params = GL_FALSE;
             return;
-            
+        } 
+        
         // 纹理层 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER)
-        case 0x8CD4: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER: {// GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER
             // GLES 不支持纹理层，返回 0
             *params = 0;
             return;
-            
+        }
+        
         // 多重采样 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES)
-        case 0x8D6C: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES: {
             // 查询是否有多重采样
             GLint samples = 0;
             GLES.glGetIntegerv(GL_SAMPLES, &samples);
             *params = samples > 1 ? samples : 1;
             return;
-            
+        }
         // 附件对象的纹理目标 (GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET)
-        case 0x8CD6: // GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_TARGET:
         {
             GLint type;
             GLES.glGetFramebufferAttachmentParameteriv(target, attachment, 
@@ -505,9 +512,9 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
             return;
         }
             
-        default:
-            // 未知参数，设置默认值
+        default: {
             *params = 0;
             return;
+        }
     }
 }
