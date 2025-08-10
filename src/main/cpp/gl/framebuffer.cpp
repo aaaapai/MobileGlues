@@ -290,11 +290,11 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
                 ? bound_framebuffer->draw_attachment
                 : bound_framebuffer->read_attachment;
     
-    if(texture == 0) {
+    /*if(texture == 0) {
         attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_NONE;
         rebind_framebuffer(target, attachment);
         return;
-    }
+    }*/
 
     /*if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
