@@ -46,7 +46,7 @@ static void rebind_framebuffer(GLenum old_attachment, GLenum target_attachment) 
     }
 
     if (bound_framebuffer->current_target == GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER) {
-        GLES.glFramebufferRenderbuffer(bound_framebuffer->current_target, target_attachment, attachment.texture, attachment.level, attachment.layers);
+        GLES.glFramebufferTextureLayer(bound_framebuffer->current_target, target_attachment, attachment.texture, attachment.level, attachment.layers);
         return;
     }
 
