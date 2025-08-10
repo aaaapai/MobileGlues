@@ -1441,12 +1441,12 @@ void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLe
 	LOG()
 	LOG_D("[DSA] glVertexArrayAttribFormat, vaobj: %u, attribindex: %u, size: %d, type: 0x%X, normalized: %d, relativeoffset: %u", vaobj, attribindex, size, type, normalized, relativeoffset);
 	
-	if (vaobj == 0 || attribindex >= GL_MAX_VERTEX_ATTRIBS || size <= 0 || (type != GL_FLOAT && type != GL_INT && type != GL_UNSIGNED_INT)) {
+	/*if (vaobj == 0 || attribindex >= GL_MAX_VERTEX_ATTRIBS || size <= 0 || (type != GL_FLOAT && type != GL_INT && type != GL_UNSIGNED_INT)) {
 		LOG_E("[DSA] Invalid parameters for glVertexArrayAttribFormat");
 		return;
-	}
+	}*/
 	temporarilyBindVertexArray(vaobj);
-	glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
+	GLES.glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
 	CHECK_GL_ERROR;
 	restoreTemporaryVertexArrayBinding();
 	
