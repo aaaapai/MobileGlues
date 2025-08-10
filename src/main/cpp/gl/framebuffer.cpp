@@ -296,7 +296,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
         return;
     }
 
-    if (target == GL_FRAMEBUFFER) {
+    /*if (target == GL_FRAMEBUFFER) {
         target = GL_DRAW_FRAMEBUFFER;
         if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
 
@@ -317,7 +317,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
           }
             bound_framebuffer->current_target = target;
         }
-    } else if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
+    } else*/ if (bound_framebuffer && attachment - GL_COLOR_ATTACHMENT0 < static_cast<GLenum>(getMaxDrawBuffers())) {
         if (attach) {
             // Record generic texture as 2D for now
             attach[attachment - GL_COLOR_ATTACHMENT0].textarget = GL_TEXTURE_2D;
