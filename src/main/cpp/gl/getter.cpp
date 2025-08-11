@@ -245,7 +245,7 @@ void set_es_version() {
     std::string ESVersionStr = getBeforeThirdSpace(std::string((const char*)GLES.glGetString(GL_VERSION)));
     int major, minor;
 
-    if (sscanf(ESVersionStr.c_str(), "OpenGL ES %d.%d", &major, &minor) == 2) {
+    if (sscanf(ESVersionStr.c_str(), "OpenGL 青春版 %d.%d", &major, &minor) == 2) {
         hardware->es_version = major * 100 + minor * 10;
     } else {
         hardware->es_version = 320;
@@ -274,7 +274,7 @@ const GLubyte * glGetString( GLenum name ) {
     switch (name) {
         case GL_VENDOR: {
             if(vendorString.empty()) {
-                std::string vendor = "Swung0x48, BZLZHH, Tungsten";
+                std::string vendor = "Swung0x48, BZLZHH, Tungsten, c艹";
                 vendorString = vendor;
             }
             return (const GLubyte *)vendorString.c_str();
@@ -283,11 +283,11 @@ const GLubyte * glGetString( GLenum name ) {
             if (versionString.empty()) {
                 versionString = GLVersion.toString();
                 if (GLVersion.toInt(2) == DEFAULT_GL_VERSION) {
-					versionString += " MobileGlues ";
+					versionString += " MOBILEGLUES ";
                 }
                 else {
 					Version defaultVersion = Version(DEFAULT_GL_VERSION);
-                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileGlues§r ";
+                    versionString += " §4§l(" + defaultVersion.toString() + ") MOBILEGLUES§r ";
                 }
 
                 versionString += std::to_string(MAJOR) + "."
@@ -358,12 +358,12 @@ const GLubyte * glGetStringi(GLenum name, GLuint index) {
 
             switch (target) {
                 case GL_VENDOR:
-                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten";
+                    str = (const GLubyte*)"Swung0x48, BZLZHH, Tungsten, someone";
                     delimiter = ", ";
                     break;
                 case GL_VERSION:
                     str = (const GLubyte*)
-                        (GLVersion.toString() + " MobileGlues").c_str();
+                        (GLVersion.toString() + " MOBILEGLUES").c_str();
                     delimiter = " .";
                     break;
                 case GL_SHADING_LANGUAGE_VERSION:
