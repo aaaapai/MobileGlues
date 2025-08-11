@@ -778,12 +778,13 @@ void mg_glMultiDrawElements_deepseek_two(GLenum mode,
     // Fallback to emulated implementation
     GLint currentProgram = 0;
     GLboolean hasDrawID = GL_FALSE;
-    GLint drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
-
+    GLint drawIDLoc = -1;
+	
     // Get current program and check for drawID uniform
     GLES.glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
     if (currentProgram != 0)
     {
+		drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
         hasDrawID = (drawIDLoc != -1);
     }
 
@@ -814,51 +815,40 @@ void mg_glMultiDrawElements_deepseek_two(GLenum mode,
 }
 
 void mg_glMultiDrawElementsBaseVertex_deepseek_two(GLenum mode,
-                                const GLsizei *counts,
-                                GLenum type,
-                                const GLvoid *const *indices,
-                                const GLint *baseVertices,
-                                GLsizei drawcount)
+                                  const GLsizei *count,
+                                  GLenum type,
+                                  const void *const *indices,
+                                  GLsizei drawcount,
+                                  const GLint *basevertex)
 {
 
 	LOG()
+	prepareForDraw();
 
-    prepareForDraw();
-
+    // Get the currently bound program to check for drawID uniform
     GLint currentProgram = 0;
-    GLboolean hasDrawID = GL_FALSE;
-    GLint drawIDLoc = -1;
-    
-    // Get current program and check for drawID uniform
     GLES.glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    if (currentProgram != 0)
-    {
-        drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
-        hasDrawID = (drawIDLoc != -1);
+    
+    // Check if the program has a drawID uniform
+    GLint drawIDLoc = -1;
+    if (currentProgram != 0) {
+        drawIDLoc = GLES.glGetUniformLocation(currentProgram, "gl_DrawID");
     }
-
-    if (hasDrawID)
-    {
-        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
-        {
-            if (counts[drawID] <= 0)
-            {
-                continue;
-            }
+    bool hasDrawID = (drawIDLoc != -1);
+    
+    for (GLsizei drawID = 0; drawID < drawcount; ++drawID) {
+        // Skip if count is 0 (no-op draw)
+        if (count[drawID] == 0) {
+            continue;
+        }
+        
+        // Set drawID uniform if needed
+        if (hasDrawID) {
             GLES.glUniform1i(drawIDLoc, drawID);
-            GLES.glDrawElementsBaseVertex(mode, counts[drawID], type, indices[drawID], baseVertices[drawID]);
         }
-    }
-    else
-    {
-        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
-        {
-            if (counts[drawID] <= 0)
-            {
-                continue;
-            }
-            GLES.glDrawElementsBaseVertex(mode, counts[drawID], type, indices[drawID], baseVertices[drawID]);
-        }
+        
+        // Perform the draw with base vertex
+        GLES.glDrawElementsBaseVertex(mode, count[drawID], type, indices[drawID], basevertex[drawID]);
     }
 
 }
