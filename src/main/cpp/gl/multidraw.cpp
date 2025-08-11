@@ -36,7 +36,7 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
                 func_ptr = mg_glMultiDrawElements_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = mg_glMultiDrawElements_native;
+                func_ptr = GLES.glMultiDrawElementsEXT;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
@@ -72,10 +72,10 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
                 break;
             case multidraw_mode_t::DeepSeekTwo:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_one;
+                func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = mg_glMultiDrawElementsBaseVertex_native;
+                func_ptr = GLES.glMultiDrawElementsBaseVertexEXT;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
@@ -100,7 +100,7 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::PreferMultidrawIndirect:
-                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                func_ptr = GLES.glMultiDrawElementsIndirectEXT;
                 break;
             case multidraw_mode_t::DrawElements:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
@@ -115,7 +115,7 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                func_ptr = GLES.glMultiDrawElementsIndirectEXT;
                 break;
             default:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
@@ -195,8 +195,8 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
 
 void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
+	
     GLint prevElementBuffer;
     GLES.glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevElementBuffer);
 
@@ -281,8 +281,8 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
 
 void mg_glMultiDrawElementsBaseVertex_indirect(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
-    void prepareForDraw();
-    prepareForDraw();
+
+	prepareForDraw();
 
     prepare_indirect_buffer(counts, type, indices, primcount, basevertex);
 
@@ -299,7 +299,6 @@ void mg_glMultiDrawElementsBaseVertex_indirect(GLenum mode, GLsizei* counts, GLe
 
 void mg_glMultiDrawElementsBaseVertex_multiindirect(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     prepare_indirect_buffer(counts, type, indices, primcount, basevertex);
@@ -314,7 +313,6 @@ void mg_glMultiDrawElementsBaseVertex_multiindirect(GLenum mode, GLsizei* counts
 
 void mg_glMultiDrawElementsBaseVertex_basevertex(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices, GLsizei primcount, const GLint* basevertex) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     for (GLsizei i = 0; i < primcount; ++i) {
@@ -330,7 +328,6 @@ void mg_glMultiDrawElementsBaseVertex_basevertex(GLenum mode, GLsizei* counts, G
 
 void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     prepare_indirect_buffer(count, type, indices, primcount, 0);
@@ -346,7 +343,6 @@ void mg_glMultiDrawElements_indirect(GLenum mode, const GLsizei *count, GLenum t
 
 void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     for (GLsizei i = 0; i < primcount; ++i) {
@@ -361,7 +357,6 @@ void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLen
 
 void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     for (GLsizei i = 0; i < primcount; ++i) {
@@ -376,7 +371,6 @@ void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum ty
 
 void mg_glMultiDrawElements_multiindirect(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     prepare_indirect_buffer(count, type, indices, primcount, 0);
@@ -391,7 +385,6 @@ void mg_glMultiDrawElements_multiindirect(GLenum mode, const GLsizei *count, GLe
 
 void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     for (GLsizei i = 0; i < primcount; ++i) {
@@ -504,7 +497,6 @@ GLuint compile_compute_program(const std::string& src) {
 GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
         GLenum mode, GLsizei *counts, GLenum type, const void *const *indices, GLsizei primcount, const GLint *basevertex) {
     LOG()
-    void prepareForDraw();
     prepareForDraw();
 
     INIT_CHECK_GL_ERROR
@@ -635,7 +627,8 @@ void mg_glMultiDrawElements_deepseek_one(GLenum mode, const GLsizei *count,
                                       GLenum type, const void *const *indices, 
                                       GLsizei primcount) {
     LOG();
-    
+    prepareForDraw();
+
     // Process 4 elements at a time using NEON
     GLsizei i = 0;
     for (; i + 3 < primcount; i += 4) {
@@ -671,6 +664,8 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
                                                 GLenum type, const void* const* indices, 
                                                 GLsizei primcount, const GLint* basevertex) {
     LOG()
+
+	prepareForDraw();
 
     // Process 4 elements at a time using NEON
     GLsizei i = 0;
@@ -712,7 +707,6 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, GLsizei* counts,
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     LOG()
 
-    void prepareForDraw();
     prepareForDraw();
 
     // 保存当前绑定的间接绘制缓冲区
@@ -770,58 +764,101 @@ void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const
     CHECK_GL_ERROR
 }
 
-//(批处理+实例化)
-void mg_glMultiDrawElements_deepseek_two(
-    GLenum mode, const GLsizei* counts, GLenum type, 
-    const void* const* indices, GLsizei primcount)
+void mg_glMultiDrawElements_deepseek_two(GLenum mode,
+                      const GLsizei *counts,
+                      GLenum type,
+                      const GLvoid *const *indices,
+                      GLsizei drawcount)
 {
-    // 1. 合并所有索引到单个IBO
-    static GLuint megaIBO = 0;
-    static size_t totalIndices = 0;
+
+	LOG()
+
+    prepareForDraw();
+
+    // Fallback to emulated implementation
+    GLint currentProgram = 0;
+    GLboolean hasDrawID = GL_FALSE;
     
-    if (!megaIBO) {
-        // 计算总索引数
-        for (GLsizei i = 0; i < primcount; ++i) {
-            totalIndices += counts[i];
-        }
-        
-        // 创建并填充IBO
-        GLES.glGenBuffers(1, &megaIBO);
-        GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, megaIBO);
-        GLES.glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
-                    totalIndices * sizeof(GLuint), 
-                    NULL, GL_STATIC_DRAW);
-        
-        // 分段填充索引数据
-        GLuint offset = 0;
-        for (GLsizei i = 0; i < primcount; ++i) {
-            GLES.glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 
-                           offset, 
-                           counts[i] * sizeof(GLuint),
-                           indices[i]);
-            offset += counts[i] * sizeof(GLuint);
+    // Get current program and check for drawID uniform
+    GLES.glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    if (currentProgram != 0)
+    {
+        GLint drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
+        hasDrawID = (drawIDLoc != -1);
+    }
+
+    if (hasDrawID)
+    {
+        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
+        {
+            if (counts[drawID] <= 0)
+            {
+                continue;
+            }
+            GLES.glUniform1i(drawIDLoc, drawID);
+            GLES.glDrawElements(mode, counts[drawID], type, indices[drawID]);
         }
     }
+    else
+    {
+        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
+        {
+            if (counts[drawID] <= 0)
+            {
+                continue;
+            }
+            GLES.glDrawElements(mode, counts[drawID], type, indices[drawID]);
+        }
+    }
+
+}
+
+void glMultiDrawElementsBaseVertex_deepseek_two(GLenum mode,
+                                const GLsizei *counts,
+                                GLenum type,
+                                const GLvoid *const *indices,
+                                const GLint *baseVertices,
+                                GLsizei drawcount)
+{
+
+	LOG()
+
+    prepareForDraw();
+
+    GLint currentProgram = 0;
+    GLboolean hasDrawID = GL_FALSE;
+    GLint drawIDLoc = -1;
     
-    // 2. 使用实例化绘制
-    GLES.glDrawElementsInstanced(mode, totalIndices, type, 0, primcount);
+    // Get current program and check for drawID uniform
+    GLES.glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    if (currentProgram != 0)
+    {
+        drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
+        hasDrawID = (drawIDLoc != -1);
+    }
+
+    if (hasDrawID)
+    {
+        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
+        {
+            if (counts[drawID] <= 0)
+            {
+                continue;
+            }
+            GLES.glUniform1i(drawIDLoc, drawID);
+            GLES.glDrawElementsBaseVertex(mode, counts[drawID], type, indices[drawID], baseVertices[drawID]);
+        }
+    }
+    else
+    {
+        for (GLsizei drawID = 0; drawID < drawcount; ++drawID)
+        {
+            if (counts[drawID] <= 0)
+            {
+                continue;
+            }
+            GLES.glDrawElementsBaseVertex(mode, counts[drawID], type, indices[drawID], baseVertices[drawID]);
+        }
+    }
+
 }
-
-void mg_glMultiDrawElements_native(
-    GLenum mode, const GLsizei* counts, GLenum type, 
-    const void* const* indices, GLsizei primcount)
-{
-    LOG()
-
-    GLES.glMultiDrawElementsEXT(mode, counts, type, indices, primcount);
-}
-
-void mg_glMultiDrawElementsBaseVertex_native(GLenum mode, GLsizei* counts, 
-                                                GLenum type, const void* const* indices, 
-                                                GLsizei primcount, const GLint* basevertex)
-{
-    LOG()
-
-    GLES.glMultiDrawElementsBaseVertexEXT(mode, counts, type, indices, primcount, basevertex);
-}
-
