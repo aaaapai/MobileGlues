@@ -813,7 +813,7 @@ void mg_glMultiDrawElements_deepseek_two(GLenum mode,
 
 }
 
-void glMultiDrawElementsBaseVertex_deepseek_two(GLenum mode,
+void mg_glMultiDrawElementsBaseVertex_deepseek_two(GLenum mode,
                                 const GLsizei *counts,
                                 GLenum type,
                                 const GLvoid *const *indices,
