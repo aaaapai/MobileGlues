@@ -75,7 +75,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum typ
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                GLES.glMultiDrawElementsBaseVertexEXT(mode, counts, type, indices, primcount, basevertex);
+                GLES.glMultiDrawElementsBaseVertexEXT(mode, count, type, indices, drawcount, basevertex);
                 return;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
@@ -88,7 +88,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum typ
 
 typedef void (*glMultiDrawElementsIndirect_t)(GLenum, GLenum, const void *, GLsizei, GLsizei);
 
-void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
+void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     static glMultiDrawElementsIndirect_t func_ptr = nullptr;
 
     if (func_ptr == nullptr) {
@@ -804,7 +804,7 @@ void mg_glMultiDrawElements_deepseek_two(GLenum mode,
     {
         for (GLsizei drawID = 0; drawID < primcount; ++drawID)
         {
-            if (counts[drawID] <= 0)
+            if (count[drawID] <= 0)
             {
                 continue;
             }
