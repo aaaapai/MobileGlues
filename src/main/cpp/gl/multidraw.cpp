@@ -203,7 +203,7 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, const GLsizei *c
     for (GLsizei i = 0; i < drawcount; ++i) {
         if (count[i] <= 0) continue;
 
-        GLsizei currentCount = counts[i];
+        GLsizei currentCount = count[i];
         const GLvoid *currentIndices = indices[i];
         GLint currentBaseVertex = basevertex[i];
 
@@ -501,7 +501,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
     INIT_CHECK_GL_ERROR
 
-    if (primcount <= 0)
+    if (drawcount <= 0)
         return;
 
     // TODO: support `types` other than GL_UNSIGNED_INT
@@ -552,7 +552,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     CHECK_GL_ERROR_NO_INIT
 
     // Allocate output buffer
-    auto total_indices = g_prefix_sum[primcount - 1];
+    auto total_indices = g_prefix_sum[drawcount - 1];
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_outputibo);
     CHECK_GL_ERROR_NO_INIT
     GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * total_indices, nullptr, GL_DYNAMIC_DRAW);
@@ -697,7 +697,7 @@ void mg_glMultiDrawElementsBaseVertex_deepseek_one(GLenum mode, const GLsizei *c
         if (counts > 0) {
             LOG_D("GLES.glDrawElementsBaseVertex, mode = %s, count = %d, type = %s, indices[i] = 0x%x, basevertex[i] = %d",
                  glEnumToString(mode), count, glEnumToString(type), indices[i], basevertex[i]);
-            GLES.glDrawElementsBaseVertex(mode, count, type, indices[i], basevertex[i]);
+            GLES.glDrawElementsBaseVertex(mode, count[i], type, indices[i], basevertex[i]);
         }
     }
 
