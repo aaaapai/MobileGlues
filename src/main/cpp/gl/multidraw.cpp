@@ -131,7 +131,7 @@ static GLsizei g_cmdbufsize = 0;
 static GLuint g_indirectbuffer = 0;
 static GLuint prevIndirectBuffer = 0;
 
-void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *const *indices,
+static void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *const *indices,
                              GLsizei primcount, const GLint *basevertex) {
 	GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, (GLint*)&prevIndirectBuffer);
     if (!g_indirect_cmds_inited) {
@@ -397,7 +397,7 @@ void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum
     CHECK_GL_ERROR
 }
 
-const std::string multidraw_comp_shader =
+static const std::string multidraw_comp_shader =
 R"(#version 320 es
 
 layout(local_size_x = 64) in;
@@ -437,15 +437,15 @@ void main() {
 )";
 
 static bool g_compute_inited = false;
-std::vector<GLuint> g_prefix_sum(1);
-GLuint g_prefixsumbuffer = 0;
-GLuint g_firstidx_ssbo = 0;
-GLuint g_basevtx_ssbo = 0;
-GLuint g_outputibo = 0;
-GLuint g_compute_program = 0;
-char g_compile_info[1024];
+static std::vector<GLuint> g_prefix_sum(1);
+static GLuint g_prefixsumbuffer = 0;
+static GLuint g_firstidx_ssbo = 0;
+static GLuint g_basevtx_ssbo = 0;
+static GLuint g_outputibo = 0;
+static GLuint g_compute_program = 0;
+static char g_compile_info[1024];
 
-GLuint compile_compute_program(const std::string& src) {
+static GLuint compile_compute_program(const std::string& src) {
     INIT_CHECK_GL_ERROR
     auto program = GLES.glCreateProgram();
     CHECK_GL_ERROR_NO_INIT
