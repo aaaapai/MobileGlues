@@ -36,8 +36,8 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
                 func_ptr = mg_glMultiDrawElements_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = GLES.glMultiDrawElementsEXT;
-                break;
+                GLES.glMultiDrawElementsEXT;
+                return;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
                 break;
@@ -75,8 +75,8 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = GLES.glMultiDrawElementsBaseVertexEXT;
-                break;
+                GLES.glMultiDrawElementsBaseVertexEXT;
+                return;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
                 break;
@@ -100,8 +100,8 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::PreferMultidrawIndirect:
-                func_ptr = GLES.glMultiDrawElementsIndirectEXT;
-                break;
+                GLES.glMultiDrawElementsIndirectEXT;
+                return;
             case multidraw_mode_t::DrawElements:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
@@ -115,8 +115,8 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::Native:
-                func_ptr = GLES.glMultiDrawElementsIndirectEXT;
-                break;
+                GLES.glMultiDrawElementsIndirectEXT;
+                return;
             default:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
@@ -778,12 +778,12 @@ void mg_glMultiDrawElements_deepseek_two(GLenum mode,
     // Fallback to emulated implementation
     GLint currentProgram = 0;
     GLboolean hasDrawID = GL_FALSE;
-    
+    GLint drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
+
     // Get current program and check for drawID uniform
     GLES.glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
     if (currentProgram != 0)
     {
-        GLint drawIDLoc = GLES.glGetUniformLocation(currentProgram, "drawID");
         hasDrawID = (drawIDLoc != -1);
     }
 
