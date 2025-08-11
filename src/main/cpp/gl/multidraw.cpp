@@ -36,7 +36,7 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
                 func_ptr = mg_glMultiDrawElements_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                GLES.glMultiDrawElementsEXT;
+                GLES.glMultiDrawElementsEXT(mode, count, type, indices, primcount);
                 return;
             default:
                 func_ptr = mg_glMultiDrawElements_drawelements;
@@ -75,7 +75,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
                 func_ptr = mg_glMultiDrawElementsBaseVertex_deepseek_two;
                 break;
             case multidraw_mode_t::Native:
-                GLES.glMultiDrawElementsBaseVertexEXT;
+                GLES.glMultiDrawElementsBaseVertexEXT(mode, counts, type, indices, primcount, basevertex);
                 return;
             default:
                 func_ptr = mg_glMultiDrawElementsBaseVertex_drawelements;
@@ -100,7 +100,7 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::PreferMultidrawIndirect:
-                GLES.glMultiDrawElementsIndirectEXT;
+                GLES.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride);
                 return;
             case multidraw_mode_t::DrawElements:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
@@ -115,7 +115,7 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
             case multidraw_mode_t::Native:
-                GLES.glMultiDrawElementsIndirectEXT;
+                GLES.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride);
                 return;
             default:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
