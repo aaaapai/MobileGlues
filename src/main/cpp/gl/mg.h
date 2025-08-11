@@ -90,6 +90,4 @@ void clear_log();
 }
 #endif
 
-void prepareForDraw();
-
 #endif //MOBILEGLUES_MG_H
