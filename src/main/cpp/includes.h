@@ -6,13 +6,13 @@
 #define MOBILEGLUES_INCLUDES_H
 
 #define RENDERERNAME "MobileGlues"
-#ifndef __APPLE__
+#ifdef __ANDROID__
 #include <android/log.h>
 #endif
 #include <dlfcn.h>
-
+#include <memory>
 #include <EGL/egl.h>
-#include <GLES3/gl32.h>
+#include <GLES/gl3.h>
 
 #include "egl/egl.h"
 #include "egl/loader.h"

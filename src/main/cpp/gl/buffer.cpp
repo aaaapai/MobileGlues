@@ -8,12 +8,11 @@
 
 template <typename K, typename V>
 using unordered_map = ankerl::unordered_dense::map<K, V>;
-//using unordered_map = std::unordered_map<K, V>;
 
 #define DEBUG 0
 
-GLint maxBufferId = 0;
-GLint maxArrayId = 0;
+static GLint maxBufferId = 0;
+static GLint maxArrayId = 0;
 
 unordered_map<GLuint, GLuint> g_gen_buffers;
 unordered_map<GLuint, GLuint> g_gen_arrays;
@@ -28,9 +27,9 @@ unordered_map<GLuint, GLuint> g_element_array_buffer_per_vao;
 
 unordered_map<GLuint, BufferMapping> g_active_mappings;
 
-GLuint gen_buffer() {
+GLuint gen_buffer(GLuint realid) {
     maxBufferId++;
-    g_gen_buffers[maxBufferId] = 0;
+    g_gen_buffers[maxBufferId] = realid;
     return maxBufferId;
 }
 
@@ -44,8 +43,10 @@ void modify_buffer(GLuint key, GLuint value) {
 }
 
 void remove_buffer(GLuint key) {
-    if (g_gen_buffers.find(key) != g_gen_buffers.end())
-        g_gen_buffers.erase(key);
+    auto it = g_gen_buffers.find(key);
+    if (it != g_gen_buffers.end()) {
+        g_gen_buffers.erase(it);
+    }
 }
 
 GLuint find_real_buffer(GLuint key) {
@@ -85,6 +86,9 @@ GLuint find_bound_buffer(GLenum key) {
     switch (key) {
         case GL_ARRAY_BUFFER_BINDING:
             target = GL_ARRAY_BUFFER;
+            break;
+        case GL_QUERY_BUFFER_BINDING:
+            target = GL_QUERY_BUFFER;
             break;
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
             target = GL_ATOMIC_COUNTER_BUFFER;
@@ -184,8 +188,10 @@ static GLenum get_binding_query(GLenum target) {
 void glGenBuffers(GLsizei n, GLuint *buffers) {
     LOG()
     LOG_D("glGenBuffers(%i, %p)", n, buffers)
+
+    GLuint realid = 0;
     for (int i = 0; i < n; ++i) {
-        buffers[i] = gen_buffer();
+        buffers[i] = gen_buffer(realid);
     }
 }
 
@@ -196,7 +202,7 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers) {
         if (find_real_buffer(buffers[i])) {
             GLuint real_buff = find_real_buffer(buffers[i]);
             GLES.glDeleteBuffers(1, &real_buff);
-            CHECK_GL_ERROR
+            //CHECK_GL_ERROR
         }
         remove_buffer(buffers[i]);
     }
@@ -238,10 +244,8 @@ struct atomic_buffer {
     GLsizeiptr size;
 	GLintptr offset;
 };
-
 static std::vector<atomic_buffer> g_buffer_map_atomic_buffer_info;
 static std::vector<GLuint> g_buffer_map_ssbo_id; // shall we use this in the future?
-
 void bindAllAtomicCounterAsSSBO() {
     const size_t count = g_buffer_map_atomic_buffer_info.size();
     for (size_t i = 0; i < count; ++i) {
@@ -252,7 +256,6 @@ void bindAllAtomicCounterAsSSBO() {
             LOG_D("Bound atomic counter buffer %u(real: %u) as SSBO at index %zu", buf, realID, i);
         }
     }
-    
 }
 
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
@@ -395,7 +398,7 @@ size_t get_internal_format_size(GLenum internalformat) {
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: return 16;
 
     default:
-        LOG_E("Unknown internal format size for %s", glEnumToString(internalformat));
+        LOG_E("ERROR: Unknown internal format size for %s", glEnumToString(internalformat));
         return 0;
     }
 }
@@ -483,7 +486,7 @@ void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
         GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, real_buffer);
 
         for (GLuint row = 0; row < height; ++row) {
-            void* offset = (void*)(row * width * pixelSize);
+            void* offset = reinterpret_cast<void*>(static_cast<uintptr_t>(row * width * pixelSize));
             GLES.glTexSubImage2D(GL_TEXTURE_2D, 0,
                 0, row, width, 1,
                 GL_RED_INTEGER, GL_BYTE,
@@ -548,6 +551,10 @@ void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLint
     CHECK_GL_ERROR
 }
 
+void glTexBufferRangeARB(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
+    glTexBufferRange(target, internalformat, buffer, offset, size);
+}
+
 void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) {
     LOG()
     LOG_D("glBufferData, target = %s, size = %d, data = 0x%x, usage = %s",
@@ -560,7 +567,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage
 void* glMapBuffer(GLenum target, GLenum access) {
     LOG()
     LOG_D("glMapBuffer, target = %s, access = %s", glEnumToString(target), glEnumToString(access))
-    if(g_gles_caps.GL_OES_mapbuffer) {
+    if(g_gles_caps.GL_OES_mapbuffer && GLES.glMapBufferOES) {
         return GLES.glMapBufferOES(target, access);
     }
     if (get_binding_query(target) == 0) {
@@ -619,15 +626,6 @@ void* glMapBuffer(GLenum target, GLenum access) {
 #define BIN_FILE_PREFIX "/sdcard/MG/buf/"
 #endif
 
-#if !defined(__APPLE__)
-extern "C" {
-    GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
-    GLAPI GLAPIENTRY void glBufferDataARB(GLenum target, GLsizeiptr size, const void* data, GLenum usage) __attribute__((alias("glBufferData")));
-    GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
-    GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
-    GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
-}
-#endif
 
 void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     LOG()
@@ -640,7 +638,7 @@ void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitf
 GLboolean glUnmapBuffer(GLenum target) {
     LOG()
     LOG_D("%s(%s)", __func__, glEnumToString(target));
-    if(g_gles_caps.GL_OES_mapbuffer)
+    if(g_gles_caps.GL_OES_mapbuffer && GLES.glMapBufferOES)
         return GLES.glUnmapBuffer(target);
 
     GLint buffer;
@@ -675,7 +673,7 @@ GLboolean glUnmapBuffer(GLenum target) {
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
     if(GLES.glBufferStorageEXT) {
-        if (global_settings.buffer_coherent_as_flush && (flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0)
+        if (global_settings.buffer_coherent_as_flush && (( flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0 ))
             flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
         GLES.glBufferStorageEXT(target, size, data, flags);
     }
@@ -740,4 +738,64 @@ void glBindVertexArray(GLuint array) {
     LOG_D("glBindVertexArray: %d -> %d", array, real_array)
     GLES.glBindVertexArray(real_array);
     CHECK_GL_ERROR
+}
+
+void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, 
+                       const GLuint *buffers, const GLintptr *offsets, const GLintptr *sizes) {
+
+    LOG()
+    // 获取目标的最大绑定点数量
+    GLint max_bindings = 0;
+    switch (target) {
+        case GL_ATOMIC_COUNTER_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max_bindings);
+            break;
+        case GL_UNIFORM_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_SHADER_STORAGE_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_bindings);
+            break;
+    }
+    
+    // 处理NULL buffers情况 - 解除绑定
+    if (buffers == nullptr) {
+        for (GLsizei i = 0; i < count; i++) {
+            GLES.glBindBufferRange(target, first + i, 0, 0, 0);
+        }
+        return;
+    }
+    
+    // 逐个绑定缓冲
+    for (GLsizei i = 0; i < count; i++) {
+        // 检查缓冲名称是否有效
+        if (buffers[i] != 0) {
+            GLint isBuffer = 0;
+            GLES.glGetBufferParameteriv(buffers[i], GL_BUFFER_SIZE, &isBuffer);
+            if (isBuffer == 0) {
+                // 不是有效的缓冲对象，生成错误但继续处理其他绑定
+                GLES.glGetError(); // 清除之前的错误
+                continue;
+            }
+        }
+        
+        // 实际绑定操作
+        glBindBufferRange(target, first + i, buffers[i], offsets[i], sizes[i]);
+    }
+}
+
+extern "C" {
+GLAPI GLAPIENTRY void *glMapBufferARB(GLenum target, GLenum access) __attribute__((alias("glMapBuffer")));
+GLAPI GLAPIENTRY void glBufferDataARB(GLenum target, GLsizeiptr size, const void* data, GLenum usage) __attribute__((alias("glBufferData")));
+GLAPI GLAPIENTRY GLboolean glUnmapBufferARB(GLenum target) __attribute__((alias("glUnmapBuffer")));
+GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) __attribute__((alias("glBufferStorage")));
+GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+GLAPI GLAPIENTRY void glBindBufferRangeARB(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) __attribute__((alias("glBindBufferRange")));
+GLAPI GLAPIENTRY void glBindBufferBaseARB(GLenum target, GLuint index, GLuint buffer) __attribute__((alias("glBindBufferBase")));
+GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers) __attribute__((alias("glDeleteBuffers")));
+GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers) __attribute__((alias("glGenBuffers")));
+GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer) __attribute__((alias("glIsBuffer")));
 }

@@ -8,7 +8,7 @@
 #include "../includes.h"
 #include "loader.h"
 #include <GL/gl.h>
-#include "../gl/glext.h"
+#include <GL/glext.h>
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -34,6 +34,7 @@ static const char *lib_ext[] = {
 #ifndef NO_GBM
         "so.19",
 #endif
+        "",
         "so",
         "so.1",
         "so.2",
@@ -43,6 +44,7 @@ static const char *lib_ext[] = {
 };
 
 static const char *gles3_lib[] = {
+        "libGLESv2.so.2",
         "libGLESv3_CM",
         "libGLESv3",
         nullptr
@@ -61,6 +63,7 @@ const char *EGL_ANGLE = "libEGL_angle.so";
 
 void *open_lib(const char **names, const char *override) {
     void *lib = nullptr;
+    LOG_D("LIBGL: loading %s (override: %s)", names[0], override ? override : "(null)")
 
     char path_name[PATH_MAX + 1];
     int flags = RTLD_LOCAL | RTLD_NOW;
@@ -78,10 +81,16 @@ void *open_lib(const char **names, const char *override) {
             for (int e = 0; lib_ext[e]; e++) {
                 snprintf(path_name, PATH_MAX, "%s%s.%s", path_prefix[p], names[i], lib_ext[e]);
                 if ((lib = dlopen(path_name, flags))) {
+                    LOG_D("LIBGL:loaded: %s\n", path_name)
                     return lib;
                 }
             }
         }
+    }
+    if (lib == nullptr) {
+        LOG_D("LIBGL:failed to load")
+    } else {
+        LOG_D("LIBGL:loaded")
     }
     return lib;
 }
@@ -90,8 +99,24 @@ void load_libs() {
 #ifndef __APPLE__
     const char *gles_override = global_settings.angle == AngleMode::Enabled ? GLES_ANGLE : nullptr;
     const char *egl_override = global_settings.angle == AngleMode::Enabled ? EGL_ANGLE : nullptr;
+#ifdef __ANDROID__
     gles = open_lib(gles3_lib, gles_override);
     egl = open_lib(egl_lib, egl_override);
+#else
+    void* gles_lib = dlopen("libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL);
+    if (!gles_lib) {
+        gles_lib = dlopen("libGLESv2.so.2", RTLD_LAZY | RTLD_GLOBAL);
+    }
+
+    if (!gles_lib) {
+        fprintf(stderr, "GLES load failed: %s\n", dlerror());
+    }
+    gles = gles_lib;
+    egl = dlopen("libEGL.so", RTLD_LAZY);
+    if (!egl) {
+        LOG_E("LIBGL: failed to load libEGL.so")
+    }
+#endif
 #else
     gles = (void*)(~(uintptr_t)0);
     egl = (void*)(~(uintptr_t)0);
@@ -158,7 +183,7 @@ void InitGLESCapabilities() {
                 g_gles_caps.GL_EXT_disjoint_timer_query = 1;
             } else if (strcmp(extension, "GL_QCOM_texture_lod_bias") == 0) {
                 g_gles_caps.GL_QCOM_texture_lod_bias = 1;
-            } else if (strcmp(extension, "GL_EXT_blend_func_extended") == 0) {
+	    } else if (strcmp(extension, "GL_EXT_blend_func_extended") == 0) {
                 g_gles_caps.GL_EXT_blend_func_extended = 1;
             } else if (strcmp(extension, "GL_EXT_texture_format_BGRA8888") == 0) {
                 g_gles_caps.GL_EXT_texture_format_BGRA8888 = 1;
@@ -199,10 +224,6 @@ void InitGLESCapabilities() {
         AppendExtension("GL_EXT_timer_query");
     }
 
-    if (global_settings.ext_gl43) {
-        AppendExtension("OpenGL43");
-    }
-
     if (global_settings.ext_compute_shader) {
         AppendExtension("GL_ARB_compute_shader");
     }
@@ -212,12 +233,8 @@ void InitGLESCapabilities() {
 		AppendExtension("GL_EXT_direct_state_access");
     }
 
-	int glVersion = GLVersion.toInt(2);
-    for (int ver = 32; ver <= glVersion; ++ver) {
-        if (global_settings.ext_gl43 && ver == 43)
-			continue;
-        if (ver > 33 && ver < 40)
-			continue;
+    int glVersion = GLVersion.toInt(2);
+    for (int ver = 10; ver <= glVersion; ++ver) {
 		LOG_D("Appending OpenGL extension for version %d", ver)
 		AppendExtension(("OpenGL" + std::to_string(ver)).c_str());
     }
@@ -229,8 +246,12 @@ void InitGLESCapabilities() {
 
 void init_target_gles() {
     init_gl_state();
+    LOAD_EGL(eglGetProcAddress);
 
     memset(&g_gles_func, 0, sizeof(g_gles_func));
+    INIT_GLES_FUNC(glMultiDrawElementsEXT)
+    INIT_GLES_FUNC(glMultiDrawElementsBaseVertexOES)
+    INIT_GLES_FUNC(glQueryCounterEXT)
     INIT_GLES_FUNC(glActiveTexture)
     INIT_GLES_FUNC(glAttachShader)
     INIT_GLES_FUNC(glBindAttribLocation)
@@ -254,7 +275,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glCompileShader)
     INIT_GLES_FUNC(glCompressedTexImage2D)
     INIT_GLES_FUNC(glCompressedTexSubImage2D)
-//    INIT_GLES_FUNC(glCopyTexImage1D)
+    INIT_GLES_FUNC(glCopyTexImage1D)
     INIT_GLES_FUNC(glCopyTexImage2D)
     INIT_GLES_FUNC(glCopyTexSubImage2D)
     INIT_GLES_FUNC(glCreateProgram)
@@ -338,9 +359,9 @@ void init_target_gles() {
     INIT_GLES_FUNC(glStencilMaskSeparate)
     INIT_GLES_FUNC(glStencilOp)
     INIT_GLES_FUNC(glStencilOpSeparate)
-//    INIT_GLES_FUNC(glTexImage1D)
+    INIT_GLES_FUNC(glTexImage1D)
     INIT_GLES_FUNC(glTexImage2D)
-//    INIT_GLES_FUNC(glTexStorage1D)
+    INIT_GLES_FUNC(glTexStorage1D)
     INIT_GLES_FUNC(glTexParameterf)
     INIT_GLES_FUNC(glTexParameterfv)
     INIT_GLES_FUNC(glTexParameteri)
@@ -391,6 +412,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glEndQuery)
     INIT_GLES_FUNC(glGetQueryiv)
     INIT_GLES_FUNC(glGetQueryObjectuiv)
+    INIT_GLES_FUNC(glGetQueryObjectuivEXT)
     INIT_GLES_FUNC(glUnmapBuffer)
     INIT_GLES_FUNC(glGetBufferPointerv)
     INIT_GLES_FUNC(glDrawBuffers)
@@ -498,6 +520,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGenProgramPipelines)
     INIT_GLES_FUNC(glIsProgramPipeline)
     INIT_GLES_FUNC(glGetProgramPipelineiv)
+    INIT_GLES_FUNC(glPolygonModeNV)
     INIT_GLES_FUNC(glProgramUniform1i)
     INIT_GLES_FUNC(glProgramUniform2i)
     INIT_GLES_FUNC(glProgramUniform3i)
@@ -597,11 +620,12 @@ void init_target_gles() {
     INIT_GLES_FUNC(glGetQueryObjecti64vEXT)
     INIT_GLES_FUNC(glBindFragDataLocationEXT)
     INIT_GLES_FUNC(glMapBufferOES)
+    INIT_GLES_FUNC(glFramebufferTexture3DOES)
 
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
-//    INIT_GLES_FUNC(glBruh)
+    //INIT_GLES_FUNC(glBruh)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)

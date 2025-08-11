@@ -4,15 +4,16 @@
 
 #ifndef MOBILEGLUES_LOOKUP_H
 #define MOBILEGLUES_LOOKUP_H
+#include <GL/gl.h>
 
+#include <GL/gl.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
+typedef void (*__GLXextFuncPtr)(void);
 
-#include <GL/gl.h>
-    
-GLAPI GLAPIENTRY void *glXGetProcAddress(const char *name);
-GLAPI GLAPIENTRY void *glXGetProcAddressARB(const char *name);
+GLAPI GLAPIENTRY __GLXextFuncPtr glXGetProcAddress(const GLubyte * name);
+GLAPI GLAPIENTRY __GLXextFuncPtr glXGetProcAddressARB(const GLubyte * name);
 
 #ifdef __cplusplus
 }

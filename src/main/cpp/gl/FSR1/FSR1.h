@@ -7,7 +7,9 @@
 
 #ifndef __APPLE__
 #include <malloc.h>
+#ifdef __ANDROID__
 #include <android/log.h>
+#endif
 #endif
 
 #include <GL/gl.h>
