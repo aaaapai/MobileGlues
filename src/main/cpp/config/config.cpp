@@ -7,6 +7,7 @@
 #include "cJSON.h"
 #include "../gl/log.h"
 
+#include <cerrno>
 #define DEBUG 0
 
 char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
