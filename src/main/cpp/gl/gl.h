@@ -11,6 +11,8 @@
 #include "mg.h"
 #include "../version.h"
 
+#include "FSR1/FSR1.h"
+
 #ifndef MOBILEGLUES_GL_H
 #define MOBILEGLUES_GL_H
 
