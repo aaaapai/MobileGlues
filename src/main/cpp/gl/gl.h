@@ -18,6 +18,10 @@
 extern "C" {
 #endif
 
+GLAPI void glClearDepth(GLclampd depth);
+void glClear(GLbitfield mask);
+void glHint(GLenum target, GLenum mode);
+
 #ifdef __cplusplus
 }
 #endif
