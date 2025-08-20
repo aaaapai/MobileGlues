@@ -21,7 +21,7 @@ static cJSON *config_json = nullptr;
 
 int initialized = 0;
 
-char* concatenate(char* str1, char* str2) {
+const char* concatenate(const char* str1, const char* str2) {
     std::string str = std::string(str1) + str2;
     char* result = new char[str.size() + 1];
     strcpy(result, str.c_str());
@@ -81,7 +81,7 @@ int config_refresh() {
     return 1;
 }
 
-int config_get_int(char* name) {
+int config_get_int(const char* name) {
     if (config_json == nullptr) {
         return -1;
     }
