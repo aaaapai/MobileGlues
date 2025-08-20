@@ -14,12 +14,12 @@ extern int initialized;
 
 const char* concatenate(const char* str1, const char* str2);
 
-int check_path();
+int check_path(void);
 
-int config_refresh();
+int config_refresh(void);
 int config_get_int(const char* name);
 const char* config_get_string(const char* name);
-void config_cleanup();
+void config_cleanup(void);
 
 #ifdef __cplusplus
 }
