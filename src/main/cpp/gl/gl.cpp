@@ -10,6 +10,8 @@
 #include "../config/settings.h"
 #include "mg.h"
 
+#include "FSR1/FSR1.h"
+
 #define DEBUG 0
 
 static GLclampd currentDepthValue;
