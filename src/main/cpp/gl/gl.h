@@ -21,6 +21,7 @@ extern "C" {
 GLAPI GLAPIENTRY void glClearDepth(GLclampd depth);
 GLAPI GLAPIENTRY void glClear(GLbitfield mask);
 GLAPI GLAPIENTRY void glHint(GLenum target, GLenum mode);
+GLAPI GLAPIENTRY void glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
 
 #ifdef __cplusplus
 }
