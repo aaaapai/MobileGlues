@@ -1,5 +1,5 @@
-#ifndef __gles2_gl3_h_
-#define __gles2_gl3_h_ 1
+#ifndef __gles2_gl32_h_
+#define __gles2_gl32_h_ 1
 
 #ifdef __cplusplus
 extern "C" {
