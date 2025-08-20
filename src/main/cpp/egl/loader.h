@@ -172,8 +172,8 @@ EGLBoolean mglues_eglDestroyContext(EGLDisplay dpy, EGLContext ctx);
 EGLBoolean mglues_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
 */
 
-void init_target_egl();
-void destroy_temp_egl_ctx();
+void init_target_egl(void);
+void destroy_temp_egl_ctx(void);
 
 
 #ifdef __cplusplus
