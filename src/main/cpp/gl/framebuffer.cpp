@@ -45,7 +45,7 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer) {
 
     LOG_D("glBindFramebuffer(0x%x, %d)", target, framebuffer)
 
-    if (framebuffer == 0 && target != GL_READ_FRAMEBUFFER) {
+    if (framebuffer == 0 && target != GL_READ_FRAMEBUFFER && global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled) {
         framebuffer = FSR1_Context::g_renderFBO;
         FSR1_Context::g_dirty = true;
     }
