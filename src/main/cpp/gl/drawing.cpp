@@ -18,8 +18,8 @@ GLuint bufSampelerProg;
 GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
-extern std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
-extern std::unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_sampler_buffer_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 unordered_map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
