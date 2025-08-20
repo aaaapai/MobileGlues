@@ -1269,8 +1269,8 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         "type=0x%x, pixels=0x%x",
         x, y, width, height, format, type, pixels)
 
-  static int count = 0;
-  GLenum prevFormat = format;
+  //static int count = 0;
+  //GLenum prevFormat = format;
 
   if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
     format = GL_RGBA;
@@ -1317,8 +1317,8 @@ void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type,
                      const void *data) {
   LOG()
   LOG_D("glClearTexImage, texture: %d, level: %d, format: %d, type: %d",
-        texture, level, format, type)
-  INIT_CHECK_GL_ERROR_FORCE
+        texture, level, format, thpe, data)
+  
   GLuint fbo;
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);

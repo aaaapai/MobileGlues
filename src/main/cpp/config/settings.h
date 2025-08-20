@@ -61,6 +61,15 @@ enum class AngleDepthClearFixMode : int {
     MaxValue
 };
 
+enum class FSR1_Quality_Preset : int { // may be useless
+    Disabled = 0,
+    UltraQuality, // 1
+    Quality,      // 2 
+	Balanced,     // 3
+	Performance,  // 4
+	MaxValue      // 5
+};
+
 struct Version {
     int Major{ 0 };
     int Minor{ 0 };
@@ -135,15 +144,6 @@ struct Version {
     bool isEmpty() const {
         return Major == 0 && Minor == 0 && Patch == 0;
     }
-};
-
-typedef enum class FSR1_Quality_Preset : int { // may be useless
-    Disabled = 0,
-    UltraQuality, // 1
-    Quality,      // 2 
-	Balanced,     // 3
-	Performance,  // 4
-	MaxValue      // 5
 };
 
 struct global_settings_t {

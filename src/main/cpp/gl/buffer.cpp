@@ -483,7 +483,7 @@ void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {
         GLES.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, real_buffer);
 
         for (GLuint row = 0; row < height; ++row) {
-            void* offset = (void*)(row * width * pixelSize);
+            void* offset = reinterpret_cast<void*>(static_cast<uintptr_t>(row * width * pixelSize));
             GLES.glTexSubImage2D(GL_TEXTURE_2D, 0,
                 0, row, width, 1,
                 GL_RED_INTEGER, GL_BYTE,
@@ -675,7 +675,7 @@ GLboolean glUnmapBuffer(GLenum target) {
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
     if(GLES.glBufferStorageEXT) {
-        if (global_settings.buffer_coherent_as_flush && (flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0)
+        if (global_settings.buffer_coherent_as_flush && ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0))
             flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
         GLES.glBufferStorageEXT(target, size, data, flags);
     }

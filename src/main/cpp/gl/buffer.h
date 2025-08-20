@@ -7,7 +7,9 @@
 #include "../config/settings.h"
 #include "../gles/loader.h"
 #include "../includes.h"
-#include "glcorearb.h"
+#include "../../config/settings.h"
+#include <GL/gl.h>
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "mg.h"
 #include <GL/gl.h>
