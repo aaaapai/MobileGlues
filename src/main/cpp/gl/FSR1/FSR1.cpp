@@ -118,49 +118,49 @@ void CalculateRenderResolution(FSR1_Quality_Preset preset,
 }
 
 GLuint CompileFSRShader(void) {
-    GLuint program = GLES.glCreateProgram();
+    GLuint program = glCreateProgram();
 
-    GLuint vs = GLES.glCreateShader(GL_VERTEX_SHADER);
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
 	LOG_D("Vertex shader source:\n%s", FSR_VSSource);
-    GLES.glShaderSource(vs, 1, &FSR_VSSource, nullptr);
-    GLES.glCompileShader(vs);
+    glShaderSource(vs, 1, &FSR_VSSource, nullptr);
+    glCompileShader(vs);
 
     GLint status;
-    GLES.glGetShaderiv(vs, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(vs, GL_COMPILE_STATUS, &status);
     if (!status) {
         char log[512];
-        GLES.glGetShaderInfoLog(vs, 512, nullptr, log);
+        glGetShaderInfoLog(vs, 512, nullptr, log);
         LOG_F("Vertex shader error: %s\n", log);
         return 0;
     }
 
-    GLuint fs = GLES.glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
 	LOG_D("Fragment shader source:\n%s", FSR_FSSource);
-    GLES.glShaderSource(fs, 1, &FSR_FSSource, nullptr);
-    GLES.glCompileShader(fs);
+    glShaderSource(fs, 1, &FSR_FSSource, nullptr);
+    glCompileShader(fs);
 
-    GLES.glGetShaderiv(fs, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(fs, GL_COMPILE_STATUS, &status);
     if (!status) {
         char log[512];
-        GLES.glGetShaderInfoLog(fs, 512, nullptr, log);
+        glGetShaderInfoLog(fs, 512, nullptr, log);
         LOG_F("Fragment shader error: %s\n", log);
         return 0;
     }
 
-    GLES.glAttachShader(program, vs);
-    GLES.glAttachShader(program, fs);
-    GLES.glLinkProgram(program);
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
 
-    GLES.glGetProgramiv(program, GL_LINK_STATUS, &status);
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (!status) {
         char log[512];
-        GLES.glGetProgramInfoLog(program, 512, nullptr, log);
+        glGetProgramInfoLog(program, 512, nullptr, log);
         LOG_F("Program link error: %s\n", log);
         return 0;
     }
 
-    GLES.glDeleteShader(vs);
-    GLES.glDeleteShader(fs);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
 
     return program;
 }
@@ -202,24 +202,24 @@ void InitFSRResources(void) {
 
     FSR1_Context::g_fsrProgram = CompileFSRShader();
 
-    GLint inputTexLoc = GLES.glGetUniformLocation(FSR1_Context::g_fsrProgram, "uInputTex");
-    GLint const0Loc = GLES.glGetUniformLocation(FSR1_Context::g_fsrProgram, "uConst0");
-    GLint viewportSizeLoc = GLES.glGetUniformLocation(FSR1_Context::g_fsrProgram, "uViewportSize");
+    GLint inputTexLoc = glGetUniformLocation(FSR1_Context::g_fsrProgram, "uInputTex");
+    GLint const0Loc = glGetUniformLocation(FSR1_Context::g_fsrProgram, "uConst0");
+    GLint viewportSizeLoc = glGetUniformLocation(FSR1_Context::g_fsrProgram, "uViewportSize");
 
-    GLES.glUseProgram(FSR1_Context::g_fsrProgram);
-    GLES.glUniform1i(inputTexLoc, 0);
+    glUseProgram(FSR1_Context::g_fsrProgram);
+    glUniform1i(inputTexLoc, 0);
 
     glm::vec4 const0 = {
         1.0f, 1.0f, 1.0f, 1.0f  // 默认值，后续会在 ApplyFSR 中动态更新
     };
-    GLES.glUniform4fv(const0Loc, 1, reinterpret_cast<const GLfloat*>(&const0));
+    glUniform4fv(const0Loc, 1, reinterpret_cast<const GLfloat*>(&const0));
 
     glm::vec2 viewportSize = { 
         static_cast<float>(FSR1_Context::g_renderWidth), 
         static_cast<float>(FSR1_Context::g_renderHeight) 
     };
-    GLES.glUniform2fv(viewportSizeLoc, 1, reinterpret_cast<const GLfloat*>(&viewportSize));
-    GLES.glUseProgram(0);
+    glUniform2fv(viewportSizeLoc, 1, reinterpret_cast<const GLfloat*>(&viewportSize));
+    glUseProgram(0);
 
     InitFullscreenQuad();
 
