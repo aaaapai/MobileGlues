@@ -267,9 +267,9 @@ void internal_convert(GLenum *internal_format, GLenum *type, GLenum *format) {
       *type = GL_UNSIGNED_INT;
     break;
   case GL_DEPTH_COMPONENT32:
-    *internal_format = GL_DEPTH_COMPONENT;
+    *internal_format = GL_DEPTH_COMPONENT32F;
     if (type)
-      *type = GL_UNSIGNED_INT;
+      *type = GL_FLOAT;
     break;
   case GL_DEPTH_COMPONENT32F:
     if (type)
