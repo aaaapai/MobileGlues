@@ -94,7 +94,7 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
         LOG_D("Before resize: %d", sz)
 
         // 2-exponential to reduce reallocation
-        while (sz < primcount)
+        while (sz < static_cast<size_t>(primcount))
             sz *= 2;
 
         GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
@@ -476,7 +476,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
     // Resize prefix sum buffer if needed
     size_t sz = g_prefix_sum.empty() ? 1 : g_prefix_sum.size();
-    while (sz < primcount)
+    while (sz < static_cast<size_t>(primcount))
         sz *= 2;
     g_prefix_sum.resize(sz);
 
