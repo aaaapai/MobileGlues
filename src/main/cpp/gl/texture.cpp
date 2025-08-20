@@ -1317,7 +1317,7 @@ void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type,
                      const void *data) {
   LOG()
   LOG_D("glClearTexImage, texture: %d, level: %d, format: %d, type: %d",
-        texture, level, format, thpe, data)
+        texture, level, format, type, data)
   
   GLuint fbo;
   glGenFramebuffers(1, &fbo);
