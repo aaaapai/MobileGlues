@@ -226,8 +226,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst,
 #ifdef __BIG_ENDIAN__
     // RGBA or BGRA with GL_UNSIGNED_INT_8_8_8_8_REV <-> GL_UNSIGNED_BYTE
     if((src_format==dst_format) && (src_format==GL_RGBA || src_format==GL_BGRA) && ((src_type==GL_UNSIGNED_INT_8_8_8_8_REV && dst_type==GL_UNSIGNED_BYTE) || (src_type==GL_UNSIGNED_BYTE && dst_type==GL_UNSIGNED_INT_8_8_8_8_REV))) {
-        for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
+        for (GLuint i = 0; i < height; i++) {
+			for (GLuint j = 0; j < width; j++) {
 				((char*)dst_pos)[0] = ((char*)src_pos)[3];
 				((char*)dst_pos)[1] = ((char*)src_pos)[2];
 				((char*)dst_pos)[2] = ((char*)src_pos)[1];
@@ -470,7 +470,7 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst,
     // RGBA -> RGBA4444
     if ((src_format == GL_RGBA) && (dst_format == GL_RGBA) && (dst_type == GL_UNSIGNED_SHORT_4_4_4_4) && ((src_type == GL_UNSIGNED_BYTE))) {
         for (GLuint i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
+            for (GLuint j = 0; j < width; j++) {
                 *(GLushort*)dst_pos = ((GLushort)(((char*)src_pos)[3]&0xf0))>>(4) | ((GLushort)(((char*)src_pos)[2]&0xf0)) | ((GLushort)(((char*)src_pos)[1]&0xf0))<<(4) | ((GLushort)(((char*)src_pos)[0]&0xf0))<<(8);
                 src_pos += src_stride;
                 dst_pos += dst_stride;
