@@ -138,13 +138,15 @@ void glClear(GLbitfield mask) {
 void glHint(GLenum target, GLenum mode) {
     LOG()
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
+
+	GLES.glHint(target, mode);
 }
 
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
     LOG()
 	LOG_D("glViewport: x=%d, y=%d, width=%d, height=%d", x, y, width, height);
     
-    if (width > FSR1_Context::g_pendingWidth || height > FSR1_Context::g_pendingHeight) {
+    if (global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled && (width > FSR1_Context::g_pendingWidth || height > FSR1_Context::g_pendingHeight)) {
 		FSR1_Context::g_resolutionChanged = true;
         FSR1_Context::g_pendingWidth = width;
         FSR1_Context::g_pendingHeight = height;
