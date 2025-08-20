@@ -13,7 +13,7 @@
 #include <GLES3/gl32.h>
 #include "../includes.h"
 #include <GL/gl.h>
-#include "glcorearb.h"
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
