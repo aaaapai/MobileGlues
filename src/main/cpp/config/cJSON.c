@@ -1132,7 +1132,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer
         goto fail;
     }
 
-    /* if we require nullptr-terminated JSON without appended garbage, skip and then check for a nullptr terminator */
+    /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
     if (require_null_terminated)
     {
         buffer_skip_whitespace(&buffer);
@@ -1330,8 +1330,8 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     }
 
     /* parse the different types of values */
-    /* nullptr */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "nullptr", 4) == 0))
+    /* null */
+    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
     {
         item->type = cJSON_NULL;
         input_buffer->offset += 4;
@@ -2096,13 +2096,13 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const cha
 
 CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name)
 {
-    cJSON *nullptr = cJSON_CreateNull();
-    if (add_item_to_object(object, name, nullptr, &global_hooks, false))
+    cJSON *null = cJSON_CreateNull();
+    if (add_item_to_object(object, name, null, &global_hooks, false))
     {
-        return nullptr;
+        return null;
     }
 
-    cJSON_Delete(nullptr);
+    cJSON_Delete(null);
     return nullptr;
 }
 
