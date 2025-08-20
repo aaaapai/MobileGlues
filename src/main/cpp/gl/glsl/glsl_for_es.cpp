@@ -454,7 +454,7 @@ static size_t find_insertion_point(const std::string& glsl) {
     }
 
     while (pos < glsl.length()) {
-        size_t line_begin = pos;
+        // size_t line_begin = pos;
         while (pos < glsl.length() && std::isspace(glsl[pos])) {
             pos++;
         }
