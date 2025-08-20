@@ -1615,7 +1615,7 @@ GLAPI void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
 		// return;
 	}
 	pushXFB(xfb);
-	glGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK, pname, param);
+	//glGetTransformFeedbackiv(GL_TRANSFORM_FEEDBACK, pname, param);
 	CHECK_GL_ERROR;
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X = %d", xfb, pname, *param);
@@ -1630,7 +1630,7 @@ GLAPI void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLi
 		// return;
 	}
 	pushXFB(xfb);
-	glGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
+	//glGetTransformFeedbacki_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
 	CHECK_GL_ERROR;
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %d", xfb, pname, index, *param);
@@ -1645,7 +1645,7 @@ GLAPI void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, G
 		// return;
 	}
 	pushXFB(xfb);
-	glGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
+	//glGetTransformFeedbacki64_v(GL_TRANSFORM_FEEDBACK, pname, index, param);
 	CHECK_GL_ERROR;
 	popXFB();
 	LOG_D("[DSA] Retrieved TFBO %u param 0x%X at index %u = %lld", xfb, pname, index, *param);
