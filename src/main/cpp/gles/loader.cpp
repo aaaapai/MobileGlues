@@ -603,6 +603,8 @@ void init_target_gles() {
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
 //    INIT_GLES_FUNC(glBruh)
 
+	INIT_GLES_FUNC(glFramebufferTexture3DOES)
+
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)
     LOG_D("glMultiDrawElementsBaseVertexEXT() @ 0x%x", GLES.glMultiDrawElementsBaseVertexEXT)
