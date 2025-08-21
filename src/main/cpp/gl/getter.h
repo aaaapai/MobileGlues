@@ -21,6 +21,7 @@ extern "C" {
 GLAPI GLAPIENTRY const GLubyte *glGetString(GLenum name);
 GLAPI GLAPIENTRY const GLubyte *glGetStringi(GLenum name, GLuint index);
 GLAPI GLAPIENTRY GLenum glGetError();
+GLAPI GLAPIENTRY void glGetFloatv(GLenum pname, GLfloat *data);
 GLAPI GLAPIENTRY void glGetIntegerv(GLenum pname, GLint *params);
 GLAPI GLAPIENTRY void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
 GLAPI GLAPIENTRY void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);
