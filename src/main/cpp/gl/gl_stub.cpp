@@ -2622,7 +2622,7 @@ GLAPI GLAPIENTRY void glProgramUniformMatrix2fvEXT(GLuint program, GLint locatio
 GLAPI GLAPIENTRY void glVertex4b(GLbyte x, GLbyte y, GLbyte z, GLbyte w) { LOG_W("Stub: glVertex4b") }
 GLAPI GLAPIENTRY void glMultiTexCoord2uiv(GLenum target, const GLuint *v) { LOG_W("Stub: glMultiTexCoord2uiv") }
 GLAPI GLAPIENTRY void glTexCoord3ui(GLuint s, GLuint t, GLuint r) { LOG_W("Stub: glTexCoord3ui") }
-GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBuffer") }
+//GLAPI GLAPIENTRY void* glMapNamedBuffer(GLuint buffer, GLenum access) { LOG_W("Stub: glMapNamedBuffer") }
 GLAPI GLAPIENTRY void glProgramUniform3fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value) { LOG_W("Stub: glProgramUniform3fvEXT") }
 GLAPI GLAPIENTRY void glVertex4uiv(const GLuint *v) { LOG_W("Stub: glVertex4uiv") }
 GLAPI GLAPIENTRY void glGetClipPlanex(GLenum plane, GLfixed *equation) { LOG_W("Stub: glGetClipPlanex") }
