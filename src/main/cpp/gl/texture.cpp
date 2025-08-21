@@ -698,7 +698,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat,
     if (transfer_format == GL_BGRA && tex->format != transfer_format
         && transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV)
     {
-        LOG_D("Detected GL_BGRA/GL_UNSIGNED_INT_8_8_8_8_REV format @ tex = %d, do swizzle", bound_texture)
+        LOG_D("Detected GL_BGRA/GL_UNSIGNED_INT_8_8_8_8_REV format @ tex = %d, do swizzle", tex)
         internalFormat = GL_BGRA;
         format = GL_BGRA;
         type = GL_UNSIGNED_BYTE;
