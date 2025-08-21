@@ -548,6 +548,13 @@ void internal_convert(GLenum *internal_format, GLenum *type, GLenum *format) {
   }
 }
 
+void glGenTextures( GLsizei n, GLuint *textures ) {
+    LOG()
+    LOG_D("glGenTextures, n = %d, textures = 0x%x", n, textures);
+    GLES.glGenTextures(n, textures);
+    CHECK_GL_ERROR
+}
+
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
   LOG()
   pname = pname_convert(pname);
