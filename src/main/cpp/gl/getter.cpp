@@ -4,6 +4,8 @@
 
 #include "getter.h"
 #include "buffer.h"
+#include "fpe/fpe.hpp"
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <string>
 #include <format>
 #include <vector>
@@ -12,6 +14,31 @@
 #define DEBUG 0
 
 Version GLVersion;
+
+void glGetFloatv(GLenum pname, GLfloat *params) {
+    LOG()
+    LOG_D("glGetFloatv, pname: %s", glEnumToString(pname))
+
+    switch (pname) {
+        case GL_MODELVIEW_MATRIX:{
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_MODELVIEW)]);
+
+
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        case GL_PROJECTION_MATRIX:
+        {
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_PROJECTION)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        default:
+            GLES.glGetFloatv(pname, params);
+            LOG_D("  -> %.2f",*params)
+            CHECK_GL_ERROR
+    }
+}
 
 void glGetIntegerv(GLenum pname, GLint *params) {
     LOG()
