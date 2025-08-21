@@ -2,6 +2,7 @@
 # set -e
 
 git clone --depth 1 https://github.com/g-truc/glm.git src/main/cpp/3rdparty/glm
+ln -s ./src/main/cpp/3rdparty/glm ./src/main/cpp/include/glm
 git clone --depth 1 https://github.com/stbrumme/xxhash.git src/main/cpp/3rdparty/xxhash
 cmake_build () {
   ANDROID_ABI=$1
