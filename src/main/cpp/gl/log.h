@@ -5,6 +5,7 @@
 #ifndef MOBILEGLUES_LOG_H
 
 #include "../includes.h"
+#include "mg.h"
 
 #define FORCE_SYNC_WITH_LOG_FILE 0
 
