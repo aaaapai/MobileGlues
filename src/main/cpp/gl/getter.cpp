@@ -5,7 +5,7 @@
 #include "getter.h"
 #include "buffer.h"
 #include "fpe/fpe.hpp"
-#include <glm/glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <format>
 #include <vector>
