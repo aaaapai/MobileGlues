@@ -5,10 +5,11 @@
 #include "DSAWrapper.h"
 #include <cassert>
 #include "../texture.h"
+#include "../framebuffer.h"
 
 #define DEBUG 0
 
-GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
+static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 	switch (target) {
 	case GL_TEXTURE_BUFFER:                return forceTexture ? GL_TEXTURE_BINDING_BUFFER : GL_TEXTURE_BUFFER_BINDING;
 
@@ -69,7 +70,7 @@ GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 
 // buffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> bufferBindingStack;
-void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
+static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -84,7 +85,7 @@ void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	glBindBuffer(target, bufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
+static void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	auto it = bufferBindingStack.find(target);
 	if (it == bufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -107,6 +108,142 @@ void restoreTemporaryBufferBinding(GLenum target = GL_ARRAY_BUFFER) {
 	if (it->second.empty())
 		bufferBindingStack.erase(it);
 }
+
+void glClearBufferData(GLenum target, GLenum internalformat,
+                      GLenum format, GLenum type, const void *data) {
+    LOG()
+    LOG_D("glClearBufferData(target=%s, internalformat=%s, format=%s, type=%s, data=%p)",
+          glEnumToString(target), glEnumToString(internalformat),
+          glEnumToString(format), glEnumToString(type), data)
+
+    // Find the currently bound buffer for this target
+    GLuint buffer = find_bound_buffer(GetBindingQuery(target, false));
+    if (!buffer) {
+        LOG_E("ERROR: No buffer bound to target %s", glEnumToString(target))
+        return;
+    }
+
+    // Get the real buffer ID from our mapping
+    GLuint real_buffer = find_real_buffer(buffer);
+    if (!real_buffer) {
+        LOG_E("ERROR: Buffer %d not found in mapping", buffer)
+        return;
+    }
+
+    // Get buffer size
+    GLint size;
+    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    if (size <= 0) {
+        LOG_E("ERROR: Invalid buffer size: %d", size)
+        return;
+    }
+
+    // Map the buffer with write access
+    void *ptr = GLES.glMapBufferRange(target, 0, size, 
+                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    if (!ptr) {
+        LOG_E("ERROR: Failed to map buffer")
+        return;
+    }
+
+    // Determine element size based on type
+    size_t elem_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            elem_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+            elem_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            elem_size = 4;
+            break;
+        default:
+            LOG_E("ERROR: Unsupported type: %s", glEnumToString(type))
+            GLES.glUnmapBuffer(target);
+            return;
+    }
+
+    // Fill the buffer with the pattern
+    if (data) {
+        for (size_t i = 0; i < static_cast<size_t>(size); i += elem_size) {
+            memcpy((char*)ptr + i, data, elem_size);
+        }
+    } else {
+        // If data is NULL, use 0 as the pattern
+        memset(ptr, 0, size);
+    }
+
+    GLES.glUnmapBuffer(target);
+    CHECK_GL_ERROR
+} //DeepSeek
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
+                              GLintptr offset, GLsizeiptr size, 
+                              GLenum format, GLenum type, 
+                              const void *data) {
+    // 检查参数有效性
+    if (offset < 0 || size <= 0) {
+        return;
+    }
+
+    // 根据内部格式确定清除值的大小
+    GLsizeiptr clearSize = size;
+    void* clearData = NULL;
+
+    // 如果提供了数据指针，直接使用它
+    if (data != NULL) {
+        clearData = (void*)data;
+    } else {
+        // 如果没有提供数据，创建一个默认的清除值
+        // 这里简化处理，实际应根据internalformat创建适当的默认值
+        GLubyte zero = 0;
+        clearData = &zero;
+        clearSize = 1; // 简化处理，实际应根据格式调整
+    }
+
+    // 绑定缓冲区
+    GLint prevBuffer;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_READ_BUFFER:
+            glGetIntegerv(GL_COPY_READ_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            glGetIntegerv(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &prevBuffer);
+            break;
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &prevBuffer);
+            break;
+        default:
+            LOG_W("Warning: Unsupported buffers")
+            return;
+    }
+
+    // 使用glBufferSubData更新缓冲区数据
+    glBufferSubData(target, offset, clearSize, clearData);
+
+    // 恢复之前绑定的缓冲区
+    glBindBuffer(target, prevBuffer);
+} //DeepSeek
 
 void glCreateBuffers(GLsizei n, GLuint* buffers) {
 	LOG()
@@ -177,7 +314,7 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
 		// return;
 	}
 	temporarilyBindBuffer(buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+	GLES.glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 	CHECK_GL_ERROR;
 	restoreTemporaryBufferBinding();
 	
@@ -378,7 +515,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 
 // framebuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> framebufferBindingStack;
-void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -392,7 +529,7 @@ void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FR
 	glBindFramebuffer(target, framebufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
+static void restoreTemporaryFramebufferBinding(GLenum target = GL_DRAW_FRAMEBUFFER) {
 	auto it = framebufferBindingStack.find(target);
 	if (it == framebufferBindingStack.end() || it->second.empty()) {
 	LOG_D("[DSA] [Restore] no saved binding for target 0x%X", target);
@@ -686,7 +823,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 
 // renderbuffer
 static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> renderbufferBindingStack;
-void temporarilyBindRenderbuffer(GLuint renderbufferID) {
+static void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	GLenum bindingQuery = GetBindingQuery(GL_RENDERBUFFER);
 	GLint prev = 0;
 	glGetIntegerv(bindingQuery, &prev);
@@ -700,7 +837,7 @@ void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbufferID);
 	CHECK_GL_ERROR_NO_INIT;
 }
-void restoreTemporaryRenderbufferBinding() {
+static void restoreTemporaryRenderbufferBinding() {
 	auto it = renderbufferBindingStack.find(GL_RENDERBUFFER);
 	if (it == renderbufferBindingStack.end() || it->second.empty()) {
 		LOG_D("[DSA] [Restore] no saved binding for GL_RENDERBUFFER");
