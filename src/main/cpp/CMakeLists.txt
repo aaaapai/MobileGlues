@@ -50,9 +50,22 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         gl/vertexattrib.cpp
         gl/ExtWrappers/DSAWrapper.cpp
         gl/ExtWrappers/MultiBindWrapper.cpp
+        gl/ExtWrappers/legacy_extensions.cpp
         gl/glsl/glsl_for_es.cpp
         gl/glsl/cache.cpp
         gl/FSR1/FSR1.cpp
+        gl/fpe/fpe.cpp
+        gl/fpe/state.cpp
+        gl/fpe/transformation.cpp
+        gl/fpe/vertexpointer.cpp
+        gl/fpe/fpe_shadergen.cpp
+        gl/fpe/list.cpp
+        gl/fpe/pointer_utils.cpp
+        gl/fpe/drawing1x.cpp
+        gl/fpe/vertexpointer_utils.cpp
+        gl/fpe/drawstate1x.cpp
+        gl/fpe/glstate.cpp
+        gl/fpe/vertexpointerarray.cpp
         glx/lookup.cpp
         egl/egl.cpp
         egl/loader.cpp

@@ -80,7 +80,7 @@ static name##_PTR egl_##name = NULL;                                        \
     }
 #else
 #define CHECK_GL_ERROR {}
-#define INIT_CHECK_GL_ERROR  {}
+#define INIT_CHECK_GL_ERROR GLenum ERR = GL_NO_ERROR;
 #define CHECK_GL_ERROR_NO_INIT {}
 #endif
 
@@ -102,7 +102,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__)  {
     type ret = GLES.name(__VA_ARGS__);                                    \
     GLenum ERR = GLES.glGetError();                                         \
     if (ERR != GL_NO_ERROR)                                                 \
-        LOG_E("ERROR: %d", ERR)                                             \
+        LOG_E("ERROR: %d @ %s:%d", ERR, __FILE__, __LINE__)                 \
     return ret;                                                             \
 }
 #else
@@ -143,6 +143,7 @@ extern "C" GLAPI GLAPIENTRY type name(__VA_ARGS__) { \
 struct gles_caps_t {
     int major;
     int minor;
+    int maxtex;
     int GL_EXT_buffer_storage;
     int GL_EXT_disjoint_timer_query;
     int GL_QCOM_texture_lod_bias;

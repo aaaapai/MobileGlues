@@ -353,7 +353,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     return_code = -1;
-    std::string converted = glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = /*glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):*/GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code >= 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -383,7 +383,7 @@ std::string replace_line_starting_with(const std::string& glslCode, const std::s
 
         // Check whether #line directive
         bool isLineDirective = false;
-        if (current + 5 <= length && glslCode.compare(current, 5, "#line") == 0) {
+        if (current + 5 <= length && glslCode.compare(current, starting.size(), starting) == 0) {
             isLineDirective = true;
         }
 
@@ -660,6 +660,28 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
+static inline void inject_fragcolor(std::string& glsl) {
+    const std::string fragColorVar = "gl_FragColor";
+    const std::string mainStart = "void main()";
+    const std::string newFragColorVarname = "mg_FragColor";
+
+    // Not using gl_FragColor
+    const auto var_loc = glsl.find(fragColorVar);
+    if (var_loc == std::string::npos)
+        return;
+
+    const auto main_loc = glsl.find(mainStart);
+    // No main(), no inject
+    if (main_loc == std::string::npos)
+        return;
+
+
+    glsl.insert(main_loc, "\nout vec4 " + newFragColorVarname + ";\n");
+    replace_all(glsl, fragColorVar, newFragColorVarname);
+
+
+}
+
 static inline void inject_temporal_filter(std::string& glsl) {
     const std::regex defRegex(R"(vec4\s+GI_TemporalFilter\s*\()", std::regex::ECMAScript);
 
@@ -739,7 +761,17 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                 "const mat3 rotInverse = transpose(rot);",
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
 
-    // GI_TemporalFilter injection
+	// Replace deprecated syntax
+    if (shaderType == GL_VERTEX_SHADER) {
+        replace_all(ret, "attribute", "in");
+        replace_all(ret, "varying", "out");
+    } else if (shaderType == GL_FRAGMENT_SHADER) {
+        replace_all(ret, "varying", "in");
+	}
+    replace_all(ret, "texture2D", "texture");
+	inject_fragcolor(ret);
+
+	// GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
     // textureQueryLod injection
@@ -762,9 +794,13 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
 int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
-        glsl_version = 140;
-        glsl.insert(0, "#version 140\n");
-    }
+        glsl_version = 330;
+        glsl.insert(0, "#version 330\n");
+    } else if (glsl_version < 330) {
+        // force upgrade glsl version
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
+        glsl_version = 330;
+	}
     LOG_D("GLSL version: %d",glsl_version)
     return glsl_version;
 }
@@ -875,9 +911,9 @@ static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
 	bool atomicCounterEmulated = false;
     std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
-    LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
+	LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
     if (!glslang_inited) {
         glslang::InitializeProcess();
         glslang_inited = true;

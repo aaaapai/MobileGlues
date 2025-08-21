@@ -28,6 +28,7 @@ struct SamplerInfo {
 extern "C" {
 #endif
 
+GLAPI GLAPIENTRY void glDrawArrays(GLenum mode, GLint first, GLsizei count);
 GLAPI GLAPIENTRY void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount);
 GLAPI GLAPIENTRY void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex);
 GLAPI GLAPIENTRY void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
