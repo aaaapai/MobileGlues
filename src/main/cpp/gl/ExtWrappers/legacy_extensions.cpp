@@ -4,6 +4,7 @@
 
 #include "../includes.h"
 #include "../log.h"
+#include "../mg.h"
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include "legacy_extensions.h"
