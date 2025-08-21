@@ -769,6 +769,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
         replace_all(ret, "varying", "in");
 	}
     replace_all(ret, "texture2D", "texture");
+	inject_fragcolor(ret);
 
 	// GI_TemporalFilter injection
     inject_temporal_filter(ret);
