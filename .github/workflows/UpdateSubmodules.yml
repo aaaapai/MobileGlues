@@ -1,6 +1,5 @@
 name: Update Submodules
 on:
-  push:
   workflow_dispatch:
 
 jobs:
