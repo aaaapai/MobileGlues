@@ -21,7 +21,7 @@
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
 #if !defined(__APPLE__)
-char* (*MesaConvertShader)(const char *src, unsigned int type, unsigned int glsl, unsigned int essl);
+extern std::string MesaConvertShader (const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
 
 static TBuiltInResource InitResources()
@@ -339,6 +339,16 @@ std::string processOutColorLocations(const std::string& glslCode) {
 
 bool checkIfAtomicCounterBufferEmulated(const std::string& glslCode) {
     return glslCode.find(atomicCounterEmulatedWatermark) != std::string::npos;
+}
+
+std::string getCachedESSL(const char* glsl_code, uint essl_version) {
+    std::string sha256_string(glsl_code);
+    sha256_string += "\n//" + std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION) + "|" + std::to_string(essl_version);
+    const char* cachedESSL = Cache::get_instance().get(sha256_string.c_str());
+    if (cachedESSL) {
+        LOG_D("GLSL Hit Cache:\n%s\n-->\n%s", glsl_code, cachedESSL)
+        return cachedESSL;
+    } else return "";
 }
 
 std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_version, uint glsl_version, int& return_code) {
@@ -660,6 +670,563 @@ vec2 mg_textureQueryLod(sampler2D tex, vec2 uv) {
     glsl.insert(insertPos, "\n" + textureQueryLodImpl + "\n");
 }
 
+static void inject_image2D_declarations(std::string& glsl) {
+    const std::regex defRegex(R"(layout\s*\(\s*rgba16f\s*\)\s+writeonly\s+restrict\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_one(R"(layout\s*\(\s*rgba8f\s*\)\s+writeonly\s+restrict\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_two(R"(layout\s*\(\s*rgba16f\s*\)\s+writeonly\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_three(R"(layout\s*\(\s*rgba16f\s*\)\s+restrict\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_four(R"(layout\s*\(\s*rgba8f\s*\)\s+writeonly\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_five(R"(layout\s*\(\s*rgba8f\s*\)\s+restrict\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+    const std::regex defRegex_six(R"(layout\s*\(\s*r32f\s*\)\s+restrict\s+uniform\s+image2D\s*;)", std::regex::ECMAScript);
+
+    if (glsl.find("uniform image2D") == std::string::npos) {
+        return;
+    }
+
+    if (std::regex_search(glsl, defRegex) && std::regex_search(glsl, defRegex_one) && std::regex_search(glsl, defRegex_two) && std::regex_search(glsl, defRegex_three) && std::regex_search(glsl, defRegex_four) && std::regex_search(glsl, defRegex_five)) {
+        return;
+    } else {
+        replace_all(glsl, "restrict uniform image2D", "layout (r32f) restrict uniform image2D");
+        replace_all(glsl, "writeonly restrict uniform image2D", "layout (rgba16f) writeonly restrict uniform image2D");
+        replace_all(glsl, "writeonly uniform image2D", "layout (rgba16f) writeonly uniform image2D");
+    }
+
+}
+
+static void inject_gl_DepthRange(std::string& glsl) {
+   const std::regex defRegex(R"(uniform\s+gl_DepthRangeParameters\s+gl_DepthRange\s*;)", std::regex::ECMAScript);
+
+    if (glsl.find("gl_DepthRange") == std::string::npos) {
+        return;
+    }
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    replace_all(glsl, "gl_DepthRange", "mg_gl_DepthRange");
+    const std::string gl_DepthRangeImpl = R"(
+struct mg_gl_DepthRangeParameters {
+    float near;
+    float far;
+    float diff;
+};
+uniform mg_gl_DepthRangeParameters mg_gl_DepthRange;
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + gl_DepthRangeImpl + "\n");
+
+}
+
+static void inject_subgroup_BigGiftPackage(std::string& glsl) {
+    const std::regex defRegex(R"(#define\s+SUBGROUP_SIZE\s+\d+)", std::regex::ECMAScript);
+
+    if (glsl.find("subgroupBallot") == std::string::npos && 
+        glsl.find("activeMask") == std::string::npos &&
+        glsl.find("gl_SubgroupInvocationID") == std::string::npos &&
+        glsl.find("subgroupAdd") == std::string::npos &&
+        glsl.find("gl_NumSubgroups") == std::string::npos &&
+        glsl.find("gl_SubgroupID") == std::string::npos &&
+        glsl.find("subgroupAny") == std::string::npos &&
+        glsl.find("subgroupAll") == std::string::npos &&
+        glsl.find("subgroupElect") == std::string::npos) {
+        return;
+    }
+
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup", "// #extension GL_KHR_shader_subgroup");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_basic", "// #extension GL_KHR_shader_subgroup_basic");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_ballot", "// #extension GL_KHR_shader_subgroup_ballot");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_arithmetic", "// #extension GL_KHR_shader_subgroup_arithmetic");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered", "// #extension GL_KHR_shader_subgroup_clustered");
+    replace_all(glsl, "subgroupBallot", "mg_subgroupBallot");
+    replace_all(glsl, "activeMask", "mg_activeMask");
+    replace_all(glsl, "gl_SubgroupInvocationID", "mg_gl_SubgroupInvocationID()");
+    replace_all(glsl, "subgroupAdd", "mg_subgroupAdd");
+    replace_all(glsl, "gl_NumSubgroups", "mg_gl_NumSubgroups()");
+    replace_all(glsl, "gl_SubgroupID", "mg_gl_SubgroupID()");
+    replace_all(glsl, "subgroupAny", "mg_subgroupAny");
+    replace_all(glsl, "subgroupAll", "mg_subgroupAll");
+    replace_all(glsl, "subgroupElect", "mg_subgroupElect");
+
+    const std::string subgroup_BigGiftPackageImpl = R"(
+#define SUBGROUP_SIZE 32
+
+// ==================== 基础子组模拟 (核心功能) ====================
+// 使用内置变量模拟子组基础功能
+uint mg_gl_SubgroupID() {
+    // 通过工作组内线性索引计算子组ID
+    return gl_LocalInvocationIndex / SUBGROUP_SIZE;
+}
+
+uint mg_gl_SubgroupInvocationID() {
+    // 子组内调用索引 = 局部线性索引 % 子组大小
+    return gl_LocalInvocationIndex % SUBGROUP_SIZE;
+}
+
+uint mg_gl_NumSubgroups() {
+    // 子组总数 = 工作组大小 / 子组大小（向上取整）
+    return (gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z + SUBGROUP_SIZE - 1u) / SUBGROUP_SIZE;
+}
+
+// ==================== 投票功能模拟 (共享内存实现) ====================
+shared uint s_ballot; // 共享存储用于投票结果
+
+uvec2 mg_subgroupBallot(bool condition) {
+    // Step 1: 初始化共享变量
+    if (gl_LocalInvocationID.x == 0 && gl_LocalInvocationID.y == 0 && gl_LocalInvocationID.z == 0) {
+        s_ballot = 0u;
+    }
+    memoryBarrierShared();
+    barrier();
+
+    // Step 2: 原子操作设置比特位
+    if (condition) {
+        uint mask = 1u << mg_gl_SubgroupInvocationID();
+        atomicOr(s_ballot, mask);
+    }
+    memoryBarrierShared();
+    barrier();
+
+    // Step 3: 返回结果（兼容uvec2结构）
+    return uvec2(s_ballot, 0u); // 高位始终为0
+}
+
+uvec2 activeMask() {
+    // 所有活跃线程返回true
+    return mg_subgroupBallot(true);
+}
+
+// ==================== 条件判断辅助 ====================
+bool mg_subgroupAny(bool value) {
+    uvec2 mask = mg_subgroupBallot(value);
+    return mask.x != 0u;
+}
+
+bool mg_subgroupAll(bool value) {
+    uvec2 fullMask = activeMask();
+    uvec2 valueMask = mg_subgroupBallot(value);
+    return fullMask == valueMask;
+}
+
+
+// ==================== 全局共享内存声明 ====================
+const uint total_workgroup_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
+const uint num_subgroups = (total_workgroup_size + SUBGROUP_SIZE - 1u) / SUBGROUP_SIZE;
+
+// 标量类型共享内存
+shared float s_reduceAdd_float[num_subgroups * SUBGROUP_SIZE];
+shared uint s_reduceAdd_uint[num_subgroups * SUBGROUP_SIZE];
+shared int s_reduceAdd_int[num_subgroups * SUBGROUP_SIZE];
+
+// 向量类型共享内存
+shared vec2 s_reduceAdd_vec2[num_subgroups * SUBGROUP_SIZE];
+shared vec3 s_reduceAdd_vec3[num_subgroups * SUBGROUP_SIZE];
+shared vec4 s_reduceAdd_vec4[num_subgroups * SUBGROUP_SIZE];
+
+// ==================== 子组加法归约模拟 ====================
+float mg_subgroupAdd(float value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    // 初始化共享内存
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_float[i] = 0.0;
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_float[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_float[offset] += s_reduceAdd_float[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_float[subgroupID * SUBGROUP_SIZE];
+}
+
+uint mg_subgroupAdd(uint value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_uint[i] = 0u;
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_uint[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_uint[offset] += s_reduceAdd_uint[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_uint[subgroupID * SUBGROUP_SIZE];
+}
+
+int mg_subgroupAdd(int value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_int[i] = 0;
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_int[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_int[offset] += s_reduceAdd_int[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_int[subgroupID * SUBGROUP_SIZE];
+}
+
+vec2 mg_subgroupAdd(vec2 value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_vec2[i] = vec2(0.0);
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_vec2[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_vec2[offset] += s_reduceAdd_vec2[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_vec2[subgroupID * SUBGROUP_SIZE];
+}
+
+vec3 mg_subgroupAdd(vec3 value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_vec3[i] = vec3(0.0);
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_vec3[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_vec3[offset] += s_reduceAdd_vec3[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_vec3[subgroupID * SUBGROUP_SIZE];
+}
+
+vec4 mg_subgroupAdd(vec4 value) {
+    uint subgroupID = mg_gl_SubgroupID();
+    uint laneID = mg_gl_SubgroupInvocationID();
+    uint offset = subgroupID * SUBGROUP_SIZE + laneID;
+
+    for (uint i = gl_LocalInvocationIndex; i < num_subgroups * SUBGROUP_SIZE; i += total_workgroup_size) {
+        s_reduceAdd_vec4[i] = vec4(0.0);
+    }
+    memoryBarrierShared();
+    barrier();
+
+    s_reduceAdd_vec4[offset] = value;
+    memoryBarrierShared();
+    barrier();
+
+    for (uint stride = SUBGROUP_SIZE / 2; stride > 0; stride >>= 1) {
+        if (laneID < stride) {
+            s_reduceAdd_vec4[offset] += s_reduceAdd_vec4[offset + stride];
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    return s_reduceAdd_vec4[subgroupID * SUBGROUP_SIZE];
+}
+
+bool mg_subgroupElect() {
+    // 子组内第一个线程（调用ID=0）被选为领导线程
+    return (mg_gl_SubgroupInvocationID() == 0u);
+}
+
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + subgroup_BigGiftPackageImpl + "\n");
+
+}
+
+static void inject_subgroup_clustered(std::string& glsl) {
+    const std::regex defRegex(R"(shared\s+uint\s+_cluster_shared_data\s*\[\s*gl_WorkGroupSize\.x\s*\*\s*gl_WorkGroupSize\.y\s*\*\s*gl_WorkGroupSize\.z\s*\]\s*;)", std::regex::ECMAScript);
+
+    // 检查是否使用了扩展中的任何标识符
+    if (glsl.find("subgroupClusteredMax") == std::string::npos && 
+        glsl.find("subgroupMemoryBarrier") == std::string::npos && 
+        glsl.find("subgroupBarrier") == std::string::npos &&
+        glsl.find("subgroupClusteredAllEqual") == std::string::npos &&
+        glsl.find("subgroupClusteredAny") == std::string::npos &&
+        glsl.find("subgroupClusteredAll") == std::string::npos &&
+        glsl.find("subgroupClusteredXor") == std::string::npos &&
+        glsl.find("subgroupClusteredOr") == std::string::npos &&
+        glsl.find("subgroupClusteredAnd") == std::string::npos &&
+        glsl.find("subgroupClusteredMin") == std::string::npos &&
+        glsl.find("subgroupClusteredMul") == std::string::npos &&
+        glsl.find("subgroupClusteredAdd") == std::string::npos)
+    {
+        return;
+    }
+
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered :enable", "// #extension GL_KHR_shader_subgroup_clustered :enable");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered : enable", "// #extension GL_KHR_shader_subgroup_clustered : enable");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered: enable", "// #extension GL_KHR_shader_subgroup_clustered: enable");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered: require", "// #extension GL_KHR_shader_subgroup_clustered : require");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered : require", "// #extension GL_KHR_shader_subgroup_clustered : require");
+    replace_all(glsl, "#extension GL_KHR_shader_subgroup_clustered :require", "// #extension GL_KHR_shader_subgroup_clustered : require"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredMax", "mg_subgroupClusteredMax"); //防止编译错误
+    replace_all(glsl, "subgroupMemoryBarrier", "mg_subgroupMemoryBarrier"); //防止编译错误
+    replace_all(glsl, "subgroupBarrier", "mg_subgroupBarrier"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredAllEqual", "mg_subgroupClusteredAllEqual"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredAny", "mg_subgroupClusteredAny"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredAll", "mg_subgroupClusteredAll"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredXor", "mg_subgroupClusteredXor"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredOr", "mg_subgroupClusteredOr"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredAnd", "mg_subgroupClusteredAnd"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredMin", "mg_subgroupClusteredMin"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredMul", "mg_subgroupClusteredMul"); //防止编译错误
+    replace_all(glsl, "subgroupClusteredAdd", "mg_subgroupClusteredAdd"); //防止编译错误
+
+    const std::string subgroup_clusteredImpl = R"(
+precision highp float;
+precision highp int;
+
+// 共享内存用于线程间通信
+shared uint _cluster_shared_data[gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z];
+
+// 一维索引计算（假设工作组为一维）
+uint _get_linear_index() {
+    return gl_LocalInvocationID.x;
+}
+
+// ================== 核心归约函数模板 ==================
+uint _clustered_reduce(uint value, uint clusterSize, uint op) {
+    uint idx = _get_linear_index();
+    uint clusterIdx = idx / clusterSize;
+    uint offset = idx % clusterSize;
+    uint base = clusterIdx * clusterSize;
+
+    // 存储原始值到共享内存
+    _cluster_shared_data[idx] = value;
+    barrier();
+    memoryBarrierShared();
+
+    // 归约循环（要求clusterSize是2的幂）
+    for (uint stride = 1; stride < clusterSize; stride *= 2) {
+        if ((offset & (2u * stride - 1u)) == 0u) {
+            uint otherIdx = idx + stride;
+            if (offset + stride < clusterSize) {
+                uint a = _cluster_shared_data[idx];
+                uint b = _cluster_shared_data[otherIdx];
+                
+                // 根据操作类型执行计算
+                switch (op) {
+                    case 0:  a += b; break;    // Add
+                    case 1:  a *= b; break;    // Mul
+                    case 2:  a = min(a, b); break; // Min
+                    case 3:  a = max(a, b); break; // Max
+                    case 4:  a &= b; break;    // And
+                    case 5:  a |= b; break;    // Or
+                    case 6:  a ^= b; break;    // Xor
+                    default: break;
+                }
+                _cluster_shared_data[idx] = a;
+            }
+        }
+        barrier();
+        memoryBarrierShared();
+    }
+    return _cluster_shared_data[base]; // 返回归约结果
+}
+
+// ================== 算术操作实现 ==================
+float mg_subgroupClusteredAdd(float val, uint clusterSize) {
+    uint u = floatBitsToUint(val);
+    u = _clustered_reduce(u, clusterSize, 0);
+    return uintBitsToFloat(u);
+}
+
+float mg_subgroupClusteredMul(float val, uint clusterSize) {
+    uint u = floatBitsToUint(val);
+    u = _clustered_reduce(u, clusterSize, 1);
+    return uintBitsToFloat(u);
+}
+
+float mg_subgroupClusteredMin(float val, uint clusterSize) {
+    uint u = floatBitsToUint(val);
+    u = _clustered_reduce(u, clusterSize, 2);
+    return uintBitsToFloat(u);
+}
+
+float mg_subgroupClusteredMax(float val, uint clusterSize) {
+    uint u = floatBitsToUint(val);
+    u = _clustered_reduce(u, clusterSize, 3);
+    return uintBitsToFloat(u);
+}
+
+// ================== 按位操作实现 ==================
+uint mg_subgroupClusteredAnd(uint val, uint clusterSize) {
+    return _clustered_reduce(val, clusterSize, 4);
+}
+
+uint mg_subgroupClusteredOr(uint val, uint clusterSize) {
+    return _clustered_reduce(val, clusterSize, 5);
+}
+
+uint mg_subgroupClusteredXor(uint val, uint clusterSize) {
+    return _clustered_reduce(val, clusterSize, 6);
+}
+
+// ================== 投票操作实现 ==================
+bool mg_subgroupClusteredAll(bool condition, uint clusterSize) {
+    uint val = condition ? 0xFFFFFFFFu : 0u;
+    uint result = _clustered_reduce(val, clusterSize, 4);
+    return (result == 0xFFFFFFFFu);
+}
+
+bool mg_subgroupClusteredAny(bool condition, uint clusterSize) {
+    uint val = condition ? 0xFFFFFFFFu : 0u;
+    uint result = _clustered_reduce(val, clusterSize, 5);
+    return (result != 0u);
+}
+
+bool mg_subgroupClusteredAllEqual(float value, uint clusterSize) {
+    uint idx = _get_linear_index();
+    uint clusterIdx = idx / clusterSize;
+    uint offset = idx % clusterSize;
+    uint base = clusterIdx * clusterSize;
+
+    // 存储原始值
+    _cluster_shared_data[idx] = floatBitsToUint(value);
+    barrier();
+    memoryBarrierShared();
+
+    // 获取第一个元素作为参考
+    uint ref = _cluster_shared_data[base];
+    
+    // 检查所有元素是否等于参考值
+    bool equal = (floatBitsToUint(value) == ref);
+    uint u = equal ? 0xFFFFFFFFu : 0u;
+    uint result = _clustered_reduce(u, clusterSize, 4);
+    
+    return (result == 0xFFFFFFFFu);
+}
+
+// ================== 同步操作 ==================
+void mg_subgroupBarrier() {
+    barrier();
+    memoryBarrierShared();
+}
+
+void mg_subgroupMemoryBarrier() {
+    memoryBarrierShared();
+}
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + subgroup_clusteredImpl + "\n");
+}
+
+static void inject_shaderDrawParameters(std::string& glsl) {
+    const std::regex defRegex(R"(#extension GL_ARB_shader_draw_parameters : enable)", std::regex::ECMAScript);
+
+    // 检查是否使用了扩展中的任何标识符
+    if (glsl.find("gl_DrawID") == std::string::npos && 
+        glsl.find("gl_DrawIDARB") == std::string::npos && 
+        glsl.find("gl_BaseInstanceARB") == std::string::npos &&
+        glsl.find("gl_BaseVertexARB") == std::string::npos) {
+        return;
+    }
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    const std::string drawParametersImpl = R"(
+#extension GL_ARB_shader_draw_parameters : enable
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + drawParametersImpl + "\n");
+}
+
+static void inject_gl_Vertex(std::string& glsl) {
+   const std::regex vertexRegex(R"(\bgl_Vertex\b)"); // 已全词匹配
+
+    // 修改后：mg_Vertex前后均添加单词边界
+    const std::regex defRegex(R"(\b(in)\s+(vec4)\s+(mg_Vertex)\b\s*;)");
+
+    if (!std::regex_search(glsl, vertexRegex)) {
+        return; // 没有使用 gl_Vertex，无需处理
+    }
+    if (std::regex_search(glsl, defRegex)) {
+        return; // 已定义 mg_Vertex，避免重复注入
+    }
+    
+    // 精确替换所有 gl_Vertex 实例（使用单词边界 \b）
+    glsl = std::regex_replace(glsl, vertexRegex, "mg_Vertex");
+
+    const std::string gl_VertexImpl = R"(
+in vec4 mg_Vertex;
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + gl_VertexImpl + "\n");
+
+}
+
 static inline void inject_fragcolor(std::string& glsl) {
     const std::string fragColorVar = "gl_FragColor";
     const std::string mainStart = "void main()";
@@ -761,6 +1328,12 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                 "const mat3 rotInverse = transpose(rot);",
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], rot[0][2], rot[1][2], rot[2][2]);");
 
+	replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
+    replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
+    replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
+    replace_all(ret, "writeonly uniform image2D colorimg4;", "layout (rgba16f) writeonly uniform image2D colorimg4;");
+    replace_all(ret, "#error ", "// #error ");
+
 	// Replace deprecated syntax
     if (shaderType == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
@@ -771,6 +1344,13 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     replace_all(ret, "texture2D", "texture");
 	inject_fragcolor(ret);
 
+	inject_gl_DepthRange(ret);
+	inject_image2D_declarations(ret);
+	inject_shaderDrawParameters(ret);
+	inject_subgroup_BigGiftPackage(ret);
+    inject_subgroup_clustered(ret);
+    inject_gl_Vertex(ret);
+	
 	// GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
@@ -836,7 +1416,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shader.setStrings(shader_src, 1);
 
     using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
     shader.setAutoMapLocations(true);
@@ -863,6 +1443,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     std::vector<unsigned int> spirv_code;
     glslang::SpvOptions spvOptions;
     spvOptions.disableOptimizer = false;
+	spvOptions.optimizeSize = true;
     glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
     errc = 0;
     return spirv_code;
@@ -882,7 +1463,12 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     size_t word_count = spirv.size();
 
     LOG_D("spirv_code.size(): %d", spirv.size())
-    spvc_context_create(&context);
+	if(context == nullptr) {
+        spvc_context_create(&context);
+        if(context == nullptr) {
+            printf("SPVC Context could not be created!\n");
+        }
+	}
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
@@ -890,12 +1476,28 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 300 ? essl_version : 300);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
+	spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
 
     if (!result) {
-        LOG_E("Error: unexpected error in spirv-cross.")
+        const char* error_msg = spvc_context_get_last_error_string(context);
+        if (error_msg) {
+            LOG_E("SPIRV-Cross error: %s", error_msg);
+        } else {
+            LOG_E("SPIRV-Cross failed without error message");
+        }
+        
+        // 检查常见原因
+        if (essl_version < 300) {
+            LOG_E("Hint: ESSL version %u may be too low", essl_version);
+        }
+        
+        spvc_compiler_get_current_id_bound(compiler_glsl);
+        
         errc = -1;
+        spvc_context_destroy(context);
         return "";
     }
 
@@ -906,6 +1508,12 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     errc = 0;
     return essl;
 }
+
+static std::string RemoveUniformInitialization(const std::string& glslCode) {
+    // 匹配 "uniform type name = value;" 并替换为 "uniform type name;"
+    std::regex uniformInitRegex(R"(uniform\s+(\w+)\s+(\w+)\s*=\s*[^;]+;)");
+    return std::regex_replace(glslCode, uniformInitRegex, "uniform $1 $2;");
+} // For glslOptimizerV2
 
 static bool glslang_inited = false;
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_version, int& return_code) {
@@ -939,6 +1547,7 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     }
     essl = processOutColorLocations(essl);
     essl = forceSupporterOutput(essl);
+	essl = RemoveUniformInitialization(essl);
 
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
     return_code = errc;
@@ -951,8 +1560,8 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
-    if (esversion < 300) esversion = 300;
-    std::string result = MesaConvertShader(glsl_code, glsl_type == GL_VERTEX_SHADER ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, 460LL, esversion);
+    if (esversion < 300) esversion = 320;
+    std::string result = MesaConvertShader(glsl_code, glsl_type, 460, esversion);
 
     return_code = 0;
     return result;
