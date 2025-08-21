@@ -3,7 +3,7 @@
 //
 
 #include "state.h"
-#include <glm/glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "list.h"
 #include "pointer_utils.h"
 
