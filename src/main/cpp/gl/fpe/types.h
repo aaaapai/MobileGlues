@@ -9,8 +9,8 @@
 #include "../gles/loader.h"
 #include "../gl/log.h"
 #include "defines.h"
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/type_ptr.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <unordered_map>
 #include <vector>
 #include <sstream>
