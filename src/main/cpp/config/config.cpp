@@ -62,18 +62,18 @@ int config_refresh(void) {
   fseek(file, 0, SEEK_SET);
 
   char *file_content = (char *)malloc(file_size + 1);
-  if (file_content == NULL) {
+  if (file_content == nullptr) {
     LOG_E("Unable to allocate memory for file content");
     fclose(file);
-    return 0;
-  }
+    file_content[file_size] = '\0';
 
-  fread(file_content, 1, file_size, file);
-  fclose(file);
-  file_content[file_size] = '\0';
+    config_json = cJSON_Parse(file_content);
+    free(file_content);
 
-  config_json = cJSON_Parse(file_content);
-  free(file_content);
+    if (config_json == nullptr) {
+        LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
+        return 0;
+    }
 
   if (config_json == nullptr) {
     LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
@@ -95,7 +95,7 @@ int config_get_int(const char *name) {
     return -1;
   }
 
-  return item->valueint;
+    return item->valueint;
 }
 
 const char *config_get_string(const char *name) {
@@ -109,7 +109,7 @@ const char *config_get_string(const char *name) {
     return "";
   }
 
-  return item->valuestring;
+    return item->valuestring;
 }
 
 void config_cleanup(void) {
