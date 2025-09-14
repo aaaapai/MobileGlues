@@ -62,7 +62,7 @@ int config_refresh(void) {
   fseek(file, 0, SEEK_SET);
 
   char *file_content = (char *)malloc(file_size + 1);
-  if (file_content == NULL) {
+  if (file_content == nullptr) {
     LOG_E("Unable to allocate memory for file content");
     fclose(file);
     file_content[file_size] = '\0';
@@ -70,7 +70,7 @@ int config_refresh(void) {
     config_json = cJSON_Parse(file_content);
     free(file_content);
 
-    if (config_json == NULL) {
+    if (config_json == nullptr) {
         LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
         return 0;
     }
