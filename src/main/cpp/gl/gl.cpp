@@ -4,11 +4,13 @@
 
 #include "../includes.h"
 #include <GL/gl.h>
-#include "glcorearb.h"
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "../gles/loader.h"
 #include "../config/settings.h"
 #include "mg.h"
+
+#include "FSR1/FSR1.h"
 
 #define DEBUG 0
 
@@ -194,4 +196,17 @@ GLAPI GLAPIENTRY void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
             break;
     }
     if (length) *length = 1;
+}
+
+void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+    LOG()
+	LOG_D("glViewport: x=%d, y=%d, width=%d, height=%d", x, y, width, height);
+    
+    if (global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled && (width > FSR1_Context::g_pendingWidth || height > FSR1_Context::g_pendingHeight)) {
+		FSR1_Context::g_resolutionChanged = true;
+        FSR1_Context::g_pendingWidth = width;
+        FSR1_Context::g_pendingHeight = height;
+    }
+    
+	GLES.glViewport(x, y, width, height);
 }

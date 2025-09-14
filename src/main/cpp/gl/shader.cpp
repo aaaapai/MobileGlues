@@ -13,18 +13,18 @@
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
 #include "FSR1/FSR1.h"
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
 struct shader_t shaderInfo;
 
-std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
-std::unordered_map<GLuint, bool> shader_map_is_atomic_counter_emulated;
+ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+ankerl::unordered_dense::map<GLuint, bool> shader_map_is_atomic_counter_emulated;
 
-bool can_run_essl3(unsigned int esversion, const char *glsl) {
+static bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
-        return true; 
+        return false; 
     }
 
     unsigned int glsl_version = 0;
@@ -40,13 +40,13 @@ bool can_run_essl3(unsigned int esversion, const char *glsl) {
     return esversion >= glsl_version;
 }
 
-bool is_direct_shader(const char *glsl)
+static bool is_direct_shader(const char *glsl)
 {
     bool es3_ability = can_run_essl3(hardware->es_version, glsl);
     return es3_ability;
 }
 
-bool check_if_sampler_buffer_used(std::string str) {
+static bool check_if_sampler_buffer_used(std::string str) {
     return str.find("samplerBuffer") != std::string::npos;
 }
 
@@ -86,14 +86,16 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
         GLint shaderType;
         GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
 		int return_code = 0;
-        essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version, return_code);
-        if (return_code == 1) { //atomicCounterEmulated
+        essl_src = getCachedESSL(glsl_src.c_str(), hardware->es_version);
+        if (essl_src.empty())
+            essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version, return_code);
+		if (return_code == 1) { //atomicCounterEmulated
 			shader_map_is_atomic_counter_emulated[shader] = true;
 			LOG_D("[INFO] [Shader] Atomic counter emulated in shader %d", shader)
         }
 
         if (essl_src.empty()) {
-            LOG_E("Failed to convert shader %d.", shader)
+            LOG_E("ERROR: Failed to convert shader %d.", shader)
             return;
         }
         LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
@@ -107,7 +109,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, c
             shader_map_is_sampler_buffer_emulated[shader] = is_sampler_buffer_emulated;
     }
     else
-        LOG_E("Failed to convert glsl.")
+        LOG_E("ERROR: Failed to convert glsl.")
     CHECK_GL_ERROR
 }
 

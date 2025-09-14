@@ -7,12 +7,15 @@
 
 #include <memory>
 #include <unordered_map>
+#include <memory>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <GL/gl.h>
+
+GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname,
                                       GLfloat param);

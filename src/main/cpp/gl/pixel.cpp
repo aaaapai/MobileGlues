@@ -134,7 +134,7 @@ static const colorlayout_t *get_color_map(GLenum format) {
         : LOG_D("get_color_map: unknown pixel format %s\n",
                 glEnumToString(format)) break;
   }
-  static colorlayout_t null = {0};
+  static colorlayout_t null = {0, 0, 0, 0, 0, 0};
   return &null;
 #undef map
 }
@@ -143,7 +143,7 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
                    GLenum src_format, GLenum src_type, GLenum dst_format,
                    GLenum dst_type, GLuint stride, GLuint align) {
   const colorlayout_t *src_color, *dst_color;
-  GLuint pixels = width * height;
+  // GLuint pixels = width * height;
   if (src_type == GL_INT8_REV)
     src_type = GL_UNSIGNED_BYTE;
   if (dst_type == GL_INT8_REV)
@@ -176,7 +176,7 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
     if (*dst == nullptr) // alloc dst only if dst==NULL
       *dst = malloc(dst_size);
     if (stride) // for in-place conversion
-      for (int yy = 0; yy < height; yy++)
+      for (GLuint yy = 0; yy < height; yy++)
         memcpy((char *)(*dst) + yy * dst_width2, (char *)src + yy * src_width,
                src_width);
     else
@@ -203,8 +203,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
        ((src_format == GL_RGBA) && (dst_format == GL_BGRA))) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
     GLuint tmp;
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         tmp = *(const GLuint *)src_pos;
 #ifdef __BIG_ENDIAN__
         *(GLuint *)dst_pos = (tmp & 0x00ff00ff) | ((tmp & 0x0000ff00) << 16) |
@@ -226,8 +226,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
       (src_format == GL_RGBA || src_format == GL_BGRA) &&
       ((src_type == GL_INT8 && dst_type == GL_INT8_REV) ||
        (src_type == GL_INT8_REV && dst_type == GL_INT8))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         ((char *)dst_pos)[0] = ((char *)src_pos)[3];
         ((char *)dst_pos)[1] = ((char *)src_pos)[2];
         ((char *)dst_pos)[2] = ((char *)src_pos)[1];
@@ -248,8 +248,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
         dst_type == GL_UNSIGNED_BYTE) ||
        (src_type == GL_UNSIGNED_BYTE &&
         dst_type == GL_UNSIGNED_INT_8_8_8_8_REV))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         ((char *)dst_pos)[0] = ((char *)src_pos)[3];
         ((char *)dst_pos)[1] = ((char *)src_pos)[2];
         ((char *)dst_pos)[2] = ((char *)src_pos)[1];
@@ -268,8 +268,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
       (dst_type == GL_UNSIGNED_SHORT_5_5_5_1) &&
       (src_type == GL_UNSIGNED_SHORT_1_5_5_5_REV)) {
     GLushort tmp;
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // invert 1555/BGRA to 5551/RGBA (0x1f / 0x3e0 / 7c00)
         tmp = *(GLushort *)src_pos;
         *(GLushort *)dst_pos = ((tmp & 0x8000) >> 15) | ((tmp & 0x7fff) << 1);
@@ -284,8 +284,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // L -> RGBA
   if ((src_format == GL_LUMINANCE) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_dst = (unsigned char *)dst_pos;
 #ifdef __BIG_ENDIAN__
@@ -306,8 +306,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // L -> RGB
   if ((src_format == GL_LUMINANCE) && (dst_format == GL_RGB) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_dst = (unsigned char *)dst_pos;
         byte_dst[0] = byte_dst[1] = byte_dst[2] = *(GLubyte *)src_pos;
@@ -322,8 +322,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // RGBA -> LA
   if ((src_format == GL_RGBA) && (dst_format == GL_LUMINANCE_ALPHA) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_src = (unsigned char *)src_pos;
 #ifdef __BIG_ENDIAN__
@@ -352,8 +352,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // BGRA -> LA
   if ((src_format == GL_BGRA) && (dst_format == GL_LUMINANCE_ALPHA) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_src = (unsigned char *)src_pos;
 #ifdef __BIG_ENDIAN__
@@ -383,8 +383,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if (((src_format == GL_RGBA) || (src_format == GL_RGB)) &&
       (dst_format == GL_LUMINANCE) && (dst_type == GL_UNSIGNED_BYTE) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_src = (unsigned char *)src_pos;
 #ifdef __BIG_ENDIAN__
@@ -410,8 +410,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if (((src_format == GL_BGRA) || (src_format == GL_BGR)) &&
       (dst_format == GL_LUMINANCE) && (dst_type == GL_UNSIGNED_BYTE) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         // tmp = *(const GLuint*)src_pos;
         auto *byte_src = (unsigned char *)src_pos;
 #ifdef __BIG_ENDIAN__
@@ -437,8 +437,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if (((src_format == GL_BGR) || (src_format == GL_BGRA)) &&
       (dst_format == GL_RGB) && (dst_type == GL_UNSIGNED_BYTE) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         ((char *)dst_pos)[0] = ((char *)src_pos)[2];
         ((char *)dst_pos)[1] = ((char *)src_pos)[1];
         ((char *)dst_pos)[2] = ((char *)src_pos)[0];
@@ -453,8 +453,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // BGR -> RGBA
   if (((src_format == GL_BGR)) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         ((unsigned char *)dst_pos)[0] = ((unsigned char *)src_pos)[2];
         ((unsigned char *)dst_pos)[1] = ((unsigned char *)src_pos)[1];
         ((unsigned char *)dst_pos)[2] = ((unsigned char *)src_pos)[0];
@@ -470,8 +470,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   // RGBA -> RGB
   if ((src_format == GL_RGBA) && (dst_format == GL_RGB) &&
       (dst_type == GL_UNSIGNED_BYTE) && ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         ((char *)dst_pos)[0] = ((char *)src_pos)[0];
         ((char *)dst_pos)[1] = ((char *)src_pos)[1];
         ((char *)dst_pos)[2] = ((char *)src_pos)[2];
@@ -487,8 +487,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if (((src_format == GL_RGB) || (src_format == GL_RGBA)) &&
       (dst_format == GL_RGB) && (dst_type == GL_UNSIGNED_SHORT_5_6_5) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[2] & 0xf8) >> (3)) |
             ((GLushort)(((char *)src_pos)[1] & 0xfc) << (5 - 2)) |
@@ -505,8 +505,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if (((src_format == GL_BGR) || (src_format == GL_BGRA)) &&
       (dst_format == GL_RGB) && (dst_type == GL_UNSIGNED_SHORT_5_6_5) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[0] & 0xf8) >> (3)) |
             ((GLushort)(((char *)src_pos)[1] & 0xfc) << (5 - 2)) |
@@ -523,8 +523,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_RGBA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_SHORT_5_5_5_1) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[2] & 0xf8) >> (3 - 1)) |
             ((GLushort)(((char *)src_pos)[1] & 0xf8) << (5 - 2)) |
@@ -542,8 +542,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_BGRA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_SHORT_5_5_5_1) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[0] & 0xf8) >> (3 - 1)) |
             ((GLushort)(((char *)src_pos)[1] & 0xf8) << (5 - 2)) |
@@ -561,8 +561,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_RGBA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_SHORT_4_4_4_4) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[3] & 0xf0)) >> (4) |
             ((GLushort)(((char *)src_pos)[2] & 0xf0)) |
@@ -580,8 +580,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_BGRA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_SHORT_4_4_4_4) &&
       ((src_type == GL_UNSIGNED_BYTE))) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         *(GLushort *)dst_pos =
             ((GLushort)(((char *)src_pos)[3] & 0xf0) >> (4)) |
             ((GLushort)(((char *)src_pos)[0] & 0xf0)) |
@@ -599,8 +599,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_BGRA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_BYTE) &&
       (src_type == GL_UNSIGNED_SHORT_4_4_4_4_REV)) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         const GLushort pix = *(GLushort *)src_pos;
         ((char *)dst_pos)[3] = ((pix >> 12) & 0x0f) << 4;
         ((char *)dst_pos)[2] = ((pix >> 8) & 0x0f) << 4;
@@ -618,8 +618,8 @@ bool pixel_convert(const GLvoid *src, GLvoid **dst, GLuint width, GLuint height,
   if ((src_format == GL_RGBA) && (dst_format == GL_RGBA) &&
       (dst_type == GL_UNSIGNED_BYTE) &&
       (src_type == GL_UNSIGNED_SHORT_5_5_5_1)) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    for (GLuint i = 0; i < height; i++) {
+      for (GLuint j = 0; j < width; j++) {
         const GLushort pix = *(GLushort *)src_pos;
         ((unsigned char *)dst_pos)[0] = ((pix >> 11) & 0x1f) << 3;
         ((unsigned char *)dst_pos)[1] = ((pix >> 6) & 0x1f) << 3;

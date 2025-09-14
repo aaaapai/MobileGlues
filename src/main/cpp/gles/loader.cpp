@@ -8,7 +8,7 @@
 #include "../includes.h"
 #include "loader.h"
 #include <GL/gl.h>
-#include "../gl/glext.h"
+#include <GL/glext.h>
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -188,10 +188,6 @@ void InitGLESCapabilities() {
         AppendExtension("GL_EXT_timer_query");
     }
 
-    if (global_settings.ext_gl43) {
-        AppendExtension("OpenGL43");
-    }
-
     if (global_settings.ext_compute_shader) {
         AppendExtension("GL_ARB_compute_shader");
     }
@@ -201,12 +197,12 @@ void InitGLESCapabilities() {
         AppendExtension("GL_EXT_direct_state_access");
     }
 
-    int glVersion = GLVersion.toInt(2);
-    for (int ver = 32; ver <= glVersion; ++ver) {
-        if (global_settings.ext_gl43 && ver == 43) continue;
-        if (ver > 33 && ver < 40) continue;
-        LOG_D("Appending OpenGL extension for version %d", ver)
-        AppendExtension(("OpenGL" + std::to_string(ver)).c_str());
+	int glVersion = GLVersion.toInt(2);
+    for (int ver = 10; ver <= glVersion; ++ver) {
+        if (ver > 33 && ver < 40)
+			continue;
+		LOG_D("Appending OpenGL extension for version %d", ver)
+		AppendExtension(("OpenGL" + std::to_string(ver)).c_str());
     }
 
     if (g_gles_caps.major > 3 || (g_gles_caps.major == 3 && g_gles_caps.minor >= 1)) {
@@ -589,6 +585,8 @@ void init_target_gles() {
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
     //    INIT_GLES_FUNC(glBruh)
+
+	INIT_GLES_FUNC(glFramebufferTexture3DOES)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
     LOG_D("glMultiDrawElementsIndirectEXT() @ 0x%x", GLES.glMultiDrawElementsIndirectEXT)

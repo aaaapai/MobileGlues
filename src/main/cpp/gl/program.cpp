@@ -15,11 +15,11 @@
 
 #define DEBUG 0
 
-extern std::unordered_map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
-std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+ankerl::unordered_dense::map<GLuint, bool> program_map_is_sampler_buffer_emulated;
 
-extern std::unordered_map<GLuint, bool> shader_map_is_atomic_counter_emulated;
-std::unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> shader_map_is_atomic_counter_emulated;
+ankerl::unordered_dense::map<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
     std::string shaderCode(esslSource);

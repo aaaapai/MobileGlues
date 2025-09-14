@@ -1,6 +1,7 @@
 #include "FSR1.h"
 #include "FSRShaderSource.h"
 #include "../../config/settings.h"
+#include "../gl.h"
 
 #define DEBUG 0
 
@@ -47,10 +48,10 @@ namespace FSR1_Context {
 	GLuint g_depthStencilRBO = 0;
 	GLuint g_quadVAO = 0;
 	GLuint g_quadVBO = 0;
-    GLuint g_fsrProgram = 0;
+        GLuint g_fsrProgram = 0;
     
-    GLuint g_targetFBO = 0;
-    GLuint g_targetTexture = 0;
+        GLuint g_targetFBO = 0;
+        GLuint g_targetTexture = 0;
 
 	GLuint g_currentDrawFBO = 0;
 	GLint g_viewport[4] = { 0 };
@@ -116,7 +117,7 @@ void CalculateRenderResolution(FSR1_Quality_Preset preset,
     *renderHeight = (*renderHeight + 1) & ~1;
 }
 
-GLuint CompileFSRShader() {
+GLuint CompileFSRShader(void) {
     GLuint program = glCreateProgram();
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -164,7 +165,7 @@ GLuint CompileFSRShader() {
     return program;
 }
 
-void InitFullscreenQuad() {
+void InitFullscreenQuad(void) {
     GLStateGuard state;
     const float quadVertices[] = {
         -1.0f,  1.0f,   0.0f, 1.0f,
@@ -195,8 +196,8 @@ void InitFullscreenQuad() {
 }
 
 bool fsrInitialized = false;
-void InitFSRResources() {
-	fsrInitialized = true;
+void InitFSRResources(void) {
+    fsrInitialized = true;
     GLStateGuard state;
 
     FSR1_Context::g_fsrProgram = CompileFSRShader();
@@ -207,6 +208,17 @@ void InitFSRResources() {
 
     glUseProgram(FSR1_Context::g_fsrProgram);
     glUniform1i(inputTexLoc, 0);
+
+    glm::vec4 const0 = {
+        1.0f, 1.0f, 1.0f, 1.0f  // 默认值，后续会在 ApplyFSR 中动态更新
+    };
+    glUniform4fv(const0Loc, 1, reinterpret_cast<const GLfloat*>(&const0));
+
+    glm::vec2 viewportSize = { 
+        static_cast<float>(FSR1_Context::g_renderWidth), 
+        static_cast<float>(FSR1_Context::g_renderHeight) 
+    };
+    glUniform2fv(viewportSizeLoc, 1, reinterpret_cast<const GLfloat*>(&viewportSize));
     glUseProgram(0);
 
     InitFullscreenQuad();
@@ -251,7 +263,7 @@ void InitFSRResources() {
     GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_renderFBO);
 }
 
-void RecreateFSRFBO() {
+void RecreateFSRFBO(void) {
     GLStateGuard state;
     GLES.glDeleteFramebuffers(1, &FSR1_Context::g_renderFBO);
     GLES.glDeleteTextures(1, &FSR1_Context::g_renderTexture);
@@ -313,7 +325,7 @@ void RecreateFSRFBO() {
 
 std::vector<std::pair<GLsizei, GLsizei>> g_viewportStack;
 
-void ApplyFSR() {
+void ApplyFSR(void) {
     GLStateGuard state;
     
     GLES.glBindFramebuffer(GL_FRAMEBUFFER, FSR1_Context::g_targetFBO);
@@ -355,7 +367,7 @@ void ApplyFSR() {
     GLES.glViewport(0, 0, FSR1_Context::g_renderWidth, FSR1_Context::g_renderHeight);
 }
 
-void CheckResolutionChange() {
+void CheckResolutionChange(void) {
 	GLsizei width = 0, height = 0;
     LOAD_EGL(eglQuerySurface);
 	static EGLDisplay display;
@@ -391,17 +403,4 @@ void OnResize(int width, int height) {
     FSR1_Context::g_pendingWidth = width;
     FSR1_Context::g_pendingHeight = height;
     FSR1_Context::g_resolutionChanged = true;
-}
-
-void glViewport(GLint x, GLint y, GLsizei w, GLsizei h) {
-    LOG()
-	LOG_D("glViewport: x=%d, y=%d, w=%d, h=%d", x, y, w, h);
-    
-    if (w > FSR1_Context::g_pendingWidth || h > FSR1_Context::g_pendingHeight) {
-        FSR1_Context::g_pendingWidth = w;
-        FSR1_Context::g_pendingHeight = h;
-        FSR1_Context::g_resolutionChanged = true;
-    }
-    
-	GLES.glViewport(x, y, w, h);
 }

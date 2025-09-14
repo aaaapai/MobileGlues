@@ -7,6 +7,8 @@
 #include "framebuffer.h"
 #include "mg.h"
 #include "texture.h"
+#include "fpe/fpe.hpp"
+#include "fpe/list.h"
 #include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
@@ -18,8 +20,8 @@ GLuint bufSampelerProg;
 GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
-extern std::unordered_map<GLuint, bool> program_map_is_sampler_buffer_emulated;
-extern std::unordered_map<GLuint, bool> program_map_is_atomic_counter_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_sampler_buffer_emulated;
+extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 unordered_map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
@@ -97,6 +99,36 @@ void prepareForDraw() {
         setupBufferTextureUniforms(gl_state->current_program);
     }
 }
+
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    LOG()
+    LOG_D("glDrawArrays(), mode = %s, first = %d, count = %u", glEnumToString(mode), first, count)
+
+    LIST_RECORD(glDrawArrays, {}, mode, first, count)
+
+    // TODO: deal with draw in list later
+    if (DisplayListManager::isCalling()) {
+        return;
+    }
+
+    INIT_CHECK_GL_ERROR
+
+    CHECK_GL_ERROR_NO_INIT
+    GET_PREV_PROGRAM
+    int do_draw_element = commit_fpe_state_on_draw(&mode, &first, &count);
+    if (do_draw_element) {
+        LOG_D("Switch to glDrawElements(), mode = %s, count = %u", glEnumToString(mode), count)
+
+        GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, (void *) 0);
+    } else
+        GLES.glDrawArrays(mode, first, count);
+
+    SET_PREV_PROGRAM
+    GLES.glBindVertexArray(0);
+    CHECK_GL_ERROR_NO_INIT
+}
+///*_Thread_local*/ static bool unexpected_error = false; // solve the crash error for ANGLE
+// Why thread local here? We've never PRETEND we are thread safe.
 
 void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount) {
     LOG()
