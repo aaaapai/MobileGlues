@@ -46,11 +46,7 @@ extern GLsizei g_pendingHeight;
 } // namespace FSR1_Context
 
 extern bool fsrInitialized;
-void ApplyFSR();
-void InitFSRResources();
-void CheckResolutionChange();
+void ApplyFSR(void);
+void InitFSRResources(void);
+void CheckResolutionChange(void);
 void OnResize(int width, int height);
-
-extern "C" {
-GLAPI void glViewport(GLint x, GLint y, GLsizei w, GLsizei h);
-}

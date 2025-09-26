@@ -4,6 +4,8 @@
 
 #include "getter.h"
 #include "buffer.h"
+#include "fpe/fpe.hpp"
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <format>
 #include <vector>
@@ -13,12 +15,37 @@
 
 Version GLVersion;
 
+void glGetFloatv(GLenum pname, GLfloat *params) {
+    LOG()
+    LOG_D("glGetFloatv, pname: %s", glEnumToString(pname))
+
+    switch (pname) {
+        case GL_MODELVIEW_MATRIX:{
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_MODELVIEW)]);
+
+
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        case GL_PROJECTION_MATRIX:
+        {
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_PROJECTION)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        default:
+            GLES.glGetFloatv(pname, params);
+            LOG_D("  -> %.2f",*params)
+            CHECK_GL_ERROR
+    }
+}
+
 void glGetIntegerv(GLenum pname, GLint *params) {
     LOG()
     LOG_D("glGetIntegerv, pname: %s", glEnumToString(pname))
     switch (pname) {
         case GL_CONTEXT_PROFILE_MASK:
-            (*params) = GL_CONTEXT_CORE_PROFILE_BIT;
+            (*params) = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
             break;
         case GL_NUM_EXTENSIONS:
             static GLint num_extensions = -1;
@@ -102,6 +129,29 @@ std::string GetExtensionsList() {
 
 void InitGLESBaseExtensions() {
     es_ext = "GL_ARB_fragment_program "
+		     "GL_ARB_pixel_buffer_object "
+             "GL_ARB_texture_non_power_of_two "
+             "GL_ARB_vertex_buffer_object "
+             "GL_EXT_framebuffer_object "
+             "GL_ARB_framebuffer_object "
+             "GL_EXT_framebuffer_multisample_blit_scaled "
+             "GL_EXT_framebuffer_blit_layers "
+             "GL_EXT_framebuffer_blit "
+             "GL_ARB_occlusion_query "
+             "GL_ARB_program_interface_query "
+             "GL_ARB_texture_rectangle "
+             "GL_ARB_multisample "
+             "GL_EXT_framebuffer_multisample "
+             "GL_ARB_uniform_buffer_object "
+             "GL_ARB_shader_objects "
+             "GL_ARB_vertex_shader "
+             "GL_ARB_fragment_shader "
+             "GL_EXT_separate_shader_objects "
+		     "GL_ARB_point_sprite "
+		     "GL_ARB_texture_float "
+		     "GL_EXT_texture_filter_anisotropic "
+		     "GL_ARB_multitexture "
+		     "GL_ARB_get_program_binary "
              "GL_ARB_vertex_buffer_object "
              "GL_ARB_vertex_array_object "
              "GL_ARB_vertex_buffer "
@@ -264,7 +314,10 @@ const GLubyte * glGetString( GLenum name ) {
             else
                 return (const GLubyte *) "4.60 MobileGlues with glslang and SPIRV-Cross";
         case GL_EXTENSIONS:
-            return (const GLubyte *) GetExtensionsList().c_str();
+            static const std::string extensions = []() {
+                   return GetExtensionsList();  // 只在第一次调用时初始化
+            }();
+            return reinterpret_cast<const GLubyte*>(extensions.c_str());
         default:
             return GLES.glGetString(name);
     }

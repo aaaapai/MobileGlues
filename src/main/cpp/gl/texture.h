@@ -13,6 +13,8 @@ extern "C" {
 
 #include <GL/gl.h>
 
+GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
+
 GLAPI GLAPIENTRY void glTexParameterf(GLenum target, GLenum pname,
                                       GLfloat param);
 GLAPI GLAPIENTRY void glTexImage1D(GLenum target, GLint level,
