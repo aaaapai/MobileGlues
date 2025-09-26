@@ -509,13 +509,9 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
 
     GLES.glTexParameterf(target,pname, param);
 
-
     CHECK_GL_ERROR
 }
 
-    GLES.glTexParameterf(target, pname, param);
-    CHECK_GL_ERROR
-}
 
 void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format,
                   GLenum type, const GLvoid* pixels) {
@@ -1051,7 +1047,7 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
     type = GL_UNSIGNED_BYTE;
   }
 
-  if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8_REV) {
+  if (format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8_REV)) {
     type = GL_UNSIGNED_BYTE;
   }
 
