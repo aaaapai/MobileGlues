@@ -6,8 +6,6 @@
 #define MOBILEGLUES_TEXTURE_H
 
 #include <memory>
-#include <unordered_map>
-#include <memory>
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,7 +7,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <unordered_map>
 #include <vector>
 
 #ifndef __APPLE__
@@ -230,8 +229,6 @@ void MarkTextureObjectForDeletion(unsigned texture) {
     }
 
     auto textureObject = BufferObjectsVec[texture];
-    delete textureObject;
-    BufferObjectsVec[texture] = nullptr;
 
     for (auto& unit : TextureUnits) {
         auto& bindingSlot = unit.GetBindingSlot(textureObject->target);
@@ -239,6 +236,9 @@ void MarkTextureObjectForDeletion(unsigned texture) {
             bindingSlot.Bind(nullptr);
         }
     }
+
+    BufferObjectsVec[texture] = nullptr;
+    delete textureObject;
 }
 
 TextureObject* mgGetTexObjectByTarget(GLenum target) {

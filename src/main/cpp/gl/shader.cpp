@@ -13,14 +13,13 @@
 #include "glsl/glsl_for_es.h"
 #include "../config/settings.h"
 #include "FSR1/FSR1.h"
-#include <ankerl/unordered_dense.h>
 
 #define DEBUG 0
 
 struct shader_t shaderInfo;
 
-ankerl::unordered_dense::map<GLuint, bool> shader_map_is_sampler_buffer_emulated;
-ankerl::unordered_dense::map<GLuint, bool> shader_map_is_atomic_counter_emulated;
+UnorderedMap<GLuint, bool> shader_map_is_sampler_buffer_emulated;
+UnorderedMap<GLuint, bool> shader_map_is_atomic_counter_emulated;
 
 static bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {

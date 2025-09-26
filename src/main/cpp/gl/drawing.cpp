@@ -13,17 +13,14 @@
 
 #define DEBUG 0
 
-template <typename Key, typename Value>
-using unordered_map = ankerl::unordered_dense::map<Key, Value>;
-
 GLuint bufSampelerProg;
 GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
-extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_sampler_buffer_emulated;
-extern ankerl::unordered_dense::map<GLuint, bool> program_map_is_atomic_counter_emulated;
+extern UnorderedMap<GLuint, bool> program_map_is_sampler_buffer_emulated;
+extern UnorderedMap<GLuint, bool> program_map_is_atomic_counter_emulated;
 
-unordered_map<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
+UnorderedMap<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
 void setupBufferTextureUniforms(GLuint program) {
     LOG_D("setupBufferTextureUniforms, program: %d", program);

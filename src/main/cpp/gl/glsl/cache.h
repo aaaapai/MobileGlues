@@ -37,7 +37,7 @@ private:
 
     std::list<CacheEntry> cacheList;
     using ListIterator = std::list<CacheEntry>::iterator;
-    ankerl::unordered_dense::map<std::array<uint8_t, 32>, ListIterator, SHA256Hash> cacheMap;
+    UnorderedMap<std::array<uint8_t, 32>, ListIterator, SHA256Hash> cacheMap;
     size_t cacheSize = 0;
 
     static std::array<uint8_t, 32> computeSHA256(const char* data);
