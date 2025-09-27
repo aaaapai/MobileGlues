@@ -7,6 +7,7 @@
 #include "../includes.h"
 #include "mg.h"
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 #define FORCE_SYNC_WITH_LOG_FILE 0
 
