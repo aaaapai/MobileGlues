@@ -74,10 +74,6 @@ int config_refresh(void) {
         LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
         return 0;
     }
-
-  if (config_json == nullptr) {
-    LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
-    return 0;
   }
 
   initialized = 1;
