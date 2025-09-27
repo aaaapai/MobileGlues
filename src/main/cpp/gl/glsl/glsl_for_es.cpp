@@ -1565,6 +1565,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
     //shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective "), 0, strlen(""));
+	haderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "", 0);
     
     /*GLint max_draw_buffers;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
