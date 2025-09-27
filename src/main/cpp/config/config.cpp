@@ -97,7 +97,7 @@ int config_get_int(const char* name) {
     return item->valueint;
 }
 
-char* config_get_string(const char* name) {
+const char* config_get_string(const char* name) {
     if (config_json == nullptr) {
         return nullptr;
     }
