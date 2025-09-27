@@ -45,7 +45,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
     LOG_D("glGetIntegerv, pname: %s", glEnumToString(pname))
     switch (pname) {
         case GL_CONTEXT_PROFILE_MASK:
-            (*params) = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
+            (*params) = GL_CONTEXT_CORE_PROFILE_BIT;
             break;
         case GL_NUM_EXTENSIONS:
             static GLint num_extensions = -1;
@@ -85,6 +85,7 @@ void glGetIntegerv(GLenum pname, GLint *params) {
             (*params) = GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT | GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT | GL_CONTEXT_FLAG_NO_ERROR_BIT;
             break;
         }
+		case GL_QUERY_BUFFER_BINDING:
         case GL_ARRAY_BUFFER_BINDING:
         case GL_ATOMIC_COUNTER_BUFFER_BINDING:
         case GL_COPY_READ_BUFFER_BINDING:
