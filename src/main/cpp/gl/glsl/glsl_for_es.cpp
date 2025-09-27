@@ -1282,7 +1282,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
 	static shaderc_compiler_t compiler = nullptr;
     if(compiler == nullptr) {
-        printf("shaderc\n");
+        printf("shaderc!\n");
         compiler = shaderc_compiler_initialize();
         if(compiler == nullptr) {
             printf("Error: shaderc compiler cannot be created!\n");
@@ -1329,7 +1329,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     // 设置编译选项
     shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_6);
+    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_0);
     shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_performance);
     shaderc_compile_options_set_auto_map_locations(options, true);
     shaderc_compile_options_set_auto_bind_uniforms(options, true);
