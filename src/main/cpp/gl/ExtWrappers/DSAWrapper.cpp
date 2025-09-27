@@ -6,6 +6,7 @@
 #include <cassert>
 #include "../texture.h"
 #include "../framebuffer.h"
+#include "../../includes.h"
 
 #define DEBUG 0
 
@@ -69,7 +70,7 @@ static GLenum GetBindingQuery(GLenum target, bool forceTexture = false) {
 }
 
 // buffer
-static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> bufferBindingStack;
+static thread_local UnorderedMap<GLenum, std::vector<GLuint>> bufferBindingStack;
 static void temporarilyBindBuffer(GLuint bufferID, GLenum target = GL_ARRAY_BUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
@@ -514,7 +515,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 }
 
 // framebuffer
-static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> framebufferBindingStack;
+static thread_local UnorderedMap<GLenum, std::vector<GLuint>> framebufferBindingStack;
 static void temporarilyBindFramebuffer(GLuint framebufferID, GLenum target = GL_DRAW_FRAMEBUFFER) {
 	GLenum bindingQuery = GetBindingQuery(target);
 	GLint prev = 0;
@@ -822,7 +823,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 }
 
 // renderbuffer
-static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> renderbufferBindingStack;
+static thread_local UnorderedMap<GLenum, std::vector<GLuint>> renderbufferBindingStack;
 static void temporarilyBindRenderbuffer(GLuint renderbufferID) {
 	GLenum bindingQuery = GetBindingQuery(GL_RENDERBUFFER);
 	GLint prev = 0;
@@ -930,7 +931,7 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint*
 }
 
 // texture
-static thread_local ankerl::unordered_dense::map<GLenum, std::vector<GLuint>> textureBindingStack;
+static thread_local UnorderedMap<GLenum, std::vector<GLuint>> textureBindingStack;
 
 GLenum GetTexTarget(GLuint texture) {
 	return ConvertTextureTargetToGLEnum(mgGetTexObjectByID(texture)->target);
