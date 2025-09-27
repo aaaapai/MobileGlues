@@ -1351,7 +1351,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     // 检查编译状态
     shaderc_compilation_status status = shaderc_result_get_compilation_status(result);
     if (status != shaderc_compilation_status_success) {
-        //LOG_D("GLSL Compiling ERROR: \n%s", shaderc_result_get_error_message(result))
+        LOG_E("GLSL Compiling ERROR: \n%s", shaderc_result_get_error_message(result))
         errc = -1;
         
         // 清理资源
@@ -1363,7 +1363,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 		return {};
     }
     
-    //LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
+    LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
 
     // 获取 SPIR-V 代码
     size_t spirv_size = shaderc_result_get_length(result);
@@ -1469,13 +1469,13 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
     if (errc != 0) {
         return_code = -1;
-        return correct_glsl_str;
+        return "";
     }
     errc = 0;
     std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
     if (errc != 0) {
         return_code = -2;
-        return correct_glsl_str;
+        return "";
     }
 
     // Post-processing ESSL
