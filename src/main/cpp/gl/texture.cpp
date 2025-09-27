@@ -28,7 +28,7 @@
 
 #define DEBUG 0
 
-int nlevel(int size, int level) {
+static int inline nlevel(int size, int level) {
     if (size) {
         size >>= level;
         if (!size) size = 1;
@@ -152,7 +152,7 @@ TextureTarget ConvertGLEnumToTextureTarget(GLenum target) {
     }
 }
 
-const int MAX_TEXTURE_IMAGE_UNITS = 32;
+static const int MAX_TEXTURE_IMAGE_UNITS = 32;
 
 class TextureBindingSlot {
 public:
@@ -202,8 +202,8 @@ TextureObject* GetOrCreateTextureObject(GLuint index) {
     return obj;
 }
 
-void ActivateTextureUnit(int unit) {
-    if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
+static void ActivateTextureUnit(int unit) {
+    if (unit < 0) {
         LOG_E("Invalid texture unit: %d", unit);
         return;
     }
@@ -214,15 +214,15 @@ int GetCurrentTextureUnitIndex() {
     return CurrentTextureUnitIndex;
 }
 
-TextureUnit& GetTextureUnit(int unit) {
-    if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
+static TextureUnit& GetTextureUnit(int unit) {
+    if (unit < 0) {
         LOG_E("Invalid texture unit: %d", unit);
         return TextureUnits[0];
     }
     return TextureUnits[unit];
 }
 
-void MarkTextureObjectForDeletion(unsigned texture) {
+static void MarkTextureObjectForDeletion(unsigned texture) {
     if (texture >= BufferObjectsVec.size() || !BufferObjectsVec[texture]) {
         LOG_D("Texture %u not found in BufferObjectsVec!", texture);
         return;
@@ -267,8 +267,8 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
         if (type) *type = GL_UNSIGNED_INT;
         break;
     case GL_DEPTH_COMPONENT32:
-        *internal_format = GL_DEPTH_COMPONENT;
-        if (type) *type = GL_UNSIGNED_INT;
+        *internal_format = GL_DEPTH_COMPONENT32F;
+        if (type) *type = GL_FLOAT;
         break;
     case GL_DEPTH_COMPONENT32F:
         if (type) *type = GL_FLOAT;
@@ -551,6 +551,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                   GLenum format, GLenum type, const GLvoid* pixels) {
     LOG()
     GLenum transfer_format = format;
+    GLenum transfer_type = type;
 
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: "
           "%d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
@@ -575,6 +576,10 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
     auto tex = GetTextureUnit(GetCurrentTextureUnitIndex())
                    .GetBindingSlot(ConvertGLEnumToTextureTarget(target))
                    .GetBoundObject();
+    if (tex == nullptr) {
+          LOG_E("Failed to get texture object for target: %s", glEnumToString(target));
+          return; // 提前退出，避免崩溃
+    }
     tex->target = ConvertGLEnumToTextureTarget(target);
     tex->internal_format = internalFormat;
     tex->width = width;
@@ -615,6 +620,16 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 
     tex->format = format;
 
+    // Fix for 1.12
+    if ((transfer_format == GL_BGRA) && (tex->format != transfer_format)
+        && (transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV))
+    {
+        internalFormat = GL_BGRA;
+        format = GL_BGRA;
+        type = GL_UNSIGNED_BYTE;
+        CHECK_GL_ERROR
+    }
+    
     GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 
     CHECK_GL_ERROR
@@ -1212,6 +1227,10 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
     if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
         LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
         return;
+    }
+
+    if (param == GL_CLAMP) {
+            param = GL_CLAMP_TO_EDGE;
     }
 
     GLES.glTexParameteri(target, pname, param);
