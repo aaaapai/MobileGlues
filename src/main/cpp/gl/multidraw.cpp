@@ -91,18 +91,6 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
             case multidraw_mode_t::Compute:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
-            case multidraw_mode_t::DeepSeekOne:
-                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
-                break;
-            case multidraw_mode_t::DeepSeekTwo:
-                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
-                break;
-			case multidraw_mode_t::DeepSeekThree:
-                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
-                break;
-            case multidraw_mode_t::Native:
-                GLES.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride);
-                return;
             default:
                 func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
                 break;
