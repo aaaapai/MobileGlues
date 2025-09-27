@@ -16,6 +16,7 @@ typedef unsigned int uint;
 #endif
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "../gles/gles.h"
 #include "log.h"
 #include "../gles/loader.h"
