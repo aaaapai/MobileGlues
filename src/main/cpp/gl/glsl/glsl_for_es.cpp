@@ -1328,8 +1328,8 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     // 设置编译选项
-    shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, 450);
-    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_6);
+    shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_0);
     shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_performance);
     shaderc_compile_options_set_auto_map_locations(options, true);
     shaderc_compile_options_set_auto_bind_uniforms(options, true);
@@ -1361,7 +1361,8 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
         shaderc_result_release(result);
         shaderc_compile_options_release(options);
         shaderc_compiler_release(compiler);
-        return {};
+
+		return {};
     }
     
     LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
@@ -1469,13 +1470,13 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
     if (errc != 0) {
         return_code = -1;
-        return "";
+        return correct_glsl_str;
     }
     errc = 0;
     std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
     if (errc != 0) {
         return_code = -2;
-        return "";
+        return correct_glsl_str;
     }
 
     // Post-processing ESSL
