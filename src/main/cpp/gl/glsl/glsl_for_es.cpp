@@ -17,6 +17,10 @@
 #include <map>
 #include <set>
 #include "../../includes.h"
+#include <glslang/Public/ShaderLang.h>
+#include <glslang/Include/Types.h>
+#include <glslang/Public/ShaderLang.h>
+#include "glslang/SPIRV/GlslangToSpv.h"
 
 #define DEBUG 1
 
@@ -25,6 +29,116 @@ const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform conve
 #if !defined(__APPLE__)
 extern std::string MesaConvertShader (const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 #endif
+
+static TBuiltInResource InitResources()
+{
+    TBuiltInResource Resources{};
+
+    Resources.maxLights                                 = 32;
+    Resources.maxClipPlanes                             = 6;
+    Resources.maxTextureUnits                           = 32;
+    Resources.maxTextureCoords                          = 32;
+    Resources.maxVertexAttribs                          = 64;
+    Resources.maxVertexUniformComponents                = 4096;
+    Resources.maxVaryingFloats                          = 64;
+    Resources.maxVertexTextureImageUnits                = 32;
+    Resources.maxCombinedTextureImageUnits              = 80;
+    Resources.maxTextureImageUnits                      = 32;
+    Resources.maxFragmentUniformComponents              = 4096;
+    Resources.maxDrawBuffers                            = 32;
+    Resources.maxVertexUniformVectors                   = 128;
+    Resources.maxVaryingVectors                         = 8;
+    Resources.maxFragmentUniformVectors                 = 16;
+    Resources.maxVertexOutputVectors                    = 16;
+    Resources.maxFragmentInputVectors                   = 15;
+    Resources.minProgramTexelOffset                     = -8;
+    Resources.maxProgramTexelOffset                     = 7;
+    Resources.maxClipDistances                          = 8;
+    Resources.maxComputeWorkGroupCountX                 = 65535;
+    Resources.maxComputeWorkGroupCountY                 = 65535;
+    Resources.maxComputeWorkGroupCountZ                 = 65535;
+    Resources.maxComputeWorkGroupSizeX                  = 1024;
+    Resources.maxComputeWorkGroupSizeY                  = 1024;
+    Resources.maxComputeWorkGroupSizeZ                  = 64;
+    Resources.maxComputeUniformComponents               = 1024;
+    Resources.maxComputeTextureImageUnits               = 16;
+    Resources.maxComputeImageUniforms                   = 8;
+    Resources.maxComputeAtomicCounters                  = 8;
+    Resources.maxComputeAtomicCounterBuffers            = 1;
+    Resources.maxVaryingComponents                      = 60;
+    Resources.maxVertexOutputComponents                 = 64;
+    Resources.maxGeometryInputComponents                = 64;
+    Resources.maxGeometryOutputComponents               = 128;
+    Resources.maxFragmentInputComponents                = 128;
+    Resources.maxImageUnits                             = 8;
+    Resources.maxCombinedImageUnitsAndFragmentOutputs   = 8;
+    Resources.maxCombinedShaderOutputResources          = 8;
+    Resources.maxImageSamples                           = 0;
+    Resources.maxVertexImageUniforms                    = 0;
+    Resources.maxTessControlImageUniforms               = 0;
+    Resources.maxTessEvaluationImageUniforms            = 0;
+    Resources.maxGeometryImageUniforms                  = 0;
+    Resources.maxFragmentImageUniforms                  = 8;
+    Resources.maxCombinedImageUniforms                  = 8;
+    Resources.maxGeometryTextureImageUnits              = 16;
+    Resources.maxGeometryOutputVertices                 = 256;
+    Resources.maxGeometryTotalOutputComponents          = 1024;
+    Resources.maxGeometryUniformComponents              = 1024;
+    Resources.maxGeometryVaryingComponents              = 64;
+    Resources.maxTessControlInputComponents             = 128;
+    Resources.maxTessControlOutputComponents            = 128;
+    Resources.maxTessControlTextureImageUnits           = 16;
+    Resources.maxTessControlUniformComponents           = 1024;
+    Resources.maxTessControlTotalOutputComponents       = 4096;
+    Resources.maxTessEvaluationInputComponents          = 128;
+    Resources.maxTessEvaluationOutputComponents         = 128;
+    Resources.maxTessEvaluationTextureImageUnits        = 16;
+    Resources.maxTessEvaluationUniformComponents        = 1024;
+    Resources.maxTessPatchComponents                    = 120;
+    Resources.maxPatchVertices                          = 32;
+    Resources.maxTessGenLevel                           = 64;
+    Resources.maxViewports                              = 16;
+    Resources.maxVertexAtomicCounters                   = 0;
+    Resources.maxTessControlAtomicCounters              = 0;
+    Resources.maxTessEvaluationAtomicCounters           = 0;
+    Resources.maxGeometryAtomicCounters                 = 0;
+    Resources.maxFragmentAtomicCounters                 = 8;
+    Resources.maxCombinedAtomicCounters                 = 8;
+    Resources.maxAtomicCounterBindings                  = 1;
+    Resources.maxVertexAtomicCounterBuffers             = 0;
+    Resources.maxTessControlAtomicCounterBuffers        = 0;
+    Resources.maxTessEvaluationAtomicCounterBuffers     = 0;
+    Resources.maxGeometryAtomicCounterBuffers           = 0;
+    Resources.maxFragmentAtomicCounterBuffers           = 1;
+    Resources.maxCombinedAtomicCounterBuffers           = 1;
+    Resources.maxAtomicCounterBufferSize                = 16384;
+    Resources.maxTransformFeedbackBuffers               = 4;
+    Resources.maxTransformFeedbackInterleavedComponents = 64;
+    Resources.maxCullDistances                          = 8;
+    Resources.maxCombinedClipAndCullDistances           = 8;
+    Resources.maxSamples                                = 4;
+    Resources.maxMeshOutputVerticesNV                   = 256;
+    Resources.maxMeshOutputPrimitivesNV                 = 512;
+    Resources.maxMeshWorkGroupSizeX_NV                  = 32;
+    Resources.maxMeshWorkGroupSizeY_NV                  = 1;
+    Resources.maxMeshWorkGroupSizeZ_NV                  = 1;
+    Resources.maxTaskWorkGroupSizeX_NV                  = 32;
+    Resources.maxTaskWorkGroupSizeY_NV                  = 1;
+    Resources.maxTaskWorkGroupSizeZ_NV                  = 1;
+    Resources.maxMeshViewCountNV                        = 4;
+
+    Resources.limits.nonInductiveForLoops                 = true;
+    Resources.limits.whileLoops                           = true;
+    Resources.limits.doWhileLoops                         = true;
+    Resources.limits.generalUniformIndexing               = true;
+    Resources.limits.generalAttributeMatrixVectorIndexing = true;
+    Resources.limits.generalVaryingIndexing               = true;
+    Resources.limits.generalSamplerIndexing               = true;
+    Resources.limits.generalVariableIndexing              = true;
+    Resources.limits.generalConstantMatrixVectorIndexing  = true;
+
+    return Resources;
+}
 
 int getGLSLVersion(const char* glsl_code) {
     std::string code(glsl_code);
@@ -1278,7 +1392,7 @@ int get_or_add_glsl_version(std::string& glsl) {
     return glsl_version;
 }
 
-std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src, int& errc) {
+/*std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src, int& errc) {
 
 	static shaderc_compiler_t compiler = nullptr;
     if(compiler == nullptr) {
@@ -1355,9 +1469,6 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
         errc = -1;
         
         // 清理资源
-        /*shaderc_result_release(result);
-        shaderc_compile_options_release(options);
-        shaderc_compiler_release(compiler);*/
         shaderc_result_release(result);
 
 		return {};
@@ -1378,11 +1489,126 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     // 清理资源
-    /*shaderc_result_release(result);
-    shaderc_compile_options_release(options);
-    shaderc_compiler_release(compiler);*/
-
 	shaderc_result_release(result);
+    errc = 0;
+    return spirv_code;
+}*/
+
+std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
+
+    static shaderc_compiler_t compiler = nullptr;
+    if(compiler == nullptr) {
+        printf("shaderc\n");
+        compiler = shaderc_compiler_initialize();
+        if(compiler == nullptr) {
+            printf("Error: shaderc compiler cannot be created!\n");
+            errc = -1;
+            return {};
+        }
+    }
+
+    shaderc_compile_options_t opts = shaderc_compile_options_initialize();
+    shaderc_compile_options_set_forced_version_profile(opts, glsl_version, shaderc_profile_core);
+    shaderc_compile_options_set_auto_map_locations(opts, true);
+    shaderc_compile_options_set_auto_bind_uniforms(opts, true);
+    shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+
+    shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective "), 0, strlen(""));
+    
+    /*GLint max_draw_buffers;
+    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+    std::cout << "Detected GL_MAX_DRAW_BUFFERS: " << max_draw_buffers << std::endl;
+    shaderc_compile_options_set_limit(opts, shaderc_limit_max_draw_buffers, max_draw_buffers);*/
+
+    shaderc_compile_options_set_optimization_level(opts, shaderc_optimization_level_performance);
+
+    shaderc_compilation_result_t optimized_glsl_res = shaderc_compile_into_preprocessed_text(
+        compiler, 
+        *shader_src,
+        strlen(*shader_src),
+        shader_type == GL_VERTEX_SHADER ? shaderc_glsl_vertex_shader : 
+        shader_type == GL_FRAGMENT_SHADER ? shaderc_glsl_fragment_shader :
+        shader_type == GL_COMPUTE_SHADER ? shaderc_glsl_compute_shader :
+        shader_type == GL_GEOMETRY_SHADER ? shaderc_glsl_geometry_shader :
+        shader_type == GL_TESS_CONTROL_SHADER ? shaderc_glsl_tess_control_shader :
+        shader_type == GL_TESS_EVALUATION_SHADER ? shaderc_glsl_tess_evaluation_shader :
+        shader_type == GL_GEOMETRY_SHADER ? shaderc_glsl_geometry_shader :
+        shaderc_glsl_infer_from_source,
+        "optimized_shader", "main", opts);
+
+    if(shaderc_result_get_compilation_status(optimized_glsl_res) != shaderc_compilation_status_success) {
+        printf("There is a problem with shaderc！\n%s\n", shaderc_result_get_error_message(optimized_glsl_res));
+        shaderc_result_release(optimized_glsl_res);
+        errc = -1;
+        return {};
+    }
+
+    const char* optimized_glsl = shaderc_result_get_bytes(optimized_glsl_res);
+
+    EShLanguage shader_language;
+    switch (shader_type) {
+        case GL_VERTEX_SHADER:
+            shader_language = EShLanguage::EShLangVertex;
+            break;
+        case GL_FRAGMENT_SHADER:
+            shader_language = EShLanguage::EShLangFragment;
+            break;
+        case GL_COMPUTE_SHADER:
+            shader_language = EShLanguage::EShLangCompute;
+            break;
+        case GL_TESS_CONTROL_SHADER:
+            shader_language = EShLanguage::EShLangTessControl;
+            break;
+        case GL_TESS_EVALUATION_SHADER:
+            shader_language = EShLanguage::EShLangTessEvaluation;
+            break;
+        case GL_GEOMETRY_SHADER:
+            shader_language = EShLanguage::EShLangGeometry;
+            break;
+        default:
+            LOG_D("GLSL type not supported!")
+            shaderc_result_release(optimized_glsl_res);
+            errc = -1;
+            return {};
+    }
+
+    glslang::TShader shader(shader_language);
+    shader.setStrings(&optimized_glsl, 1);
+
+    using namespace glslang;
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
+    shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
+    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_0);
+    //shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
+    shader.setAutoMapLocations(true);
+    shader.setAutoMapBindings(true);
+
+    TBuiltInResource TBuiltInResource_resources = InitResources();
+
+    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgSpvRules)) {
+        LOG_E("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
+        errc = -1;
+        return {};
+    }
+    LOG_D("GLSL Compiled.")
+
+    glslang::TProgram program;
+    program.addShader(&shader);
+
+    if (!program.link(EShMsgDefault)) {
+        LOG_E("Shader Linking ERROR: %s", program.getInfoLog())
+        shaderc_result_release(optimized_glsl_res);
+        errc = -1;
+        return {};
+    }
+    LOG_D("Shader Linked." )
+    std::vector<unsigned int> spirv_code;
+    glslang::SpvOptions spvOptions;
+    spvOptions.disableOptimizer = false;
+    spvOptions.optimizeSize = true;
+    glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    shaderc_result_release(optimized_glsl_res);
     errc = 0;
     return spirv_code;
 }
