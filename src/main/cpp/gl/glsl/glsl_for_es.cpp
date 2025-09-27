@@ -1594,7 +1594,6 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     }
     essl = processOutColorLocations(essl);
     essl = forceSupporterOutput(essl);
-	essl = RemoveUniformInitialization(essl);
 
     LOG_D("Originally GLSL to GLSL ES Complete: \n%s", essl.c_str())
     return_code = errc;
@@ -1607,8 +1606,15 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
 std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
+
+	bool atomicCounterEmulated = false;
+	std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
+    int glsl_version = get_or_add_glsl_version(correct_glsl_str);
+
+	correct_glsl_str = RemoveUniformInitialization(correct_glsl_str);
+
     if (esversion < 300) esversion = 320;
-    std::string result = MesaConvertShader(glsl_code, glsl_type, 460, esversion);
+    std::string result = MesaConvertShader(glsl_code, glsl_type, glsl_version, esversion);
 
     return_code = 0;
     return result;
