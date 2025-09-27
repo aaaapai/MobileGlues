@@ -699,6 +699,56 @@ static void inject_image2D_declarations(std::string& glsl) {
 
 }
 
+static void inject_noperspective_simulation(std::string& glsl) {
+    const std::regex defRegex(R"(// 通用 noperspective 插值模拟)", std::regex::ECMAScript);
+
+    // 检查是否已经存在noperspective模拟代码
+    if (std::regex_search(glsl, defRegex)) {
+        return;
+    }
+
+    // 检查是否使用了noperspective关键字
+    if (glsl.find("noperspective") == std::string::npos) {
+        return;
+    }
+
+    // 将noperspective替换为mg_noperspective
+    replace_all(glsl, "noperspective", "mg_noperspective");
+
+    // noperspective模拟代码
+    const std::string noperspectiveImpl = R"(
+// 通用 noperspective 插值模拟
+#ifdef VERTEX_SHADER
+    #define mg_noperspective
+    out vec3 mg_clip_coord;
+#else
+    #define mg_noperspective  
+    in vec3 mg_clip_coord;
+    
+    // 线性插值函数（基于重心坐标）
+    vec2 mg_interpolate(vec2 v0, vec2 v1, vec2 v2, vec3 bary) {
+        return v0 * bary.x + v1 * bary.y + v2 * bary.z;
+    }
+    
+    vec3 mg_interpolate(vec3 v0, vec3 v1, vec3 v2, vec3 bary) {
+        return v0 * bary.x + v1 * bary.y + v2 * bary.z;
+    }
+    
+    vec4 mg_interpolate(vec4 v0, vec4 v1, vec4 v2, vec3 bary) {
+        return v0 * bary.x + v1 * bary.y + v2 * bary.z;
+    }
+    
+    float mg_interpolate(float v0, float v1, float v2, vec3 bary) {
+        return v0 * bary.x + v1 * bary.y + v2 * bary.z;
+    }
+#endif
+)";
+
+    // 在适当位置插入代码
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, "\n" + noperspectiveImpl + "\n");
+}
+
 static void inject_gl_DepthRange(std::string& glsl) {
    const std::regex defRegex(R"(uniform\s+mg_DepthRangeParameters\s+mg_DepthRange\s*;)", std::regex::ECMAScript);
 
@@ -1351,6 +1401,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     replace_all(ret, "texture2D", "texture");
 	inject_fragcolor(ret);
 
+	inject_noperspective_simulation(ret);
 	inject_gl_DepthRange(ret);
 	inject_image2D_declarations(ret);
 	inject_shaderDrawParameters(ret);
