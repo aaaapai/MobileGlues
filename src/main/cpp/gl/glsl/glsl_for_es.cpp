@@ -1,13 +1,9 @@
 #include "glsl_for_es.h"
 
-#include <glslang/Public/ShaderLang.h>
-#include <glslang/Include/Types.h>
-#include <glslang/Public/ShaderLang.h>
 #include <spirv_cross/spirv_cross_c.h>
 #include <iostream>
 #include <fstream>
 #include "../log.h"
-#include "glslang/SPIRV/GlslangToSpv.h"
 #include <string>
 #include <regex>
 #include <strstream>
@@ -15,6 +11,9 @@
 #include <sstream>
 #include "cache.h"
 #include "../../version.h"
+
+#include <shaderc/shaderc.hpp>
+#include <vector>
 
 #define DEBUG 0	
 
@@ -1341,6 +1340,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     } else if (shaderType == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
 	}
+	
     replace_all(ret, "texture2D", "texture");
 	inject_fragcolor(ret);
 
@@ -1385,26 +1385,39 @@ int get_or_add_glsl_version(std::string& glsl) {
     return glsl_version;
 }
 
-std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char * const *shader_src, int& errc) {
-    EShLanguage shader_language;
+std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src, int& errc) {
+
+	static shaderc_compiler_t compiler = nullptr;
+    if(compiler == nullptr) {
+        printf("shaderc\n");
+        compiler = shaderc_compiler_initialize();
+        if(compiler == nullptr) {
+            printf("Error: shaderc compiler cannot be created!\n");
+            errc = -1;
+            return {};
+        }
+	}
+
+    // 映射 GL 着色器类型到 shaderc 类型
+    shaderc_compilation_result_t shader_kind = nullptr;
     switch (shader_type) {
         case GL_VERTEX_SHADER:
-            shader_language = EShLanguage::EShLangVertex;
+            shader_kind = shaderc_vertex_shader;
             break;
         case GL_FRAGMENT_SHADER:
-            shader_language = EShLanguage::EShLangFragment;
+            shader_kind = shaderc_fragment_shader;
             break;
         case GL_COMPUTE_SHADER:
-            shader_language = EShLanguage::EShLangCompute;
+            shader_kind = shaderc_compute_shader;
             break;
         case GL_TESS_CONTROL_SHADER:
-            shader_language = EShLanguage::EShLangTessControl;
+            shader_kind = shaderc_tess_control_shader;
             break;
         case GL_TESS_EVALUATION_SHADER:
-            shader_language = EShLanguage::EShLangTessEvaluation;
+            shader_kind = shaderc_tess_evaluation_shader;
             break;
         case GL_GEOMETRY_SHADER:
-            shader_language = EShLanguage::EShLangGeometry;
+            shader_kind = shaderc_geometry_shader;
             break;
         default:
             LOG_D("GLSL type not supported!")
@@ -1412,39 +1425,71 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
             return {};
     }
 
-    glslang::TShader shader(shader_language);
-    shader.setStrings(shader_src, 1);
-
-    using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
-    shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
-    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
-    shader.setAutoMapLocations(true);
-    shader.setAutoMapBindings(true);
-
-    TBuiltInResource TBuiltInResource_resources = InitResources();
-
-    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
-        LOG_D("GLSL Compiling ERROR: \n%s",shader.getInfoLog())
+    // 初始化编译选项
+    shaderc_compile_options_t options = shaderc_compile_options_initialize();
+    if (!options) {
+        LOG_D("Failed to initialize shaderc compile options")
+        shaderc_compiler_release(compiler);
         errc = -1;
         return {};
     }
-    LOG_D("GLSL Compiled.")
 
-    glslang::TProgram program;
-    program.addShader(&shader);
+    // 设置编译选项
+    shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, 450);
+    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_6);
+    shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_performance);
+    shaderc_compile_options_set_auto_map_locations(options, true);
+    shaderc_compile_options_set_auto_bind_uniforms(options, true);
+    
+    shaderc_compile_options_set_forced_version_profile(options, glsl_version, shaderc_profile_core);
+    shaderc_compile_options_add_macro_definition(opts, "noperspective ", strlen("noperspective "), "", strlen(""));
+	
+    // 编译 GLSL 到 SPIR-V
+    const char* source_text = *shader_src;
+    size_t source_text_size = std::strlen(source_text);
+    
+    shaderc_compilation_result_t result = shaderc_compile_into_spv(
+        compiler, 
+        source_text, 
+        source_text_size, 
+        shader_kind, 
+        "shader", 
+        "main", 
+        options
+    );
 
-    if (!program.link(EShMsgDefault)) {
-        LOG_D("Shader Linking ERROR: %s", program.getInfoLog())
+    // 检查编译状态
+    shaderc_compilation_status status = shaderc_result_get_compilation_status(result);
+    if (status != shaderc_compilation_status_success) {
+        LOG_D("GLSL Compiling ERROR: \n%s", shaderc_result_get_error_message(result))
         errc = -1;
+        
+        // 清理资源
+        shaderc_result_release(result);
+        shaderc_compile_options_release(options);
+        shaderc_compiler_release(compiler);
         return {};
     }
-    LOG_D("Shader Linked." )
+    
+    LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
+
+    // 获取 SPIR-V 代码
+    size_t spirv_size = shaderc_result_get_length(result);
+    const char* spirv_bytes = shaderc_result_get_bytes(result);
+    
+    // 将 SPIR-V 二进制数据转换为 uint32_t 向量
     std::vector<unsigned int> spirv_code;
-    glslang::SpvOptions spvOptions;
-    spvOptions.disableOptimizer = false;
-	spvOptions.optimizeSize = true;
-    glslang::GlslangToSpv(*program.getIntermediate(shader_language), spirv_code, &spvOptions);
+    if (spirv_size > 0 && spirv_size % 4 == 0) {
+        size_t word_count = spirv_size / 4;
+        spirv_code.resize(word_count);
+        std::memcpy(spirv_code.data(), spirv_bytes, spirv_size);
+    }
+
+    // 清理资源
+    shaderc_result_release(result);
+    shaderc_compile_options_release(options);
+    shaderc_compiler_release(compiler);
+    
     errc = 0;
     return spirv_code;
 }
@@ -1477,7 +1522,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version >= 300 ? essl_version : 300);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
 	spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
+    //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
 
