@@ -1329,24 +1329,20 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     // 设置编译选项
     shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_0);
+    shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_6);
     shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_performance);
     shaderc_compile_options_set_auto_map_locations(options, true);
     shaderc_compile_options_set_auto_bind_uniforms(options, true);
     
-    shaderc_compile_options_set_forced_version_profile(options, glsl_version, shaderc_profile_core);
+    shaderc_compile_options_set_forced_version_profile(options, 450, shaderc_profile_core);
     shaderc_compile_options_add_macro_definition(options, "noperspective ", strlen("noperspective "), 0, strlen(""));
 	
-    // 编译 GLSL 到 SPIR-V
-    const char* source_text = *shader_src;
-    size_t source_text_size = std::strlen(source_text);
-    
     shaderc_compilation_result_t result = shaderc_compile_into_spv(
         compiler, 
-        source_text, 
-        source_text_size, 
+        *shader_src,
+        std::strlen(*shader_src),
         shader_kind, 
-        "shader", 
+        "optimized_spirv_code", 
         "main", 
         options
     );
@@ -1354,18 +1350,19 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     // 检查编译状态
     shaderc_compilation_status status = shaderc_result_get_compilation_status(result);
     if (status != shaderc_compilation_status_success) {
-        LOG_D("GLSL Compiling ERROR: \n%s", shaderc_result_get_error_message(result))
+        //LOG_D("GLSL Compiling ERROR: \n%s", shaderc_result_get_error_message(result))
         errc = -1;
         
         // 清理资源
-        shaderc_result_release(result);
+        /*shaderc_result_release(result);
         shaderc_compile_options_release(options);
-        shaderc_compiler_release(compiler);
+        shaderc_compiler_release(compiler);*/
+        shaderc_result_release(result);
 
 		return {};
     }
     
-    LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
+    //LOG_W("GLSL Compiled. Warnings: %zu", shaderc_result_get_num_warnings(result))
 
     // 获取 SPIR-V 代码
     size_t spirv_size = shaderc_result_get_length(result);
@@ -1380,10 +1377,11 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     // 清理资源
-    shaderc_result_release(result);
+    /*shaderc_result_release(result);
     shaderc_compile_options_release(options);
-    shaderc_compiler_release(compiler);
-    
+    shaderc_compiler_release(compiler);*/
+
+	shaderc_result_release(result);
     errc = 0;
     return spirv_code;
 }
