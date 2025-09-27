@@ -12,7 +12,7 @@
 #include "cache.h"
 #include "../../version.h"
 
-#include <shaderc/shaderc.hpp>
+#include <shaderc/shaderc.h>
 #include <vector>
 
 #define DEBUG 0	
