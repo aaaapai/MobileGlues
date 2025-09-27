@@ -111,19 +111,6 @@ else()
         # Android
         find_library(GLSLANG_LIB glslang PATHS ${CMAKE_SOURCE_DIR}/libraries/arm64-v8a/)
         target_link_libraries(${CMAKE_PROJECT_NAME}
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libGenericCodeGen.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libglslang-default-resource-limits.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libMachineIndependent.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libOSDependent.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-diff.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-link.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-lint.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-opt.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools-reduce.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV-Tools.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPIRV.a
-                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libSPVRemapper.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-c.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-core.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-cpp.a
@@ -132,6 +119,7 @@ else()
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-reflect.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libspirv-cross-util.a
                 ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderconv.a
+                ${CMAKE_SOURCE_DIR}/libraries/${ANDROID_ABI}/libshaderc_combined.a
                 android
                 log
         )
