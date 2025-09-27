@@ -23,7 +23,7 @@ UnorderedMap<GLuint, bool> shader_map_is_atomic_counter_emulated;
 
 static bool can_run_essl3(unsigned int esversion, const char *glsl) {
     if (strncmp(glsl, "#version 100", 12) == 0) {
-        return false; 
+        return 100;
     }
 
     unsigned int glsl_version = 0;
