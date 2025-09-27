@@ -1336,6 +1336,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     
     shaderc_compile_options_set_forced_version_profile(options, 450, shaderc_profile_core);
     shaderc_compile_options_add_macro_definition(options, "noperspective ", strlen("noperspective "), 0, strlen(""));
+	shaderc_compile_options_set_generate_debug_info(options, true);
 	
     shaderc_compilation_result_t result = shaderc_compile_into_spv(
         compiler, 
