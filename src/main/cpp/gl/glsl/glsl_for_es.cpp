@@ -14,8 +14,10 @@
 
 #include <shaderc/shader.h>
 #include <vector>
+#include <map>
+#include "../../includes.h"
 
-#define DEBUG 0	
+#define DEBUG 1
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
@@ -1399,7 +1401,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 	}
 
     // 映射 GL 着色器类型到 shaderc 类型
-    shaderc_shader_kind shader_kind = nullptr;
+    shaderc_shader_kind shader_kind;
     switch (shader_type) {
         case GL_VERTEX_SHADER:
             shader_kind = shaderc_vertex_shader;
@@ -1442,7 +1444,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     shaderc_compile_options_set_auto_bind_uniforms(options, true);
     
     shaderc_compile_options_set_forced_version_profile(options, glsl_version, shaderc_profile_core);
-    shaderc_compile_options_add_macro_definition(opts, "noperspective ", strlen("noperspective "), "", strlen(""));
+    shaderc_compile_options_add_macro_definition(options, "noperspective ", strlen("noperspective "), 0, strlen(""));
 	
     // 编译 GLSL 到 SPIR-V
     const char* source_text = *shader_src;
