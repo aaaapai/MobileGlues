@@ -84,6 +84,11 @@ GLAPI GLAPIENTRY void glPixelStorei(GLenum pname, GLint param);
 GLAPI GLAPIENTRY void glGenTextures( GLsizei n, GLuint *textures );
 
 GLAPI GLAPIENTRY void glTexParameteri(GLenum target, GLenum pname, GLint param);
+
+GLAPI GLAPIENTRY void glGetCompressedTexImage(GLenum target, GLint level, void* pixels);
+
+GLAPI GLAPIENTRY void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize, void* pixels);
+
 #ifdef __cplusplus
 }
 #endif
