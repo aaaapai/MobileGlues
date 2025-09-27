@@ -26,6 +26,7 @@ static std::vector<GLuint> g_element_array_buffer_per_vao;
 
 enum BindingIndex : int {
     BI_ARRAY_BUFFER = 0,
+    BI_QUERY_BUFFER,
     BI_ATOMIC_COUNTER,
     BI_COPY_READ,
     BI_COPY_WRITE,
@@ -131,6 +132,8 @@ static inline int binding_target_to_index(GLenum target) {
     switch (target) {
     case GL_ARRAY_BUFFER:
         return BI_ARRAY_BUFFER;
+    case GL_QUERY_BUFFER:
+        return BI_QUERY_BUFFER;
     case GL_ATOMIC_COUNTER_BUFFER:
         return BI_ATOMIC_COUNTER;
     case GL_COPY_READ_BUFFER:
@@ -168,6 +171,9 @@ GLuint find_bound_buffer(GLenum key) {
     switch (key) {
     case GL_ARRAY_BUFFER_BINDING:
         target = GL_ARRAY_BUFFER;
+        break;
+    case GL_QUERY_BUFFER_BINDING:
+        target = GL_QUERY_BUFFER;
         break;
     case GL_ATOMIC_COUNTER_BUFFER_BINDING:
         target = GL_ATOMIC_COUNTER_BUFFER;
@@ -262,6 +268,8 @@ static GLenum get_binding_query(GLenum target) {
     switch (target) {
     case GL_ARRAY_BUFFER:
         return GL_ARRAY_BUFFER_BINDING;
+    case GL_QUERY_BUFFER:
+        return GL_QUERY_BUFFER_BINDING;
     case GL_ELEMENT_ARRAY_BUFFER:
         return GL_ELEMENT_ARRAY_BUFFER_BINDING;
     case GL_PIXEL_PACK_BUFFER:
@@ -821,6 +829,53 @@ void glBindVertexArray(GLuint array) {
     LOG_D("glBindVertexArray: %d -> %d", array, real_array)
     GLES.glBindVertexArray(real_array);
     CHECK_GL_ERROR
+}
+
+void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, 
+                       const GLuint *buffers, const GLintptr *offsets, const GLintptr *sizes) {
+
+    LOG()
+    // 获取目标的最大绑定点数量
+    GLint max_bindings = 0;
+    switch (target) {
+        case GL_ATOMIC_COUNTER_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max_bindings);
+            break;
+        case GL_UNIFORM_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_bindings);
+            break;
+        case GL_SHADER_STORAGE_BUFFER:
+            GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_bindings);
+            break;
+    }
+
+    // 处理NULL buffers情况 - 解除绑定
+    if (buffers == nullptr) {
+        for (GLsizei i = 0; i < count; i++) {
+            GLES.glBindBufferRange(target, first + i, 0, 0, 0);
+        }
+        return;
+    }
+
+    // 逐个绑定缓冲
+    for (GLsizei i = 0; i < count; i++) {
+        // 检查缓冲名称是否有效
+        if (buffers[i] != 0) {
+            GLint isBuffer = 0;
+            GLES.glGetBufferParameteriv(buffers[i], GL_BUFFER_SIZE, &isBuffer);
+            if (isBuffer == 0) {
+                // 不是有效的缓冲对象，生成错误但继续处理其他绑定
+                GLES.glGetError(); // 清除之前的错误
+                continue;
+            }
+        }
+
+        // 实际绑定操作
+        glBindBufferRange(target, first + i, buffers[i], offsets[i], sizes[i]);
+    }
 }
 
 #if !defined(__APPLE__)
