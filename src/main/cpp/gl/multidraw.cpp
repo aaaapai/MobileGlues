@@ -620,6 +620,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
     LOG()
 
+	void prepareForDraw();
     prepareForDraw();
 
     // 保存当前绑定的间接绘制缓冲区
