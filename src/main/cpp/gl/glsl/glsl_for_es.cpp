@@ -1686,10 +1686,10 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
 	LOG_D("Firstly converted GLSL:\n%s", correct_glsl_str.c_str())
-    /*if (!glslang_inited) {
+    if (!glslang_inited) {
         glslang::InitializeProcess();
         glslang_inited = true;
-    }*/
+    }
     const char* s[] = { correct_glsl_str.c_str() };
     int errc = 0;
     std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
