@@ -363,7 +363,7 @@ std::string GLSLtoGLSLES(const char* glsl_code, GLenum glsl_type, uint essl_vers
     }
     
     return_code = -1;
-    std::string converted = /*glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):*/GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code);
+    std::string converted = /*glsl_version<140? GLSLtoGLSLES_1(glsl_code, glsl_type, essl_version, return_code):*/GLSLtoGLSLES_2(glsl_code, glsl_type, essl_version, return_code);
     if (return_code >= 0 && !converted.empty()) {
         converted = process_uniform_declarations(converted);
         Cache::get_instance().put(sha256_string.c_str(), converted.c_str());
@@ -694,7 +694,7 @@ static void inject_image2D_declarations(std::string& glsl) {
 }
 
 static void inject_gl_DepthRange(std::string& glsl) {
-   const std::regex defRegex(R"(uniform\s+gl_DepthRangeParameters\s+gl_DepthRange\s*;)", std::regex::ECMAScript);
+   const std::regex defRegex(R"(uniform\s+mg_DepthRangeParameters\s+mg_DepthRange\s*;)", std::regex::ECMAScript);
 
     if (glsl.find("gl_DepthRange") == std::string::npos) {
         return;
@@ -703,14 +703,14 @@ static void inject_gl_DepthRange(std::string& glsl) {
         return;
     }
 
-    replace_all(glsl, "gl_DepthRange", "mg_gl_DepthRange");
+    replace_all(glsl, "gl_DepthRange", "mg_DepthRange");
     const std::string gl_DepthRangeImpl = R"(
-struct mg_gl_DepthRangeParameters {
+struct mg_DepthRangeParameters {
     float near;
     float far;
     float diff;
 };
-uniform mg_gl_DepthRangeParameters mg_gl_DepthRange;
+uniform mg_DepthRangeParameters mg_DepthRange;
 )";
 
     size_t insertPos = find_insertion_point(glsl);
