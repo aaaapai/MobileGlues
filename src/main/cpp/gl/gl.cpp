@@ -9,12 +9,16 @@
 #include "../gles/loader.h"
 #include "../config/settings.h"
 #include "mg.h"
+#include "framebuffer.h"
 
 #include "FSR1/FSR1.h"
 
 #define DEBUG 0
 
 static GLclampd currentDepthValue;
+
+extern GLuint current_draw_fbo;
+extern std::vector<framebuffer_t> framebuffers;
 
 void glClearDepth(GLclampd depth) {
     LOG()
@@ -113,9 +117,17 @@ void glClear(GLbitfield mask) {
     LOG();
     LOG_D("glClear, mask = 0x%x", mask);
 
+    INIT_CHECK_GL_ERROR
+
+    GLES.glClear(mask);
+    CHECK_GL_ERROR_NO_INIT
+
     if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
-        fabs(currentDepthValue - 1.0f) <= 0.001f) {
+        fabs(currentDepthValue - 1.0f) <= 0.001f
+        && framebuffers[current_draw_fbo].color_attachments_all_none
+        ) {
+        LOG_D("doing depth workaround")
         if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
             // Workaround for ANGLE depth-clear bug: if depth≈1.0, draw a fullscreen triangle at z=1.0 to force actual depth buffer write.
             DrawDepthClearTri();
@@ -125,10 +137,12 @@ void glClear(GLbitfield mask) {
             GLES.glClearBufferfv(GL_DEPTH, 0, &clear_depth_value);
         }
         // Clear again
+        GLES.glClear(mask);
+    } else {
+        GLES.glClear(mask);
     }
-    GLES.glClear(mask);
 
-    CHECK_GL_ERROR;
+    CHECK_GL_ERROR_NO_INIT;
 }
 
 void glHint(GLenum target, GLenum mode) {
@@ -136,45 +150,48 @@ void glHint(GLenum target, GLenum mode) {
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
 }
 
+/*
+
 typedef struct FakeSync {
     int id;
 } FakeSync;
 
 static int g_fake_sync_counter = 1;
 
-GLAPI GLAPIENTRY GLsync glFenceSync(GLenum condition, GLbitfield flags) {
+GLsync glFenceSync(GLenum condition, GLbitfield flags) {
     (void)condition;
     (void)flags;
+
     auto* sync = (FakeSync*)malloc(sizeof(FakeSync));
     if (!sync) return nullptr;
     sync->id = g_fake_sync_counter++;
     return (GLsync)sync;
 }
 
-GLAPI GLAPIENTRY GLboolean glIsSync(GLsync sync) {
+GLboolean glIsSync(GLsync sync) {
     return (sync != nullptr) ? GL_TRUE : GL_FALSE;
 }
 
-GLAPI GLAPIENTRY void glDeleteSync(GLsync sync) {
+void glDeleteSync(GLsync sync) {
     if (sync) {
         free(sync);
     }
 }
 
-GLAPI GLAPIENTRY GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
+GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
     (void)sync;
     (void)flags;
     (void)timeout;
     return GL_ALREADY_SIGNALED;
 }
 
-GLAPI GLAPIENTRY void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
+void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
     (void)sync;
     (void)flags;
     (void)timeout;
 }
 
-GLAPI GLAPIENTRY void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
+void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
                  GLsizei* length, GLint* values) {
     if (!values) return;
 
@@ -197,6 +214,7 @@ GLAPI GLAPIENTRY void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
     }
     if (length) *length = 1;
 }
+*/
 
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
     LOG()
