@@ -56,7 +56,7 @@ template <
         typename Key,
         typename T
 >
-using UnorderedMap = ankerl::unordered_dense::map<Key, T, Hash, KeyEqual, Allocator>;
+using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
 
 #elif UseStandard
 #include <unordered_map>
