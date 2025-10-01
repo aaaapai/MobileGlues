@@ -1559,13 +1559,13 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     }
 
     shaderc_compile_options_t opts = shaderc_compile_options_initialize();
-    shaderc_compile_options_set_forced_version_profile(opts, glsl_version, shaderc_profile_core);
+    shaderc_compile_options_set_forced_version_profile(opts, 450, shaderc_profile_core);
     shaderc_compile_options_set_auto_map_locations(opts, true);
     shaderc_compile_options_set_auto_bind_uniforms(opts, true);
     shaderc_compile_options_set_target_env(opts, shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
-    //shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective "), 0, strlen(""));
-	shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "", 0);
+    shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "highp", strlen("highp"));
+	//shaderc_compile_options_add_macro_definition(opts, "noperspective", strlen("noperspective"), "", 0);
     
     /*GLint max_draw_buffers;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
@@ -1630,7 +1630,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     using namespace glslang;
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
-    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
+    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_0);
     //shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
     shader.setAutoMapBindings(true);
