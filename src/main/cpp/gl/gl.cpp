@@ -122,7 +122,7 @@ void glClear(GLbitfield mask) {
     GLES.glClear(mask);
     CHECK_GL_ERROR_NO_INIT
 
-    if (global_settings.angle == AngleMode::Enabled &&
+    /*if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
         fabs(currentDepthValue - 1.0f) <= 0.001f
         && framebuffers[current_draw_fbo].color_attachments_all_none
@@ -140,9 +140,9 @@ void glClear(GLbitfield mask) {
         GLES.glClear(mask);
     } else {
         GLES.glClear(mask);
-    }
+    }*/
 
-    CHECK_GL_ERROR_NO_INIT;
+    //CHECK_GL_ERROR_NO_INIT
 }
 
 void glHint(GLenum target, GLenum mode) {
