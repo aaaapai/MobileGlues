@@ -228,3 +228,10 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
     
 	GLES.glViewport(x, y, width, height);
 }
+
+void glFinish (void) {
+	LOG()
+
+	//GLES.glFinish();
+
+}
