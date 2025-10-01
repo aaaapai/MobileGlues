@@ -54,10 +54,7 @@ using UnorderedMap = FastSTL::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 #include <ankerl/unordered_dense.h>
 template <
         typename Key,
-        typename T,
-        class Hash = std::hash<Key>,
-        class KeyEqual = std::equal_to<Key>,
-        class Allocator = std::allocator<std::pair<const Key, T>>
+        typename T
 >
 using UnorderedMap = ankerl::unordered_dense::map<Key, T, Hash, KeyEqual, Allocator>;
 
@@ -65,12 +62,9 @@ using UnorderedMap = ankerl::unordered_dense::map<Key, T, Hash, KeyEqual, Alloca
 #include <unordered_map>
 template <
         typename Key,
-        typename T,
-        class Hash = std::hash<Key>,
-        class KeyEqual = std::equal_to<Key>,
-        class Allocator = std::allocator<std::pair<const Key, T>>
+        typename T
 >
-using UnorderedMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
+using UnorderedMap = std::unordered_map<Key, T>;
 #else
 #error The type of UnorderedMap to be used is not defined!
 #endif
