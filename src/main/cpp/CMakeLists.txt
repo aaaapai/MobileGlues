@@ -74,6 +74,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         config/config.cpp
         config/gpu_utils.cpp
         config/settings.cpp
+
+        include/ltw_unordered_map/int_hash.c
+        include/ltw_unordered_map/unordered_map.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
