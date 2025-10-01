@@ -217,13 +217,13 @@ void init_settings() {
 
 void set_multidraw_setting() { // should be called after init_gles_target()
     multidraw_mode_t multidrawMode = static_cast<multidraw_mode_t>(config_get_int("multidrawMode"));
-    if (static_cast<int>(multidrawMode) == -1) {
+    /*if (static_cast<int>(multidrawMode) == -1) {
         multidrawMode = multidraw_mode_t::Auto;
     }
     if (static_cast<int>(multidrawMode) < 0 ||
         static_cast<int>(multidrawMode) >= static_cast<int>(multidraw_mode_t::MaxValue)) {
         multidrawMode = multidraw_mode_t::Auto;
-    }
+    }*/
     global_settings.multidraw_mode = multidrawMode;
     std::string draw_mode_str;
     switch (global_settings.multidraw_mode) {
