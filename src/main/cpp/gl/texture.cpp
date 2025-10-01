@@ -28,7 +28,7 @@
 
 #define DEBUG 0
 
-int nlevel(int size, int level) {
+static int inline nlevel(int size, int level) {
     if (size) {
         size >>= level;
         if (!size) size = 1;
@@ -152,7 +152,7 @@ TextureTarget ConvertGLEnumToTextureTarget(GLenum target) {
     }
 }
 
-const int MAX_TEXTURE_IMAGE_UNITS = 32;
+static const int MAX_TEXTURE_IMAGE_UNITS = 32;
 
 class TextureBindingSlot {
 public:
@@ -202,8 +202,8 @@ TextureObject* GetOrCreateTextureObject(GLuint index) {
     return obj;
 }
 
-void ActivateTextureUnit(int unit) {
-    if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
+static void ActivateTextureUnit(int unit) {
+    if (unit < 0) {
         LOG_E("Invalid texture unit: %d", unit);
         return;
     }
@@ -214,15 +214,15 @@ int GetCurrentTextureUnitIndex() {
     return CurrentTextureUnitIndex;
 }
 
-TextureUnit& GetTextureUnit(int unit) {
-    if (unit < 0 || unit >= MAX_TEXTURE_IMAGE_UNITS) {
+static TextureUnit& GetTextureUnit(int unit) {
+    if (unit < 0) {
         LOG_E("Invalid texture unit: %d", unit);
         return TextureUnits[0];
     }
     return TextureUnits[unit];
 }
 
-void MarkTextureObjectForDeletion(unsigned texture) {
+static void MarkTextureObjectForDeletion(unsigned texture) {
     if (texture >= BufferObjectsVec.size() || !BufferObjectsVec[texture]) {
         LOG_D("Texture %u not found in BufferObjectsVec!", texture);
         return;
@@ -267,8 +267,8 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
         if (type) *type = GL_UNSIGNED_INT;
         break;
     case GL_DEPTH_COMPONENT32:
-        *internal_format = GL_DEPTH_COMPONENT;
-        if (type) *type = GL_UNSIGNED_INT;
+        *internal_format = GL_DEPTH_COMPONENT32F;
+        if (type) *type = GL_FLOAT;
         break;
     case GL_DEPTH_COMPONENT32F:
         if (type) *type = GL_FLOAT;
@@ -476,19 +476,42 @@ void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
     }
 }
 
-void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
+void glGenTextures( GLsizei n, GLuint *textures ) {
     LOG()
-    pname = pname_convert(pname);
-    LOG_D("glTexParameterf, target: %d, pname: %d, param: %f", target, pname, param)
-
-    if (pname == GL_TEXTURE_LOD_BIAS_QCOM && !g_gles_caps.GL_QCOM_texture_lod_bias) {
-        LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
-        return;
-    }
-
-    GLES.glTexParameterf(target, pname, param);
+    LOG_D("glGenTextures, n = %d, textures = 0x%x", n, textures);
+    GLES.glGenTextures(n, textures);
     CHECK_GL_ERROR
 }
+
+void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
+  LOG()
+  pname = pname_convert(pname);
+  LOG_D("glTexParameterf, target: %d, pname: %d, param: %f", target, pname,
+        param)
+
+  switch (pname) {
+        case GL_TEXTURE_LOD_BIAS:
+        case GL_TEXTURE_LOD_BIAS_QCOM:
+            if (!g_gles_caps.GL_QCOM_texture_lod_bias)
+                LOG_D("Does not support GL_QCOM_texture_lod_bias, skipped!")
+            return;
+        case GL_TEXTURE_MIN_FILTER:
+        case GL_TEXTURE_MAG_FILTER:
+        case GL_TEXTURE_WRAP_S:
+        case GL_TEXTURE_WRAP_T:
+        case GL_TEXTURE_WRAP_R: {
+            LOG_D("GL_TEXTURE_WRAP_*/GL_TEXTURE_*_FILTER, glTexParameterf -> glTexParameteri");
+            glTexParameteri(target, pname, (GLint)param);
+            CHECK_GL_ERROR
+            return;
+        }
+    }
+
+    GLES.glTexParameterf(target,pname, param);
+
+    CHECK_GL_ERROR
+}
+
 
 void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format,
                   GLenum type, const GLvoid* pixels) {
@@ -528,6 +551,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                   GLenum format, GLenum type, const GLvoid* pixels) {
     LOG()
     GLenum transfer_format = format;
+    GLenum transfer_type = type;
 
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: "
           "%d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
@@ -552,6 +576,10 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
     auto tex = GetTextureUnit(GetCurrentTextureUnitIndex())
                    .GetBindingSlot(ConvertGLEnumToTextureTarget(target))
                    .GetBoundObject();
+    if (tex == nullptr) {
+          LOG_E("Failed to get texture object for target: %s", glEnumToString(target));
+          return; // 提前退出，避免崩溃
+    }
     tex->target = ConvertGLEnumToTextureTarget(target);
     tex->internal_format = internalFormat;
     tex->width = width;
@@ -592,6 +620,16 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 
     tex->format = format;
 
+    // Fix for 1.12
+    if ((transfer_format == GL_BGRA) && (tex->format != transfer_format)
+        && (transfer_type == GL_UNSIGNED_INT_8_8_8_8_REV))
+    {
+        internalFormat = GL_BGRA;
+        format = GL_BGRA;
+        type = GL_UNSIGNED_BYTE;
+        CHECK_GL_ERROR
+    }
+    
     GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 
     CHECK_GL_ERROR
@@ -944,7 +982,7 @@ void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* p
             (*params) = (GLint)gl_state->proxy_intformat;
             return;
         default:
-            return;
+            break;
         }
     }
     LOG_D("es.glGetTexLevelParameteriv,target: %s, level: %d, pname: %s", glEnumToString(target), level,
@@ -993,12 +1031,17 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
           glEnumToString(target), level, xoffset, yoffset, width, height, glEnumToString(format), glEnumToString(type),
           pixels)
 
-    if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
-        format = GL_RGBA;
-        type = GL_UNSIGNED_BYTE;
-    }
+  if (format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8)) {
+    format = GL_RGBA;
+    type = GL_UNSIGNED_BYTE;
+  }
 
-    GLES.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
+  if (format == GL_BGRA && (type == GL_UNSIGNED_INT_8_8_8_8_REV)) {
+    type = GL_UNSIGNED_BYTE;
+  }
+
+  GLES.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format,
+                       type, pixels);
 
     CHECK_GL_ERROR
 }
@@ -1160,6 +1203,10 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
         return;
     }
 
+    if (param == GL_CLAMP) {
+            param = GL_CLAMP_TO_EDGE;
+    }
+
     GLES.glTexParameteri(target, pname, param);
     CHECK_GL_ERROR
 }
@@ -1231,4 +1278,50 @@ void glPixelStorei(GLenum pname, GLint param) {
     LOG_D("glPixelStorei, pname = %s, param = %d", glEnumToString(pname), param)
     GLES.glPixelStorei(pname, param);
     CHECK_GL_ERROR
+}
+
+template<typename T>
+void readDataComponents(const void* data, GLenum type, T* out, size_t maxComponents) {
+    const uint8_t* src = static_cast<const uint8_t*>(data);
+    switch(type) {
+        case GL_UNSIGNED_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(src[i]);
+            }
+            break;
+        case GL_BYTE:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int8_t*>(src + i));
+            }
+            break;
+        case GL_UNSIGNED_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint16_t*>(src + i*2));
+            }
+            break;
+        case GL_SHORT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int16_t*>(src + i*2));
+            }
+            break;
+        case GL_UNSIGNED_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const uint32_t*>(src + i*4));
+            }
+            break;
+        case GL_INT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const int32_t*>(src + i*4));
+            }
+            break;
+        case GL_FLOAT:
+            for(size_t i = 0; i < maxComponents; ++i) {
+                out[i] = static_cast<T>(*reinterpret_cast<const float*>(src + i*4));
+
+
+            }
+            break;
+        default:
+            break;
+    }
 }

@@ -5,12 +5,17 @@
 #ifndef MOBILEGLUES_LOG_H
 
 #include "../includes.h"
+#include "mg.h"
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 #define FORCE_SYNC_WITH_LOG_FILE 0
 
 #define GLOBAL_DEBUG 0
+#define GLOBAL_DEBUG_MAIN 0
 
 #define LOG_CALLED_FUNCS 0
+#define GLOBAL_DEBUG_FORCE_OFF 0
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,21 +102,21 @@ void log_unique_function(const char *func_name);
     write_log_n(__VA_ARGS__);                                                  \
   }
 #define LOG_W(...)                                                             \
-  if (DEBUG || GLOBAL_DEBUG) {                                                 \
+  if (DEBUG || GLOBAL_DEBUG || GLOBAL_DEBUG_MAIN) {                                                 \
     __android_log_print(ANDROID_LOG_WARN, RENDERERNAME, __VA_ARGS__);          \
     printf(__VA_ARGS__);                                                       \
     printf("\n");                                                              \
     write_log(__VA_ARGS__);                                                    \
   }
 #define LOG_E(...)                                                             \
-  if (DEBUG || GLOBAL_DEBUG) {                                                 \
+  if (DEBUG || GLOBAL_DEBUG || GLOBAL_DEBUG_MAIN) {                                                 \
     __android_log_print(ANDROID_LOG_ERROR, RENDERERNAME, __VA_ARGS__);         \
     printf(__VA_ARGS__);                                                       \
     printf("\n");                                                              \
     write_log(__VA_ARGS__);                                                    \
   }
 #define LOG_F(...)                                                             \
-  if (DEBUG || GLOBAL_DEBUG) {                                                 \
+  if (DEBUG || GLOBAL_DEBUG || GLOBAL_DEBUG_MAIN) {                                                 \
     __android_log_print(ANDROID_LOG_FATAL, RENDERERNAME, __VA_ARGS__);         \
     printf(__VA_ARGS__);                                                       \
     printf("\n");                                                              \

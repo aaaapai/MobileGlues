@@ -19,6 +19,7 @@ GLAPI GLAPIENTRY GLuint glCreateProgram();
 GLAPI GLAPIENTRY void glAttachShader(GLuint program, GLuint shader);
 GLAPI GLAPIENTRY GLuint glCreateShader(GLenum shaderType);
 
+GLAPI GLAPIENTRY GLint glGetUniformLocation(GLuint program, const GLchar *name);
 #ifdef __cplusplus
 }
 #endif

@@ -69,6 +69,37 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *counts, GLenum type, co
     func_ptr(mode, counts, type, indices, primcount, basevertex);
 }
 
+typedef void (*glMultiDrawElementsIndirect_t)(GLenum, GLenum, const void *, GLsizei, GLsizei);
+
+void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
+    static glMultiDrawElementsIndirect_t func_ptr = nullptr;
+
+    if (func_ptr == nullptr) {
+        switch (global_settings.multidraw_mode) {
+            case multidraw_mode_t::PreferIndirect:
+                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                break;
+            case multidraw_mode_t::PreferBaseVertex:
+                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                break;
+            case multidraw_mode_t::PreferMultidrawIndirect:
+                GLES.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride);
+                return;
+            case multidraw_mode_t::DrawElements:
+                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                break;
+            case multidraw_mode_t::Compute:
+                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                break;
+            default:
+                func_ptr = mg_glMultiDrawElementsIndirect_deepseek_one;
+                break;
+        }
+    }
+
+    func_ptr(mode, type, indirect, drawcount, stride);
+}
+
 static bool g_indirect_cmds_inited = false;
 static GLsizei g_cmdbufsize = 0;
 static GLuint g_indirectbuffer = 0;
@@ -94,7 +125,7 @@ void prepare_indirect_buffer(const GLsizei *counts, GLenum type, const void *con
         LOG_D("Before resize: %d", sz)
 
         // 2-exponential to reduce reallocation
-        while (sz < primcount)
+        while (sz < static_cast<size_t>(primcount))
             sz *= 2;
 
         GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER,
@@ -476,7 +507,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
 
     // Resize prefix sum buffer if needed
     size_t sz = g_prefix_sum.empty() ? 1 : g_prefix_sum.size();
-    while (sz < primcount)
+    while (sz < static_cast<size_t>(primcount))
         sz *= 2;
     g_prefix_sum.resize(sz);
 
@@ -572,4 +603,65 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(
     // Restore states
     GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     CHECK_GL_ERROR_NO_INIT
+}
+
+void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride) {
+    LOG()
+
+	void prepareForDraw();
+    prepareForDraw();
+
+    // 保存当前绑定的间接绘制缓冲区
+    GLuint prevIndirectBuffer = 0;
+    GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, (GLint*)&prevIndirectBuffer);
+    
+    // 如果没有绑定缓冲区，使用客户端内存模式
+    if (prevIndirectBuffer == 0 && indirect) {
+        // 使用现有的缓冲区管理代码
+        if (!g_indirect_cmds_inited) {
+            GLES.glGenBuffers(1, &g_indirectbuffer);
+            g_indirect_cmds_inited = true;
+        }
+        
+        // 绑定我们的间接缓冲区
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_indirectbuffer);
+        
+        // 确保缓冲区足够大
+        size_t requiredSize = drawcount * (stride ? stride : sizeof(draw_elements_indirect_command_t));
+        if (g_cmdbufsize * sizeof(draw_elements_indirect_command_t) < requiredSize) {
+            size_t newSize = g_cmdbufsize;
+            while (newSize * sizeof(draw_elements_indirect_command_t) < requiredSize) {
+                newSize *= 2;
+            }
+            
+            GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, 
+                            newSize * sizeof(draw_elements_indirect_command_t),
+                            NULL, GL_DYNAMIC_DRAW);
+            g_cmdbufsize = newSize;
+        }
+        
+        // 上传数据到缓冲区
+        GLES.glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, requiredSize, indirect);
+    }
+    
+    const GLubyte *ptr = (const GLubyte *)indirect;
+    
+    // 计算实际步长
+    size_t effectiveStride = stride;
+    if (stride == 0) {
+        effectiveStride = sizeof(draw_elements_indirect_command_t);
+    }
+    
+    // 执行间接绘制
+    for (GLsizei i = 0; i < drawcount; i++) {
+        const void *currentIndirect = ptr + i * effectiveStride;
+        GLES.glDrawElementsIndirect(mode, type, currentIndirect);
+    }
+    
+    // 恢复之前绑定的缓冲区
+    if (prevIndirectBuffer == 0 && indirect) {
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prevIndirectBuffer);
+    }
+    
+    CHECK_GL_ERROR
 }
