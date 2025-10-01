@@ -48,7 +48,7 @@ template <
         class KeyEqual = std::equal_to<Key>,
         class Allocator = std::allocator<std::pair<const Key, T>>
 >
-using UnorderedMap = FastSTL::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
+using UnorderedMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 
 #elif UseAnkerl
 #include <ankerl/unordered_dense.h>
