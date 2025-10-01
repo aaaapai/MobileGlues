@@ -52,11 +52,15 @@ using UnorderedMap = FastSTL::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 
 #elif UseAnkerl
 #include <ankerl/unordered_dense.h>
+
 template <
-        typename Key,
-        typename T
+    typename Key,
+    typename T,
+    class Hash = ankerl::unordered_dense::hash<Key>,
+    class KeyEqual = std::equal_to<Key>,
+    class Allocator = std::allocator<std::pair<Key, T>>
 >
-using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
+using UnorderedMap = ankerl::unordered_dense::map<Key, T, Hash, KeyEqual, Allocator>;
 
 #elif UseStandard
 #include <unordered_map>
