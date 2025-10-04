@@ -11,10 +11,18 @@
 #include <GLES3/gl32.h>
 #include "../includes.h"
 #include <GL/gl.h>
-#include "glcorearb.h"
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
+
+#include <vector>
+#include <algorithm>
+#include <mutex>
+#include <cmath>
+#include <cassert>
+#include <arm_neon.h>
+#include <thread>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +34,7 @@ struct draw_elements_indirect_command_t {
     GLuint  firstIndex;
     GLint   baseVertex;
     GLuint  reservedMustBeZero;
+    GLuint  baseInstance;
 };
 
 struct drawcmd_compute_t {
@@ -46,6 +55,9 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElements_multiindirect(GLenum mode, const GL
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
 GLAPI GLAPIENTRY void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei primcount);
+
+GLAPI GLAPIENTRY void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
+GLAPI GLAPIENTRY void mg_glMultiDrawElementsIndirect_deepseek_one(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
 
 #ifdef __cplusplus
 }

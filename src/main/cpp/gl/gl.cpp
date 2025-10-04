@@ -4,12 +4,14 @@
 
 #include "../includes.h"
 #include <GL/gl.h>
-#include "glcorearb.h"
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "../gles/loader.h"
 #include "../config/settings.h"
 #include "mg.h"
 #include "framebuffer.h"
+
+#include "FSR1/FSR1.h"
 
 #define DEBUG 0
 
@@ -120,7 +122,7 @@ void glClear(GLbitfield mask) {
     GLES.glClear(mask);
     CHECK_GL_ERROR_NO_INIT
 
-    if (global_settings.angle == AngleMode::Enabled &&
+    /*if (global_settings.angle == AngleMode::Enabled &&
         mask == GL_DEPTH_BUFFER_BIT && 
         fabs(currentDepthValue - 1.0f) <= 0.001f
         && framebuffers[current_draw_fbo].color_attachments_all_none
@@ -138,9 +140,9 @@ void glClear(GLbitfield mask) {
         GLES.glClear(mask);
     } else {
         GLES.glClear(mask);
-    }
+    }*/
 
-    CHECK_GL_ERROR_NO_INIT;
+    //CHECK_GL_ERROR_NO_INIT
 }
 
 void glHint(GLenum target, GLenum mode) {
@@ -213,3 +215,23 @@ void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
     if (length) *length = 1;
 }
 */
+
+void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+    LOG()
+	LOG_D("glViewport: x=%d, y=%d, width=%d, height=%d", x, y, width, height);
+    
+    if ((global_settings.fsr1_setting != FSR1_Quality_Preset::Disabled) && (width > FSR1_Context::g_pendingWidth || height > FSR1_Context::g_pendingHeight)) {
+		FSR1_Context::g_resolutionChanged = true;
+        FSR1_Context::g_pendingWidth = width;
+        FSR1_Context::g_pendingHeight = height;
+    }
+    
+	GLES.glViewport(x, y, width, height);
+}
+
+void glFinish (void) {
+	LOG()
+
+	//GLES.glFinish();
+
+}

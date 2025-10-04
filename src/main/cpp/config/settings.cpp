@@ -70,15 +70,6 @@ void init_settings() {
         static_cast<int>(angleDepthClearFixMode) >= static_cast<int>(AngleDepthClearFixMode::MaxValue)) {
         angleDepthClearFixMode = AngleDepthClearFixMode::Disabled;
     }
-    if (customGLVersionInt > 46) {
-        customGLVersionInt = 46;
-    } else if (customGLVersionInt < 32 && customGLVersionInt != 0) {
-        customGLVersionInt = 32;
-    } else if (customGLVersionInt > 33 && customGLVersionInt < 40) {
-        customGLVersionInt = 33;
-    } else if (customGLVersionInt == 0) {
-        customGLVersionInt = DEFAULT_GL_VERSION;
-    }
     if (static_cast<int>(fsr1Setting) < 0 ||
         static_cast<int>(fsr1Setting) >= static_cast<int>(FSR1_Quality_Preset::MaxValue)) {
         fsr1Setting = FSR1_Quality_Preset::Disabled;
@@ -219,13 +210,13 @@ void init_settings() {
 
 void set_multidraw_setting() { // should be called after init_gles_target()
     multidraw_mode_t multidrawMode = static_cast<multidraw_mode_t>(config_get_int("multidrawMode"));
-    if (static_cast<int>(multidrawMode) == -1) {
+    /*if (static_cast<int>(multidrawMode) == -1) {
         multidrawMode = multidraw_mode_t::Auto;
     }
     if (static_cast<int>(multidrawMode) < 0 ||
         static_cast<int>(multidrawMode) >= static_cast<int>(multidraw_mode_t::MaxValue)) {
         multidrawMode = multidraw_mode_t::Auto;
-    }
+    }*/
     global_settings.multidraw_mode = multidrawMode;
     std::string draw_mode_str;
     switch (global_settings.multidraw_mode) {
@@ -304,15 +295,15 @@ void init_settings_post() {
     case multidraw_mode_t::Auto:
     default:
         LOG_V("multidrawMode = Auto")
-        if (multidraw) {
+        if (basevertex) {
+            global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
+            LOG_V("    -> BaseVertex (Auto detected)")
+        } else if (multidraw) {
             global_settings.multidraw_mode = multidraw_mode_t::PreferMultidrawIndirect;
             LOG_V("    -> MultidrawIndirect (Auto detected)")
         } else if (indirect) {
             global_settings.multidraw_mode = multidraw_mode_t::PreferIndirect;
             LOG_V("    -> Indirect (Auto detected)")
-        } else if (basevertex) {
-            global_settings.multidraw_mode = multidraw_mode_t::PreferBaseVertex;
-            LOG_V("    -> BaseVertex (Auto detected)")
         } else {
             global_settings.multidraw_mode = multidraw_mode_t::DrawElements;
             LOG_V("    -> DrawElements (Auto detected)")

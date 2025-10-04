@@ -12,25 +12,25 @@
 
 #define DEBUG 0
 
-char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
+const char* DEFAULT_MG_DIRECTORY_PATH = "/sdcard/MG";
 
-char* mg_directory_path;
-char* config_file_path;
-char* log_file_path;
-char* glsl_cache_file_path;
+const char* mg_directory_path;
+const char* config_file_path;
+const char* log_file_path;
+const char* glsl_cache_file_path;
 
-static cJSON* config_json = NULL;
+static cJSON* config_json = nullptr;
 
 int initialized = 0;
 
-char* concatenate(char* str1, char* str2) {
+const char* concatenate(const char* str1, const char* str2) {
     std::string str = std::string(str1) + str2;
     char* result = new char[str.size() + 1];
     strcpy(result, str.c_str());
     return result;
 }
 
-int check_path() {
+int check_path(void) {
     char* var = getenv("MG_DIR_PATH");
     mg_directory_path = var ? var : DEFAULT_MG_DIRECTORY_PATH;
     config_file_path = concatenate(mg_directory_path, "/config.json");
@@ -44,14 +44,14 @@ int check_path() {
     return 1;
 }
 
-int config_refresh() {
+int config_refresh(void) {
     LOG_D("MG_DIRECTORY_PATH=%s", mg_directory_path)
     LOG_D("CONFIG_FILE_PATH=%s", config_file_path)
     LOG_D("LOG_FILE_PATH=%s", log_file_path)
     LOG_D("GLSL_CACHE_FILE_PATH=%s", glsl_cache_file_path)
 
     FILE* file = fopen(config_file_path, "r");
-    if (file == NULL) {
+    if (file == nullptr) {
         LOG_E("Unable to open config file %s", config_file_path);
         return 0;
     }
@@ -61,7 +61,7 @@ int config_refresh() {
     fseek(file, 0, SEEK_SET);
 
     char* file_content = (char*)malloc(file_size + 1);
-    if (file_content == NULL) {
+    if (file_content == nullptr) {
         LOG_E("Unable to allocate memory for file content");
         fclose(file);
         return 0;
@@ -74,7 +74,7 @@ int config_refresh() {
     config_json = cJSON_Parse(file_content);
     free(file_content);
 
-    if (config_json == NULL) {
+    if (config_json == nullptr) {
         LOG_E("Error parsing config JSON: %s\n", cJSON_GetErrorPtr());
         return 0;
     }
@@ -83,13 +83,13 @@ int config_refresh() {
     return 1;
 }
 
-int config_get_int(char* name) {
-    if (config_json == NULL) {
+int config_get_int(const char* name) {
+    if (config_json == nullptr) {
         return -1;
     }
 
     cJSON* item = cJSON_GetObjectItem(config_json, name);
-    if (item == NULL || !cJSON_IsNumber(item)) {
+    if (item == nullptr || !cJSON_IsNumber(item)) {
         LOG_D("Config item '%s' not found or not an integer.\n", name);
         return -1;
     }
@@ -97,13 +97,13 @@ int config_get_int(char* name) {
     return item->valueint;
 }
 
-char* config_get_string(char* name) {
-    if (config_json == NULL) {
-        return NULL;
+const char* config_get_string(const char* name) {
+    if (config_json == nullptr) {
+        return nullptr;
     }
 
     cJSON* item = cJSON_GetObjectItem(config_json, name);
-    if (item == NULL || !cJSON_IsString(item)) {
+    if (item == nullptr || !cJSON_IsString(item)) {
         LOG_D("Config item '%s' not found or not a string.\n", name);
         return "";
     }
@@ -111,9 +111,9 @@ char* config_get_string(char* name) {
     return item->valuestring;
 }
 
-void config_cleanup() {
-    if (config_json != NULL) {
+void config_cleanup(void) {
+    if (config_json != nullptr) {
         cJSON_Delete(config_json);
-        config_json = NULL;
+        config_json = nullptr;
     }
 }
