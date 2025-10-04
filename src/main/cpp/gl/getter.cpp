@@ -136,7 +136,7 @@ void InitGLESBaseExtensions() {
              "GL_MG_backend_string_getter_access "
              "GL_MG_settings_string_dump "
              "GL_ARB_fragment_program "
-		         "GL_ARB_pixel_buffer_object "
+		     "GL_ARB_pixel_buffer_object "
              "GL_ARB_texture_non_power_of_two "
              "GL_ARB_vertex_buffer_object "
              "GL_EXT_framebuffer_object "
@@ -320,7 +320,7 @@ const GLubyte * glGetString( GLenum name ) {
                 return (const GLubyte *) "4.60 MobileGlues with glslang and SPIRV-Cross";
         }
         case GL_EXTENSIONS: {
-            static const std::string cached;
+            static std::string cached;
             cached = GetExtensionsList();
             return (const GLubyte *) cached.c_str();
         }
