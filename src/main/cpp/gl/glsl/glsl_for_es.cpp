@@ -1629,7 +1629,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     using namespace glslang;
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
-    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_0);
+    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
     //shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
     shader.setAutoMapBindings(true);
@@ -1771,13 +1771,14 @@ std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type, uint essl_ve
     return essl;
 }
 
-std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) {
+std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversion, int& return_code) { // useless now
+    
 #if !defined(__APPLE__)
     LOG_W("Warning: use glsl optimizer to convert shader.")
 
 	bool atomicCounterEmulated = false;
 	std::string correct_glsl_str = preprocess_glsl(glsl_code, glsl_type, &atomicCounterEmulated);
-    int glsl_version = get_or_add_glsl_version(correct_glsl_str);
+  int glsl_version = get_or_add_glsl_version(correct_glsl_str);
 
 	correct_glsl_str = RemoveUniformInitialization(correct_glsl_str);
 
@@ -1790,4 +1791,5 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type, uint esversi
     LOG_W_FORCE("Cannot convert glsl with version %d in MacOS/iOS", esversion);
     return std::string(glsl_code);
 #endif
+    
 }
