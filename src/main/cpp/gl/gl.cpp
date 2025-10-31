@@ -117,7 +117,6 @@ void glClear(GLbitfield mask) {
 
     INIT_CHECK_GL_ERROR
 
-    GLES.glClear(mask);
     CHECK_GL_ERROR_NO_INIT
 
     if (global_settings.angle == AngleMode::Enabled &&
