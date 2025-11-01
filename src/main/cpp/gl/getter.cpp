@@ -143,8 +143,49 @@ void InitGLESBaseExtensions() {
         extensions.push_back("GL_MG_settings_string_dump");
     }
 
-    const char* base_exts[] = {
-                              };
+    const char* base_exts[] = {"GL_ARB_fragment_program"
+		     "GL_ARB_pixel_buffer_object"
+             "GL_ARB_texture_non_power_of_two"
+             "GL_ARB_vertex_buffer_object"
+             "GL_EXT_framebuffer_object"
+             "GL_ARB_framebuffer_object"
+             "GL_EXT_framebuffer_multisample_blit_scaled"
+             "GL_EXT_framebuffer_blit_layers"
+             "GL_EXT_framebuffer_blit"
+             "GL_ARB_occlusion_query"
+             "GL_ARB_program_interface_query"
+             "GL_ARB_texture_rectangle"
+             "GL_ARB_multisample"
+             "GL_EXT_framebuffer_multisample"
+             "GL_ARB_uniform_buffer_object"
+             "GL_ARB_shader_objects"
+             "GL_ARB_vertex_shader"
+             "GL_ARB_fragment_shader"
+             "GL_EXT_separate_shader_objects"
+		     "GL_ARB_point_sprite"
+		     "GL_ARB_texture_float"
+		     "GL_EXT_texture_filter_anisotropic"
+		     "GL_ARB_multitexture"
+		     "GL_ARB_get_program_binary"
+             "GL_ARB_vertex_buffer_object"
+             "GL_ARB_vertex_array_object"
+             "GL_ARB_vertex_buffer"
+             "GL_EXT_vertex_array"
+             "GL_ARB_ES2_compatibility"
+             "GL_ARB_ES3_compatibility"
+             "GL_EXT_packed_depth_stencil"
+             "GL_EXT_depth_texture"
+             "GL_ARB_depth_texture"
+             "GL_ARB_shading_language_100"
+             "GL_ARB_imaging"
+             "GL_ARB_draw_buffers_blend"
+             "GL_ARB_shader_storage_buffer_object"
+             "GL_ARB_shader_image_load_store"
+             "GL_ARB_clear_texture"
+             "GL_ARB_get_program_binary"
+             "GL_ARB_separate_shader_objects"
+             "GL_ARB_multi_bind"
+             "GL_KHR_no_error"};
 
     extensions.insert(extensions.end(), std::begin(base_exts), std::end(base_exts));
 
