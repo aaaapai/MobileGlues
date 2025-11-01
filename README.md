@@ -42,7 +42,7 @@ MobileGlues is licensed under **GNU LGPL-2.1 License**.
 
 Please see [LICENSE](https://github.com/MobileGL-Dev/MobileGlues/blob/main/LICENSE).
 
-# Third party components
+# Third-party components
 
 **SPIRV-Cross** by **KhronosGroup** - [Apache License 2.0](https://github.com/KhronosGroup/SPIRV-Cross/blob/master/LICENSE): [github](https://github.com/KhronosGroup/SPIRV-Cross)
 

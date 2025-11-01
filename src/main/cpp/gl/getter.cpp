@@ -320,9 +320,13 @@ const GLubyte * glGetString( GLenum name ) {
                 return (const GLubyte *) "4.60 MobileGlues with glslang and SPIRV-Cross";
         }
         case GL_EXTENSIONS: {
+#if !defined(__APPLE__)
             static std::string cached;
             cached = GetExtensionsList();
             return (const GLubyte *) cached.c_str();
+#else
+            return (const GLubyte *) GetExtensionsList().c_str();
+#endif
         }
         case GL_SETTINGS_MG: {
             static char* settings_string = nullptr;
