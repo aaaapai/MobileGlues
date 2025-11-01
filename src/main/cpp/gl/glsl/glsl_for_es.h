@@ -2,9 +2,10 @@
 #define GLSL_FOR_ES
 #include "../../gles/loader.h"
 #include "../../includes.h"
-#include "../glcorearb.h"
-#include "../log.h"
+#include <stdio.h>
 #include <GL/gl.h>
+#include <GL/glcorearb.h>
+#include "../log.h"
 #include <stdio.h>
 #include <string>
 
@@ -16,6 +17,7 @@ extern "C" {
 }
 #endif
 
+std::string getCachedESSL(const char *glsl_code, uint essl_version);
 std::string GLSLtoGLSLES(const char *glsl_code, GLenum glsl_type,
                          uint essl_version, uint glsl_version,
                          int &return_code);
@@ -24,5 +26,7 @@ std::string GLSLtoGLSLES_1(const char *glsl_code, GLenum glsl_type,
 std::string GLSLtoGLSLES_2(const char *glsl_code, GLenum glsl_type,
                            uint essl_version, int &return_code);
 int getGLSLVersion(const char *glsl_code);
+
+extern std::string MesaConvertShader (const char *src, GLenum type, unsigned int glsl, unsigned int essl);
 
 #endif

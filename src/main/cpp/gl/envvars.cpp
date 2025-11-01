@@ -1,5 +1,6 @@
 #include "envvars.h"
-#include "glext.h"
+#include <GL/gl.h>
+#include <GL/glext.h>
 #include "../includes.h"
 #include <cstdio>
 #include <cstdlib>

@@ -6,21 +6,21 @@ extern "C"
 {
 #endif
 
-    extern char* mg_directory_path;
-    extern char* config_file_path;
-    extern char* log_file_path;
-    extern char* glsl_cache_file_path;
+extern const char* mg_directory_path;
+extern const char* config_file_path;
+extern const char* log_file_path;
+extern const char* glsl_cache_file_path;
 
     extern int initialized;
 
-    char* concatenate(char* str1, char* str2);
+const char* concatenate(const char* str1, const char* str2);
 
-    int check_path();
+int check_path(void);
 
-    int config_refresh();
-    int config_get_int(char* name);
-    char* config_get_string(char* name);
-    void config_cleanup();
+int config_refresh(void);
+int config_get_int(const char* name);
+const char* config_get_string(const char* name);
+void config_cleanup(void);
 
 #ifdef __cplusplus
 }

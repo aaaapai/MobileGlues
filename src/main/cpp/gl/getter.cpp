@@ -4,6 +4,8 @@
 
 #include "getter.h"
 #include "buffer.h"
+#include "fpe/fpe.hpp"
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <format>
 #include <vector>
@@ -16,7 +18,32 @@
 
 Version GLVersion;
 
-void glGetIntegerv(GLenum pname, GLint* params) {
+void glGetFloatv(GLenum pname, GLfloat *params) {
+    LOG()
+    LOG_D("glGetFloatv, pname: %s", glEnumToString(pname))
+
+    switch (pname) {
+        case GL_MODELVIEW_MATRIX:{
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_MODELVIEW)]);
+
+
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        case GL_PROJECTION_MATRIX:
+        {
+            auto* ptr = glm::value_ptr(g_glstate.fpe_uniform.transformation.matrices[matrix_idx(GL_PROJECTION)]);
+            memcpy(params, ptr, sizeof(GLfloat) * 16);
+            break;
+        }
+        default:
+            GLES.glGetFloatv(pname, params);
+            LOG_D("  -> %.2f",*params)
+            CHECK_GL_ERROR
+    }
+}
+
+void glGetIntegerv(GLenum pname, GLint *params) {
     LOG()
     LOG_D("glGetIntegerv, pname: %s", glEnumToString(pname))
     switch (pname) {
@@ -64,6 +91,7 @@ void glGetIntegerv(GLenum pname, GLint* params) {
             GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT | GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT | GL_CONTEXT_FLAG_NO_ERROR_BIT;
         break;
     }
+    case GL_QUERY_BUFFER_BINDING:
     case GL_ARRAY_BUFFER_BINDING:
     case GL_ATOMIC_COUNTER_BUFFER_BINDING:
     case GL_COPY_READ_BUFFER_BINDING:
@@ -115,27 +143,8 @@ void InitGLESBaseExtensions() {
         extensions.push_back("GL_MG_settings_string_dump");
     }
 
-    const char* base_exts[] = {"GL_ARB_fragment_program",
-                               "GL_ARB_vertex_buffer_object",
-                               "GL_ARB_vertex_array_object",
-                               "GL_ARB_vertex_buffer",
-                               "GL_EXT_vertex_array",
-                               "GL_ARB_ES2_compatibility",
-                               "GL_ARB_ES3_compatibility",
-                               "GL_EXT_packed_depth_stencil",
-                               "GL_EXT_depth_texture",
-                               "GL_ARB_depth_texture",
-                               "GL_ARB_shading_language_100",
-                               "GL_ARB_imaging",
-                               "GL_ARB_draw_buffers_blend",
-                               "OpenGL15",
-                               "GL_ARB_shader_storage_buffer_object",
-                               "GL_ARB_shader_image_load_store",
-                               "GL_ARB_clear_texture",
-                               "GL_ARB_get_program_binary",
-                               "GL_ARB_separate_shader_objects",
-                               "GL_ARB_multi_bind",
-                               "GL_KHR_no_error"};
+    const char* base_exts[] = {
+                              };
 
     extensions.insert(extensions.end(), std::begin(base_exts), std::end(base_exts));
 

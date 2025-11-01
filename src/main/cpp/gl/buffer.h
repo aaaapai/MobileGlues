@@ -7,7 +7,9 @@
 #include "../config/settings.h"
 #include "../gles/loader.h"
 #include "../includes.h"
-#include "glcorearb.h"
+#include "../../config/settings.h"
+#include <GL/gl.h>
+#include <GL/glcorearb.h>
 #include "log.h"
 #include "mg.h"
 #include <GL/gl.h>
@@ -88,6 +90,12 @@ extern "C"
     GLAPI GLAPIENTRY GLboolean glIsVertexArray(GLuint array);
 
     GLAPI GLAPIENTRY void glBindVertexArray(GLuint array);
+
+    GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint *buffers);
+    GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint *buffers);
+    GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer);
+    GLAPI GLAPIENTRY void glTexBufferRangeARB(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+    GLAPI GLAPIENTRY void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes);
 
 #ifdef __cplusplus
 }

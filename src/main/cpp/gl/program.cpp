@@ -3,7 +3,8 @@
 //
 
 #include <regex.h>
-#include "GL/glext.h"
+#include <GL/gl.h>
+#include <GL/glext.h>
 #include "GLES3/gl32.h"
 #include "log.h"
 #include "shader.h"

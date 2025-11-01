@@ -139,6 +139,7 @@ extern "C"
     struct gles_caps_t {
         int major;
         int minor;
+        int maxtex;
         int GL_EXT_buffer_storage;
         int GL_EXT_disjoint_timer_query;
         int GL_QCOM_texture_lod_bias;

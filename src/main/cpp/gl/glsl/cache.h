@@ -10,6 +10,7 @@
 #include "../../config/settings.h"
 
 #include <list>
+#include <ankerl/unordered_dense.h>
 #include <array>
 #include <string>
 #include <cstdint>
