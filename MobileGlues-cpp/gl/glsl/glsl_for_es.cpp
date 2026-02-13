@@ -1693,25 +1693,26 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                 "const mat3 rotInverse = mat3(rot[0][0], rot[1][0], rot[2][0], rot[0][1], rot[1][1], rot[2][1], "
                 "rot[0][2], rot[1][2], rot[2][2]);");
 
-    replace_all(ret, "#error ", "// #error ");
+    //replace_all(ret, "#error ", "// #error ");
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
 
-     if (shaderType == GL_VERTEX_SHADER) {
+     /*if (shaderType == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
         replace_all(ret, "varying", "out");
     } else if (shaderType == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
-	}
+	}*/
 	
-    replace_all(ret, "texture2D", "texture");
+    //replace_all(ret, "texture2D", "texture");
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
     inject_subgroup_BigGiftPackage(ret);
+	inject_subgroup_clustered(ret);
     // inject_gl_DepthRange(ret); please use angle...
-    inject_shaderDrawParameters(ret);
+    //inject_shaderDrawParameters(ret);
     // textureQueryLod injection
     if (!g_gles_caps.GL_EXT_texture_query_lod) {
         inject_textureQueryLod(ret);
@@ -1733,11 +1734,11 @@ int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
         glsl_version = 150;
-        glsl.insert(0, "#version 460 compatibility\n");
+        glsl.insert(0, "#version 150 compatibility\n");
     } else if (glsl_version < 140) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 460 compatibility\n");
-        glsl_version = 460;
+        glsl = replace_line_starting_with(glsl, "#version", "#version 150 compatibility\n");
+        glsl_version = 150;
     }
 
     LOG_D("GLSL version: %d", glsl_version)
@@ -1778,7 +1779,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     using namespace glslang;
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
-    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_6);
+    shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
     shader.setAutoMapBindings(true);
 
@@ -1855,13 +1856,13 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
         //spvc_compiler_get_current_id_bound(compiler_glsl);
         
         errc = -1;
-        spvc_context_destroy(context);
+        //spvc_context_destroy(context);
         return "";
     }
 
     std::string essl = result;
 
-    spvc_context_destroy(context);
+    //spvc_context_destroy(context);
 
     errc = 0;
     return essl;
