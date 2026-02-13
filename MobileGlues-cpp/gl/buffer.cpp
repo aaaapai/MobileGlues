@@ -11,6 +11,10 @@
 
 #define DEBUG 0
 
+static void depth_to_format(float depth, GLenum internalformat, GLubyte* output);
+static GLhalf floatToHalf(float f);
+static void convert_components_to_internal_format(const float* components, int count, GLenum internalformat, GLubyte* output);
+
 GLuint bound_array;
 static GLint maxBufferId = 0;
 static GLint maxArrayId = 0;
@@ -888,6 +892,48 @@ static GLsizei get_format_type_size(GLenum format, GLenum type) {
     return component_count * component_size;
 }
 
+// 深度值转换到特定格式
+static void depth_to_format(float depth, GLenum internalformat, GLubyte* output) {
+    if (!output) return;
+    
+    // 钳位深度值到有效范围 [0, 1]
+    depth = std::max(0.0f, std::min(1.0f, depth));
+    
+    switch (internalformat) {
+        // 16位深度（无符号归一化整数）
+        case GL_DEPTH_COMPONENT16: {
+            GLushort* depth_out = (GLushort*)output;
+            // 16位深度：0-65535 映射到 0.0-1.0
+            *depth_out = (GLushort)(depth * 65535.0f);
+            break;
+        }
+        
+        // 24位深度（无符号归一化整数）
+        case GL_DEPTH_COMPONENT24: {
+            // 24位存储，打包在3个字节中
+            GLuint depth_val = (GLuint)(depth * 16777215.0f); // 2^24 - 1
+            
+            // 小端序：低字节在前
+            output[0] = (GLubyte)(depth_val & 0xFF);
+            output[1] = (GLubyte)((depth_val >> 8) & 0xFF);
+            output[2] = (GLubyte)((depth_val >> 16) & 0xFF);
+            break;
+        }
+        
+        // 32位浮点深度
+        case GL_DEPTH_COMPONENT32F: {
+            GLfloat* depth_out = (GLfloat*)output;
+            *depth_out = depth;
+            break;
+        }
+        
+        default:
+            LOG_W("depth_to_format: Unsupported internalformat %s for depth conversion", 
+                  glEnumToString(internalformat));
+            break;
+    }
+}
+
 // 处理打包格式
 static std::vector<GLubyte> convert_packed_clear_data(const void* data, GLenum format, 
                                                        GLenum type, GLenum internalformat) {
@@ -1329,7 +1375,6 @@ static std::vector<GLubyte> convert_clear_data(const void* data, GLenum format,
             is_normalized = true;
             break;
         case GL_HALF_FLOAT:
-        case GL_HALF_FLOAT_OES:
             component_size = 2;
             is_float = true;
             break;
