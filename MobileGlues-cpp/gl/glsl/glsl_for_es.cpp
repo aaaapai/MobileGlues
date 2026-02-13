@@ -1698,14 +1698,14 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
 
-     /*if (shaderType == GL_VERTEX_SHADER) {
+     if (shaderType == GL_VERTEX_SHADER) {
         replace_all(ret, "attribute", "in");
         replace_all(ret, "varying", "out");
     } else if (shaderType == GL_FRAGMENT_SHADER) {
         replace_all(ret, "varying", "in");
-	}*/
+	}
 	
-    //replace_all(ret, "texture2D", "texture");
+    replace_all(ret, "texture2D", "texture");
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
@@ -1832,7 +1832,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
-    // spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, shader_type == GL_COMPUTE_SHADER ? 310 : essl_version);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
@@ -1853,16 +1853,16 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
             LOG_E("Hint: ESSL version %u may be too low", essl_version);
         }
         
-        //spvc_compiler_get_current_id_bound(compiler_glsl);
+        spvc_compiler_get_current_id_bound(compiler_glsl);
         
         errc = -1;
-        //spvc_context_destroy(context);
+        spvc_context_destroy(context);
         return "";
     }
 
     std::string essl = result;
 
-    //spvc_context_destroy(context);
+    spvc_context_destroy(context);
 
     errc = 0;
     return essl;
