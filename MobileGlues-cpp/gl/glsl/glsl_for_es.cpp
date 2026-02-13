@@ -1831,7 +1831,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
-    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+    // spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, shader_type == GL_COMPUTE_SHADER ? 310 : essl_version);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
@@ -1880,13 +1880,13 @@ std::string GLSLtoGLSLES_2(const char* glsl_code, GLenum glsl_type, uint essl_ve
     }
     const char* s[] = {correct_glsl_str.c_str()};
     int errc = 0;
-    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc, shader_type);
+    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
     if (errc != 0) {
         return_code = -1;
         return "";
     }
     errc = 0;
-    std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
+    std::string essl = spirv_to_essl(spirv_code, essl_version, errc, glsl_type);
     if (errc != 0) {
         return_code = -2;
         return "";
