@@ -13,6 +13,7 @@
 #include "../config/settings.h"
 #include "mg.h"
 #include "framebuffer.h"
+#include <cmath>
 
 #define DEBUG 0
 
@@ -119,7 +120,7 @@ void glClear(GLbitfield mask) {
     CHECK_GL_ERROR_NO_INIT
 
     if (global_settings.angle == AngleMode::Enabled && mask == GL_DEPTH_BUFFER_BIT &&
-        fabs(currentDepthValue - 1.0f) <= 0.001f && framebuffers[current_draw_fbo].color_attachments_all_none) {
+        std::fabs(currentDepthValue - 1.0f) <= 0.001f && framebuffers[current_draw_fbo].color_attachments_all_none) {
         LOG_D("doing depth workaround")
         if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
             // Workaround for ANGLE depth-clear bug: if depth≈1.0, draw a fullscreen triangle at z=1.0 to force actual
