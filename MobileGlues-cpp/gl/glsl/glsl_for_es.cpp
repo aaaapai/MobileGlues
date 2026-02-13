@@ -1880,7 +1880,7 @@ std::string GLSLtoGLSLES_2(const char* glsl_code, GLenum glsl_type, uint essl_ve
     }
     const char* s[] = {correct_glsl_str.c_str()};
     int errc = 0;
-    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc);
+    std::vector<unsigned int> spirv_code = glsl_to_spirv(glsl_type, glsl_version, s, errc, shader_type);
     if (errc != 0) {
         return_code = -1;
         return "";
