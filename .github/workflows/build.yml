@@ -27,4 +27,7 @@ jobs:
       uses: actions/upload-artifact@main
       with:
         name: MG
-        path: build/*.so
+        path: |
+              build/*.so
+              **/libglslang.a
+        
