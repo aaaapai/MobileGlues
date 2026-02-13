@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 project("mobileglues")
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -24,59 +24,13 @@ set(SPIRV_CROSS_CLI            OFF CACHE BOOL "Disable CLI binary" FORCE)
 set(SPIRV_CROSS_STATIC         ON  CACHE BOOL "Prefer static libs" FORCE)
 set(SPIRV_CROSS_ENABLE_UTIL    OFF CACHE BOOL "Disable util" FORCE)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -flto -mllvm -polly-run-inliner -mllvm -polly-run-dce -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -march=armv8-a+simd -fvisibility=hidden -Wall -Wextra -ferror-limit=0 -Wno-return-type -Wno-unused-parameter -Wno-c++98-compat -Wno-c++98-compat-pedantic -DGLM_FORCE_INTRINSICS -Wno-unicode-whitespace -Wno-format -Wno-unused-function -DUseFastSTL -DUseJEMALLOC -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -flto -mllvm -polly-run-inliner -mllvm -polly-run-dce -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -march=armv8-a+simd -fvisibility=hidden -Wall -Wextra -ferror-limit=0 -Wno-return-type -Wno-unused-parameter -Wno-c++98-compat -Wno-c++98-compat-pedantic -DGLM_FORCE_INTRINSICS -stdlib=libc++ -Wno-unicode-whitespace -Wno-format -Wno-unused-function -Wno-vla-cxx-extension -DUseFastSTL -frtti -DUseJEMALLOC -pthread")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -flto -O3 -Wl,-plugin-opt=-emulated-tls=0 -Wl,--strip-all -fvisibility=hidden -Wl,-O3 -Wl,--gc-sections -Wl,--as-needed -static-libstdc++")
+
+
 add_subdirectory(3rdparty/glslang)
 add_subdirectory(3rdparty/SPIRV-Cross)
-
-if(MACOS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -fvisibility=default -funwind-tables -g -D_THREAD_SAFE -fPIC -stdlib=libc++")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -g -std=gnu99 -funwind-tables -fvisibility=hidden")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -fvisibility=hidden -funwind-tables -g -D_THREAD_SAFE -fPIC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -g -std=gnu99 -funwind-tables -fvisibility=hidden")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
-    set(CMAKE_ANDROID_STL_TYPE c++_static)
-endif()
-
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # Check if ThinLTO or LTO is suppported
-    include(CheckIPOSupported)
-    include(CheckCCompilerFlag)
-    include(CheckCXXCompilerFlag)
-
-    check_ipo_supported(RESULT LTOSupported OUTPUT LTOError)
-
-    check_c_compiler_flag("-flto" HAS_LTO_C)
-    check_cxx_compiler_flag("-flto" HAS_LTO_CXX)
-
-    if (LTOSupported OR (HAS_LTO_C AND HAS_LTO_CXX))
-    # Check ThinLTO
-    check_c_compiler_flag("-flto=thin" HAS_THINLTO_C)
-    check_cxx_compiler_flag("-flto=thin" HAS_THINLTO_CXX)
-    if (HAS_THINLTO_C AND HAS_THINLTO_CXX)
-        message(STATUS "ThinLTO supported, using -flto=thin")
-
-        add_compile_options(-flto=thin)
-        add_link_options(-flto=thin)
-    else()
-        # ThinLTO is not supported
-        message(STATUS "ThinLTO not available, fallback to CMAKE IPO")
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-    endif()
-    else()
-    message(STATUS "IPO not supported: ${LTOError}")
-    endif()
-endif()
-
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT MATCHES "AppleClang")
-    add_compile_options(-O3 -ffunction-sections -fdata-sections)
-    add_link_options(-Wl,--gc-sections)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-#    add_compile_options(/O2)
-else ()
-    add_compile_options(-O2)
-endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     add_compile_options(/Zc:preprocessor)
