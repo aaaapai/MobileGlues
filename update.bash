@@ -6,10 +6,10 @@ git config --global user.email "actions@github.com"
 
 # 只初始化 3rdparty 下的子模块
 echo "初始化 3rdparty 子模块..."
-git submodule update --init 3rdparty/*
+git submodule update --init MobileGlues-cpp/3rdparty/*
 
 # 进入 3rdparty 目录更新子模块
-cd 3rdparty
+cd MobileGlues-cpp/3rdparty
 for dir in */; do
     if [ -d "$dir/.git" ]; then
         echo "更新子模块: $dir"
