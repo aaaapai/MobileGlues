@@ -29,5 +29,3 @@ jobs:
         name: MG
         path: |
               build/*.so
-              **/libglslang.a
-        
