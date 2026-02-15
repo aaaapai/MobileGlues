@@ -78,7 +78,15 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ./includes
     ./3rdparty/glm
-    ./3rdparty/xxhash)
+    ./3rdparty/xxhash
+    ./3rdparty 
+    ./3rdparty/glslang
+    ./3rdparty/glslang/Include
+    ./3rdparty/glslang/SPIRV
+    ./3rdparty/glslang/Public
+    ./3rdparty/glslang/MachineIndependent
+)
+
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
