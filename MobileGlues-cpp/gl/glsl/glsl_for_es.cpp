@@ -1591,6 +1591,97 @@ void mg_subgroupMemoryBarrier() {
     glsl.insert(insertPos, "\n" + subgroup_clusteredImpl + "\n");
 }
 
+static inline void inject_int64_support(std::string& glsl) {
+    // 检测是否需要模拟该扩展
+    bool needs_int64 = (glsl.find("uint64_t") != std::string::npos ||
+                        glsl.find("int64_t")  != std::string::npos ||
+                        glsl.find("GL_ARB_gpu_shader_int64") != std::string::npos);
+    if (!needs_int64) return;
+
+    // 已注入过的标记（避免重复）
+    const std::regex marker(R"(struct\s+uint64_t_mg\s*\{)", std::regex::ECMAScript);
+    if (std::regex_search(glsl, marker)) return;
+
+    // 注释掉原扩展启用指令
+    replace_all(glsl, "#extension GL_ARB_gpu_shader_int64", "// #extension GL_ARB_gpu_shader_int64");
+
+    // 插入模拟定义（位于所有 #extension 之后，第一个非预处理器行之前）
+    const std::string int64_impl = R"(
+// ---------- GL_ARB_gpu_shader_int64 simulation (limited) ----------
+struct uint64_t_mg {
+    uint lo; // low 32 bits
+    uint hi; // high 32 bits
+};
+
+struct int64_t_mg {
+    int lo;
+    int hi;
+};
+
+// Construction from 32-bit values
+uint64_t_mg mg_uint64(uint lo, uint hi) {
+    uint64_t_mg v;
+    v.lo = lo;
+    v.hi = hi;
+    return v;
+}
+
+int64_t_mg mg_int64(int lo, int hi) {
+    int64_t_mg v;
+    v.lo = lo;
+    v.hi = hi;
+    return v;
+}
+
+// Addition (ignoring overflow beyond 64 bits)
+uint64_t_mg mg_add_uint64(uint64_t_mg a, uint64_t_mg b) {
+    uint64_t_mg r;
+    r.lo = a.lo + b.lo;
+    r.hi = a.hi + b.hi;
+    if (r.lo < a.lo) r.hi += 1u; // carry from lo to hi
+    return r;
+}
+
+int64_t_mg mg_add_int64(int64_t_mg a, int64_t_mg b) {
+    // Similar carry handling for signed (care needed, but simplified)
+    uint64_t_mg ua = mg_uint64(uint(a.lo), uint(a.hi));
+    uint64_t_mg ub = mg_uint64(uint(b.lo), uint(b.hi));
+    uint64_t_mg ur = mg_add_uint64(ua, ub);
+    int64_t_mg r;
+    r.lo = int(ur.lo);
+    r.hi = int(ur.hi);
+    return r;
+}
+
+// Equality comparison
+bool mg_equal_uint64(uint64_t_mg a, uint64_t_mg b) {
+    return (a.lo == b.lo) && (a.hi == b.hi);
+}
+
+bool mg_equal_int64(int64_t_mg a, int64_t_mg b) {
+    return (a.lo == b.lo) && (a.hi == b.hi);
+}
+
+// Bitwise operations (example)
+uint64_t_mg mg_and_uint64(uint64_t_mg a, uint64_t_mg b) {
+    uint64_t_mg r;
+    r.lo = a.lo & b.lo;
+    r.hi = a.hi & b.hi;
+    return r;
+}
+
+// ... 可根据需要扩展更多操作（减法、移位、比较等）
+// -----------------------------------------------------------------
+)";
+
+    size_t insertPos = find_insertion_point(glsl);
+    glsl.insert(insertPos, int64_impl);
+
+    // 简单替换类型名（将 uint64_t 替换为 uint64_t_mg，int64_t 替换为 int64_t_mg）
+    replace_all(glsl, "uint64_t", "uint64_t_mg");
+    replace_all(glsl, "int64_t", "int64_t_mg");
+}
+
 static inline void inject_shaderDrawParameters(std::string& glsl) {
     const std::regex defRegex(R"(#extension GL_ARB_shader_draw_parameters : enable)", std::regex::ECMAScript);
 
@@ -1709,6 +1800,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
+	inject_int64_support(ret);
     inject_subgroup_BigGiftPackage(ret);
 	inject_subgroup_clustered(ret);
     // inject_gl_DepthRange(ret); please use angle...
