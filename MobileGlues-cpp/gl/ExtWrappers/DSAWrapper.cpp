@@ -357,17 +357,17 @@ GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
             LOG_D("[DSA] glMapBufferRange failed, trying glMapBufferOES");
             
             // 转换 access flags 为 OES 的读写模式
-            GLenum accessOES = GL_WRITE_ONLY_OES;  // 默认
+            GLenum accessOES = GL_WRITE_ONLY;  // 默认
             if ((originalAccess & GL_MAP_READ_BIT) && (originalAccess & GL_MAP_WRITE_BIT)) {
-                accessOES = GL_READ_WRITE_OES;
+                accessOES = GL_READ_WRITE;
             } else if (originalAccess & GL_MAP_READ_BIT) {
-                accessOES = GL_READ_ONLY_OES;
+                accessOES = GL_READ_ONLY;
             } else if (originalAccess & GL_MAP_WRITE_BIT) {
-                accessOES = GL_WRITE_ONLY_OES;
+                accessOES = GL_WRITE_ONLY;
             }
             
             // OES_mapbuffer 映射整个 buffer，我们需要手动处理 offset
-            void* fullBuffer = glMapBufferOES(target, accessOES);
+            void* fullBuffer = GLES.glMapBufferOES(target, accessOES);
             if (fullBuffer) {
                 mappedData = (GLvoid*)((GLubyte*)fullBuffer + offset);
                 LOG_D("[DSA] Mapped with OES_mapbuffer, offset adjusted");
