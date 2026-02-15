@@ -246,6 +246,10 @@ void glMemoryBarrier(GLbitfield barriers) {
     CHECK_GL_ERROR
 }
 
+void glTextureBarrier(void) {
+    glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+}
+
 void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex) {
     LOG()
     LOG_D("glDrawElementsBaseVertex, mode: %d, count: %d, type: %d, indices: %p, basevertex: %d", mode, count, type,
