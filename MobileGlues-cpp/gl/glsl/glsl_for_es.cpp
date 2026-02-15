@@ -1650,20 +1650,34 @@ mg_u64 mg_and_u64(mg_u64 a, mg_u64 b) { return mg_u64(a.x & b.x, a.y & b.y); }
     glsl.insert(insertPos, int64_impl);
 
     // ---------- 处理简单字面量赋值 ----------
-    // 匹配形如： uint64_t var = 1234;  或  uint64_t var = 1234u;
-    // 将其替换为： mg_u64 var = U64(1234);
+    // 手动遍历并替换形如： uint64_t var = 1234; 或 uint64_t var = 1234u;
     std::regex decl_assign(R"(\b(uint64_t|int64_t)\s+(\w+)\s*=\s*(\d+)(u?)\s*;)");
-    glsl = std::regex_replace(glsl, decl_assign, [](const std::smatch& m) {
-        std::string type = m[1].str();
-        std::string var = m[2].str();
-        std::string num = m[3].str();
-        bool is_unsigned = (m[4].str() == "u");
+    std::string result;
+    size_t last_pos = 0;
+    
+    auto begin = std::sregex_iterator(glsl.begin(), glsl.end(), decl_assign);
+    auto end = std::sregex_iterator();
+    
+    for (auto it = begin; it != end; ++it) {
+        const auto& match = *it;
+        result.append(glsl, last_pos, match.position() - last_pos);
+        
+        std::string type = match[1].str();
+        std::string var = match[2].str();
+        std::string num = match[3].str();
+        bool is_unsigned = (match[4].str() == "u");
+        
         if (type == "uint64_t") {
-            return "mg_u64 " + var + " = U64(" + num + ");";
+            result += "mg_u64 " + var + " = U64(" + num + ");";
         } else {
-            return "mg_i64 " + var + " = I64(" + num + ");";
+            result += "mg_i64 " + var + " = I64(" + num + ");";
         }
-    });
+        
+        last_pos = match.position() + match.length();
+    }
+    
+    result.append(glsl, last_pos, glsl.length() - last_pos);
+    glsl = result;
 
     // 替换所有剩余的类型名（确保只替换用户代码中的，不替换注入代码内的）
     // 注意：我们必须使用正则，并限制匹配不包含 "mg_" 前缀的单词边界
