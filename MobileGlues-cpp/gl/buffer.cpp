@@ -314,6 +314,16 @@ void InitVertexArrayMap(size_t expectedSize) {
     g_element_array_buffer_per_vao.resize(1, 0);
 }
 
+// 在文件开头添加
+static GLenum convert_flags_to_usage(GLbitfield flags) {
+    // 将 GLbufferStorage 标志转换为传统的 GLbufferData usage
+    if (flags & GL_DYNAMIC_STORAGE_BIT)
+        return GL_DYNAMIC_DRAW;
+    if (flags & GL_MAP_WRITE_BIT)
+        return GL_STREAM_DRAW;
+    return GL_STATIC_DRAW;
+}
+
 void glGenBuffers(GLsizei n, GLuint* buffers) {
     LOG()
     LOG_D("glGenBuffers(%i, %p)", n, buffers)
@@ -375,7 +385,7 @@ struct atomic_buffer {
 static std::vector<atomic_buffer> g_buffer_map_atomic_buffer_info;
 static std::vector<GLuint> g_buffer_map_ssbo_id; // shall we use this in the future?
 
-void bindAllAtomicCounterAsSSBO() {
+/*void bindAllAtomicCounterAsSSBO() {
     const size_t count = g_buffer_map_atomic_buffer_info.size();
     for (size_t i = 0; i < count; ++i) {
         atomic_buffer buf = g_buffer_map_atomic_buffer_info[i];
@@ -383,6 +393,70 @@ void bindAllAtomicCounterAsSSBO() {
             GLuint realID = find_real_buffer(buf.id);
             GLES.glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, realID, buf.offset, buf.size);
             LOG_D("Bound atomic counter buffer %u(real: %u) as SSBO at index %zu", buf, realID, i);
+        }
+    }
+}*/
+
+// 改进原子计数器到 SSBO 的映射
+void bindAllAtomicCounterAsSSBO() {
+    const size_t count = g_buffer_map_atomic_buffer_info.size();
+    if (count == 0) return;
+    
+    // 动态获取 SSBO 限制值
+    GLint max_ssbo_bindings = 0;
+    GLint max_ssbo_block_size = 0;
+    
+    // 获取最大 SSBO 绑定点数
+    GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_ssbo_bindings);
+    if (glGetError() != GL_NO_ERROR) {
+        // 如果不支持，使用保守的默认值
+        max_ssbo_bindings = 8; // ES 3.2 最小保证值
+        LOG_W("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS not supported, using default %d", max_ssbo_bindings);
+    }
+    
+    // 获取最大 SSBO 块大小
+    GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_block_size);
+    if (glGetError() != GL_NO_ERROR) {
+        // 如果不支持，使用保守的默认值
+        max_ssbo_block_size = 16 * 1024 * 1024; // 16MB，ES 3.2 最小保证值
+        LOG_W("GL_MAX_SHADER_STORAGE_BLOCK_SIZE not supported, using default %d", max_ssbo_block_size);
+    }
+    
+    LOG_D("SSBO limits - bindings: %d, block size: %d bytes", max_ssbo_bindings, max_ssbo_block_size);
+    
+    for (size_t i = 0; i < count; ++i) {
+        atomic_buffer buf = g_buffer_map_atomic_buffer_info[i];
+        if (buf.id != 0) {
+            GLuint realID = find_real_buffer(buf.id);
+            if (!realID) {
+                LOG_W("Atomic counter buffer %u has no real buffer", buf.id);
+                continue;
+            }
+            
+            // 检查 SSBO 绑定索引是否超出限制
+            if (i >= (size_t)max_ssbo_bindings) {
+                LOG_W("Atomic counter index %zu exceeds SSBO bindings limit %d", 
+                      i, max_ssbo_bindings);
+                continue;
+            }
+            
+            // 检查块大小是否超出限制
+            if (buf.size > max_ssbo_block_size) {
+                LOG_W("Atomic buffer size %lld exceeds SSBO block size limit %d",
+                      (long long)buf.size, max_ssbo_block_size);
+                // 可以选择截断或继续但警告
+            }
+            
+            GLES.glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, realID, buf.offset, buf.size);
+            
+            // 检查绑定是否成功
+            GLenum err = glGetError();
+            if (err != GL_NO_ERROR) {
+                LOG_E("Failed to bind atomic counter %zu as SSBO: 0x%x", i, err);
+            } else {
+                LOG_D("Bound atomic counter buffer %u(real: %u) as SSBO at index %zu", 
+                      buf.id, realID, i);
+            }
         }
     }
 }
@@ -772,14 +846,19 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
+    
     if (GLES.glBufferStorageEXT) {
-        if (global_settings.buffer_coherent_as_flush &&
-            ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0))
-            flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
-        GLES.glBufferStorageEXT(target, size, data, flags);
-    }
+        GLbitfield es_supported_flags = flags & (GL_DYNAMIC_STORAGE_BIT | 
+                                                 GL_MAP_READ_BIT | 
+                                                 GL_MAP_WRITE_BIT | 
+                                                 GL_MAP_PERSISTENT_BIT_EXT |  // 需要扩展
+                                                 GL_MAP_COHERENT_BIT_EXT);    // 需要扩展
+        
+            GLES.glBufferStorageEXT(target, size, data, es_supported_flags);
+        }
     CHECK_GL_ERROR
 }
+
 
 void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) {
     LOG()
