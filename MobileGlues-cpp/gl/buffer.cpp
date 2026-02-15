@@ -827,6 +827,11 @@ extern "C"
     GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags)
         __attribute__((alias("glBufferStorage")));
     GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+    
+    /* 添加的 ARB 缓冲区函数别名 */
+    GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint* buffers) __attribute__((alias("glGenBuffers")));
+    GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer) __attribute__((alias("glIsBuffer")));
+    GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint* buffers) __attribute__((alias("glDeleteBuffers")));
 }
 #endif
 
