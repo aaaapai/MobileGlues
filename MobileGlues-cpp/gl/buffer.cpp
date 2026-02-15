@@ -11,6 +11,9 @@
 
 #define DEBUG 0
 
+#define GL_MAP_PERSISTENT_BIT_EXT 0x0040
+#define GL_MAP_COHERENT_BIT_EXT 0x0080
+
 static void depth_to_format(float depth, GLenum internalformat, GLubyte* output);
 static GLhalf floatToHalf(float f);
 static void convert_components_to_internal_format(const float* components, int count, GLenum internalformat, GLubyte* output);
