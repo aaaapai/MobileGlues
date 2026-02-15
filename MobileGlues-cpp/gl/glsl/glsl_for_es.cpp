@@ -1592,94 +1592,83 @@ void mg_subgroupMemoryBarrier() {
 }
 
 static inline void inject_int64_support(std::string& glsl) {
-    // 检测是否需要模拟该扩展
+    // 检测是否需要模拟
     bool needs_int64 = (glsl.find("uint64_t") != std::string::npos ||
                         glsl.find("int64_t")  != std::string::npos ||
                         glsl.find("GL_ARB_gpu_shader_int64") != std::string::npos);
     if (!needs_int64) return;
 
-    // 已注入过的标记（避免重复）
-    const std::regex marker(R"(struct\s+uint64_t_mg\s*\{)", std::regex::ECMAScript);
-    if (std::regex_search(glsl, marker)) return;
+    // 已注入标记（检查是否存在我们的类型定义）
+    if (glsl.find("mg_u64") != std::string::npos) return;
 
     // 注释掉原扩展启用指令
     replace_all(glsl, "#extension GL_ARB_gpu_shader_int64", "// #extension GL_ARB_gpu_shader_int64");
 
-    // 插入模拟定义（位于所有 #extension 之后，第一个非预处理器行之前）
+    // 注入模拟代码（使用 uvec2 表示 64 位无符号整数，ivec2 表示有符号）
     const std::string int64_impl = R"(
-// ---------- GL_ARB_gpu_shader_int64 simulation (limited) ----------
-struct uint64_t_mg {
-    uint lo; // low 32 bits
-    uint hi; // high 32 bits
-};
+// ---------- GL_ARB_gpu_shader_int64 simulation (using uvec2/ivec2) ----------
+#define mg_u64 uvec2
+#define mg_i64 ivec2
 
-struct int64_t_mg {
-    int lo;
-    int hi;
-};
+// Constructors for 64-bit values from 32-bit low/high parts
+mg_u64 mg_uint64(uint lo, uint hi) { return mg_u64(lo, hi); }
+mg_i64 mg_int64(int lo, int hi)     { return mg_i64(lo, hi); }
 
-// Construction from 32-bit values
-uint64_t_mg mg_uint64(uint lo, uint hi) {
-    uint64_t_mg v;
-    v.lo = lo;
-    v.hi = hi;
-    return v;
+// Construct from a 32-bit literal (low part only, high part = 0)
+// Usage: mg_u64 a = mg_u64(1234u);
+// But we also provide a macro for convenience: U64(x) -> mg_uint64(x, 0u)
+#define U64(x) mg_uint64(uint(x), 0u)
+#define I64(x) mg_int64(int(x), 0)
+
+// Addition (carry handled)
+mg_u64 mg_add_u64(mg_u64 a, mg_u64 b) {
+    uint lo = a.x + b.x;
+    uint hi = a.y + b.y;
+    if (lo < a.x) hi += 1u;
+    return mg_u64(lo, hi);
 }
 
-int64_t_mg mg_int64(int lo, int hi) {
-    int64_t_mg v;
-    v.lo = lo;
-    v.hi = hi;
-    return v;
+mg_i64 mg_add_i64(mg_i64 a, mg_i64 b) {
+    // 对于有符号，先按无符号处理再转换（简化，忽略符号扩展问题）
+    mg_u64 ua = mg_u64(uint(a.x), uint(a.y));
+    mg_u64 ub = mg_u64(uint(b.x), uint(b.y));
+    mg_u64 ur = mg_add_u64(ua, ub);
+    return mg_i64(int(ur.x), int(ur.y));
 }
 
-// Addition (ignoring overflow beyond 64 bits)
-uint64_t_mg mg_add_uint64(uint64_t_mg a, uint64_t_mg b) {
-    uint64_t_mg r;
-    r.lo = a.lo + b.lo;
-    r.hi = a.hi + b.hi;
-    if (r.lo < a.lo) r.hi += 1u; // carry from lo to hi
-    return r;
-}
+// Equality
+bool mg_eq_u64(mg_u64 a, mg_u64 b) { return a.x == b.x && a.y == b.y; }
+bool mg_eq_i64(mg_i64 a, mg_i64 b) { return a.x == b.x && a.y == b.y; }
 
-int64_t_mg mg_add_int64(int64_t_mg a, int64_t_mg b) {
-    // Similar carry handling for signed (care needed, but simplified)
-    uint64_t_mg ua = mg_uint64(uint(a.lo), uint(a.hi));
-    uint64_t_mg ub = mg_uint64(uint(b.lo), uint(b.hi));
-    uint64_t_mg ur = mg_add_uint64(ua, ub);
-    int64_t_mg r;
-    r.lo = int(ur.lo);
-    r.hi = int(ur.hi);
-    return r;
-}
-
-// Equality comparison
-bool mg_equal_uint64(uint64_t_mg a, uint64_t_mg b) {
-    return (a.lo == b.lo) && (a.hi == b.hi);
-}
-
-bool mg_equal_int64(int64_t_mg a, int64_t_mg b) {
-    return (a.lo == b.lo) && (a.hi == b.hi);
-}
-
-// Bitwise operations (example)
-uint64_t_mg mg_and_uint64(uint64_t_mg a, uint64_t_mg b) {
-    uint64_t_mg r;
-    r.lo = a.lo & b.lo;
-    r.hi = a.hi & b.hi;
-    return r;
-}
-
-// ... 可根据需要扩展更多操作（减法、移位、比较等）
-// -----------------------------------------------------------------
+// Bitwise AND
+mg_u64 mg_and_u64(mg_u64 a, mg_u64 b) { return mg_u64(a.x & b.x, a.y & b.y); }
+// ... 可根据需要扩展其他操作
+// ---------------------------------------------------------------------------
 )";
 
     size_t insertPos = find_insertion_point(glsl);
     glsl.insert(insertPos, int64_impl);
 
-    // 简单替换类型名（将 uint64_t 替换为 uint64_t_mg，int64_t 替换为 int64_t_mg）
-    replace_all(glsl, "uint64_t", "uint64_t_mg");
-    replace_all(glsl, "int64_t", "int64_t_mg");
+    // ---------- 处理简单字面量赋值 ----------
+    // 匹配形如： uint64_t var = 1234;  或  uint64_t var = 1234u;
+    // 将其替换为： mg_u64 var = U64(1234);
+    std::regex decl_assign(R"(\b(uint64_t|int64_t)\s+(\w+)\s*=\s*(\d+)(u?)\s*;)");
+    glsl = std::regex_replace(glsl, decl_assign, [](const std::smatch& m) {
+        std::string type = m[1].str();
+        std::string var = m[2].str();
+        std::string num = m[3].str();
+        bool is_unsigned = (m[4].str() == "u");
+        if (type == "uint64_t") {
+            return "mg_u64 " + var + " = U64(" + num + ");";
+        } else {
+            return "mg_i64 " + var + " = I64(" + num + ");";
+        }
+    });
+
+    // 替换所有剩余的类型名（确保只替换用户代码中的，不替换注入代码内的）
+    // 注意：我们必须使用正则，并限制匹配不包含 "mg_" 前缀的单词边界
+    glsl = std::regex_replace(glsl, std::regex(R"(\buint64_t\b)"), "mg_u64");
+    glsl = std::regex_replace(glsl, std::regex(R"(\bint64_t\b)"), "mg_i64");
 }
 
 static inline void inject_shaderDrawParameters(std::string& glsl) {
