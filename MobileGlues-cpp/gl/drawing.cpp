@@ -146,7 +146,25 @@ void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_grou
     CHECK_GL_ERROR
 }
 
-void glMemoryBarrier(GLbitfield barriers) {
+GLbitfield glGetSupportedMemoryBarrierBits() {
+    GLbitfield supported = 0;
+    supported |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+    supported |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+    supported |= GL_UNIFORM_BARRIER_BIT;
+    supported |= GL_TEXTURE_FETCH_BARRIER_BIT;
+    supported |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+    supported |= GL_COMMAND_BARRIER_BIT;
+    supported |= GL_PIXEL_BUFFER_BARRIER_BIT;
+    supported |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+    supported |= GL_BUFFER_UPDATE_BARRIER_BIT;
+    supported |= GL_FRAMEBUFFER_BARRIER_BIT;
+    supported |= GL_TRANSFORM_FEEDBACK_BARRIER_BIT;
+    supported |= GL_ATOMIC_COUNTER_BARRIER_BIT;
+    supported |= GL_SHADER_STORAGE_BARRIER_BIT;
+    
+    return supported;
+}
+/*void glMemoryBarrier(GLbitfield barriers) {
     LOG()
     LOG_D("glMemoryBarrier, barriers: %d", barriers)
     if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
@@ -154,6 +172,77 @@ void glMemoryBarrier(GLbitfield barriers) {
         barriers |= GL_SHADER_STORAGE_BARRIER_BIT;
     }
     GLES.glMemoryBarrier(barriers);
+    CHECK_GL_ERROR
+}*/
+void glMemoryBarrier(GLbitfield barriers) {
+    LOG()
+    LOG_D("glMemoryBarrier, barriers: 0x%x", barriers)
+
+    // OpenGL ES 3.2 支持的 barrier bits
+    const GLbitfield ES_SUPPORTED_BARRIERS = 
+        GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT |
+        GL_ELEMENT_ARRAY_BARRIER_BIT |
+        GL_UNIFORM_BARRIER_BIT |
+        GL_TEXTURE_FETCH_BARRIER_BIT |
+        GL_SHADER_IMAGE_ACCESS_BARRIER_BIT |
+        GL_COMMAND_BARRIER_BIT |
+        GL_PIXEL_BUFFER_BARRIER_BIT |
+        GL_TEXTURE_UPDATE_BARRIER_BIT |
+        GL_BUFFER_UPDATE_BARRIER_BIT |
+        GL_FRAMEBUFFER_BARRIER_BIT |
+        GL_TRANSFORM_FEEDBACK_BARRIER_BIT |
+        GL_ATOMIC_COUNTER_BARRIER_BIT |
+        GL_SHADER_STORAGE_BARRIER_BIT;
+
+    // 需要过滤或转换的 barrier bits
+    GLbitfield filtered_barriers = barriers & ES_SUPPORTED_BARRIERS;
+    
+    // 记录不支持的 bits
+    GLbitfield unsupported = barriers & ~ES_SUPPORTED_BARRIERS;
+    if (unsupported != 0) {
+        LOG_W("glMemoryBarrier: Unsupported barriers in ES 3.2: 0x%x", unsupported);
+        
+        // 尝试转换一些常见的桌面 GL barrier 到 ES 等效项
+        if (unsupported & GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT) {
+            LOG_D("Converting GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT to GL_BUFFER_UPDATE_BARRIER_BIT");
+            filtered_barriers |= GL_BUFFER_UPDATE_BARRIER_BIT;
+        }
+        
+        // GL_QUERY_BUFFER_BARRIER_BIT 没有直接等效项，可能需要完全同步
+        if (unsupported & GL_QUERY_BUFFER_BARRIER_BIT) {
+            LOG_D("GL_QUERY_BUFFER_BARRIER_BIT not supported, forcing full barrier");
+            // 在某些情况下，可能需要更保守的同步
+            filtered_barriers |= (GL_TEXTURE_UPDATE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+        }
+    }
+
+    // 处理原子计数器模拟
+    if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
+        LOG_D("Atomic counter emulation active, adding ATOMIC_COUNTER and SHADER_STORAGE barriers");
+        filtered_barriers |= GL_ATOMIC_COUNTER_BARRIER_BIT;
+        filtered_barriers |= GL_SHADER_STORAGE_BARRIER_BIT;
+    }
+
+    // 如果过滤后没有 barriers，可能需要一个完整的屏障
+    if (filtered_barriers == 0 && barriers != 0) {
+        LOG_W("glMemoryBarrier: All barriers filtered out, using full barrier");
+        // 在某些实现中，可以使用 glFinish() 作为最后手段
+        GLES.glFinish();
+        return;
+    }
+
+    GLES.glMemoryBarrier(filtered_barriers);
+    
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        LOG_E("glMemoryBarrier failed with error: 0x%x, barriers: 0x%x", err, filtered_barriers);
+        
+        LOG_W("Falling back to glFinish()");
+        GLES.glFinish();
+    } else {
+        LOG_D("glMemoryBarrier succeeded with barriers: 0x%x", filtered_barriers);
+    }
+    
     CHECK_GL_ERROR
 }
 
