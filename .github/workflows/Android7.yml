@@ -21,13 +21,13 @@ jobs:
          submodules: true
 
     - name: Setup Android NDK modified(export NDK_HOME)
-      uses: HoshinoSuzumi/setup-ndk@v1.5.4
+      uses: HoshinoSuzumi/setup-ndk@main
       with:
         ndk-version: r26d
       
     - name: Configure CMake and Build
       env:
-        ANDROID_NDK_LATEST_HOME: /home/runner/.setup-ndk/r26d/x64
+        ANDROID_NDK_LATEST_HOME: /opt/hostedtoolcache/ndk/r26d/x64
       run: |
            bash android_ci_build.bash
 
