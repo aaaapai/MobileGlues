@@ -27,7 +27,10 @@ jobs:
         local-cache: true # optional, default is false
           
     - name: Configure CMake and Build
-      run: bash android_ci_build.bash
+      env:
+        ANDROID_NDK_LATEST_HOME: ${{steps.setup-ndk.outputs.ndk-path}}
+      run: |
+           bash android_ci_build.bash
 
     - name: Upload build output
       uses: actions/upload-artifact@main
