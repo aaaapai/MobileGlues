@@ -28,7 +28,7 @@ jobs:
           
     - name: Configure CMake and Build
       env:
-        ANDROID_NDK_LATEST_HOME: ${{steps.setup-ndk.outputs.ndk-path}}
+        ANDROID_NDK_LATEST_HOME: /home/runner/.setup-ndk/r26d
       run: |
            bash android_ci_build.bash
 
