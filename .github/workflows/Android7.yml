@@ -24,7 +24,7 @@ jobs:
       uses: HoshinoSuzumi/setup-ndk@v1.5.4
       with:
         ndk-version: r26d
-        local-cache: true # optional, default is false
+        local-cache: false # optional, default is false
           
     - name: Configure CMake and Build
       env:
