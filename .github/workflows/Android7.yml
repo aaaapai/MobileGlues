@@ -24,11 +24,10 @@ jobs:
       uses: HoshinoSuzumi/setup-ndk@v1.5.4
       with:
         ndk-version: r26d
-        local-cache: false # optional, default is false
-          
+      
     - name: Configure CMake and Build
       env:
-        ANDROID_NDK_LATEST_HOME: /home/runner/.setup-ndk/r26d
+        ANDROID_NDK_LATEST_HOME: /home/runner/.setup-ndk/r26d/x64
       run: |
            bash android_ci_build.bash
 
