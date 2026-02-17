@@ -2,7 +2,8 @@
 # set -e
 
 # git clone --depth 1 https://github.com/stbrumme/xxhash.git src/main/cpp/3rdparty/xxhash
-git clone --depth 1 https://github.com/aaaapai/FastSTL.git src/main/cpp/include/FastSTL
+rm -rf MobileGlues-cpp/include/FastSTL
+git clone --depth 1 https://github.com/aaaapai/FastSTL.git MobileGlues-cpp/include/FastSTL
 cmake_build () {
   ANDROID_ABI=$1
   mkdir -p build
