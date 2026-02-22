@@ -1803,6 +1803,15 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
+	// remove "noperspective"
+    const char* str_np = "noperspective";
+    const std::size_t len_np = strlen(str_np);
+    std::size_t noperspectivePos = ret.find(str_np);
+    while (noperspectivePos != std::string::npos) {
+                    // + length of "\n"
+                    ret = ret.replace(noperspectivePos, len_np, "");
+                    noperspectivePos = ret.find(str_np);
+	}
 	inject_int64_support(ret);
     inject_subgroup_BigGiftPackage(ret);
 	inject_subgroup_clustered(ret);
@@ -1899,7 +1908,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, false, true, messages)) {
+    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, true, true, messages)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
