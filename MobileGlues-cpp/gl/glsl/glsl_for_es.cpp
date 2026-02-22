@@ -1828,12 +1828,12 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
 int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
-        glsl_version = 460;
-        glsl.insert(0, "#version 460 compatiblity\n");
-    } else if (glsl_version < 460) {
+        glsl_version = 330;
+        glsl.insert(0, "#version 330 compatiblity\n");
+    } else if (glsl_version < 330) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 460 compatibility\n");
-        glsl_version = 460;
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330 compatibility\n");
+        glsl_version = 330;
     }
 
     LOG_D("GLSL version: %d", glsl_version)
@@ -1871,8 +1871,29 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     glslang::TShader shader(shader_language);
     shader.setStrings(shader_src, 1);
 
+    EShMessages messages = static_cast<EShMessages>(
+        EShMsgDefault |
+        EShMsgRelaxedErrors
+    );
+                
+    std::string preamble = 
+        "#extension GL_ARB_separate_shader_objects : enable\n"
+        "#extension GL_ARB_shading_language_420pack : enable\n"
+        "#extension GL_ARB_explicit_attrib_location : enable\n"
+        "#extension GL_ARB_shader_texture_image_samples : enable\n"
+        "#extension GL_ARB_gpu_shader5 : enable\n"
+        "#extension GL_ARB_texture_cube_map_array : enable\n"
+        "#extension GL_ARB_shader_storage_buffer_object : enable\n"
+        "#extension GL_ARB_shader_image_load_store : enable\n"
+        "#extension GL_ARB_arrays_of_arrays : enable\n"
+        "#extension GL_ARB_enhanced_layouts : enable\n"
+        "#extension GL_ARB_fragment_coord_conventions : enable\n"
+	    "#extension GL_ARB_compatibility : enable";
+
     using namespace glslang;
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
+
+	shader.setPreamble(preamble.c_str());
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
@@ -1880,7 +1901,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
+    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, true, true, messages)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
@@ -1931,7 +1952,8 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, shader_type == GL_COMPUTE_SHADER ? 310 : essl_version);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-    //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
+	spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
 
