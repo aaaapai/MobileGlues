@@ -1885,10 +1885,8 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
         "#extension GL_ARB_texture_cube_map_array : enable\n"
         "#extension GL_ARB_shader_storage_buffer_object : enable\n"
         "#extension GL_ARB_shader_image_load_store : enable\n"
-        "#extension GL_ARB_arrays_of_arrays : enable\n"
         "#extension GL_ARB_enhanced_layouts : enable\n"
-        "#extension GL_ARB_fragment_coord_conventions : enable\n"
-	    "#extension GL_ARB_compatibility : enable";
+        "#extension GL_ARB_fragment_coord_conventions : enable\n";
 
     using namespace glslang;
 
@@ -1901,7 +1899,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, true, true, messages)) {
+    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, false, true, messages)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
