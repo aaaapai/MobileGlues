@@ -118,24 +118,8 @@ void glClear(GLbitfield mask) {
     LOG();
     LOG_D("glClear, mask = 0x%x", mask);
 
-    INIT_CHECK_GL_ERROR
-    CHECK_GL_ERROR_NO_INIT
+    GLES.glClear(mask);
 
-    if (global_settings.angle == AngleMode::Enabled && 
-        mask == GL_DEPTH_BUFFER_BIT &&
-        std::fabs(currentDepthValue - 1.0) <= 0.001 && 
-        framebuffers[current_draw_fbo].color_attachments_all_none) {
-        
-        LOG_D("doing depth workaround (Invalidate + ClearBufferfv)");
-        GLenum attachments[] = {GL_DEPTH_ATTACHMENT};
-        GLES.glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, attachments);
-        const GLfloat clear_depth_value = 1.0f;
-        GLES.glClearBufferfv(GL_DEPTH, 0, &clear_depth_value);
-    } else {
-        GLES.glClear(mask);
-    }
-
-    CHECK_GL_ERROR_NO_INIT;
 }
 
 void glHint(GLenum target, GLenum mode) {
