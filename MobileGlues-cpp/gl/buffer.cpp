@@ -481,12 +481,6 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offs
         CHECK_GL_ERROR
     }
     GLES.glBindBufferRange(target, index, real_buffer, offset, size);
-    if (target == GL_ATOMIC_COUNTER_BUFFER) {
-        if (g_buffer_map_atomic_buffer_info.empty()) {
-            g_buffer_map_atomic_buffer_info.resize(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, {});
-        }
-        g_buffer_map_atomic_buffer_info[index] = {buffer, size, offset};
-    }
     CHECK_GL_ERROR
 }
 
@@ -506,12 +500,6 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
         CHECK_GL_ERROR
     }
     GLES.glBindBufferBase(target, index, real_buffer);
-    if (target == GL_SHADER_STORAGE_BUFFER) {
-        if (g_buffer_map_ssbo_id.empty()) {
-            g_buffer_map_ssbo_id.resize(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, 0);
-        }
-        g_buffer_map_ssbo_id[index] = buffer;
-    }
     CHECK_GL_ERROR
 }
 
