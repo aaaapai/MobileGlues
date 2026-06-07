@@ -38,14 +38,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 include(FetchContent)
+
 FetchContent_Declare(
     abseil-cpp
     GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_SHALLOW    TRUE                 # --depth 1
+    GIT_SHALLOW    TRUE
 )
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(abseil-cpp)
+FetchContent_GetProperties(abseil-cpp SOURCE_DIR ABSEIL_SOURCE_DIR)
 
 set(PROFILING OFF)
 
@@ -95,6 +97,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ./3rdparty/glslang/SPIRV
     ./3rdparty/glslang/Public
     ./3rdparty/glslang/MachineIndependent
+    ${ABSEIL_SOURCE_DIR}
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
