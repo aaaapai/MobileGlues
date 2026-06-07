@@ -48,6 +48,8 @@ set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ABSL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(abseil-cpp)
 FetchContent_GetProperties(abseil-cpp SOURCE_DIR ABSEIL_SOURCE_DIR)
+get_property(ABSL_TARGETS DIRECTORY ${ABSEIL_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+message(STATUS "Abseil targets: ${ABSL_TARGETS}")
 
 set(PROFILING OFF)
 
@@ -102,34 +104,10 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-set(ABSL_LIBS
-    ${ABSEIL_BINARY_DIR}/absl/container/libabsl_raw_hash_set.a
-    ${ABSEIL_BINARY_DIR}/absl/container/libabsl_hashtablez_sampler.a
-    ${ABSEIL_BINARY_DIR}/absl/synchronization/libabsl_synchronization.a
-    ${ABSEIL_BINARY_DIR}/absl/time/libabsl_time.a
-    ${ABSEIL_BINARY_DIR}/absl/time/libabsl_clock_interface.a
-    ${ABSEIL_BINARY_DIR}/absl/time/libabsl_civil_time.a
-    ${ABSEIL_BINARY_DIR}/absl/strings/libabsl_strings.a
-    ${ABSEIL_BINARY_DIR}/absl/strings/libabsl_strings_internal.a
-    ${ABSEIL_BINARY_DIR}/absl/base/libabsl_base.a
-    ${ABSEIL_BINARY_DIR}/absl/base/libabsl_spinlock_wait.a
-    ${ABSEIL_BINARY_DIR}/absl/base/libabsl_throw_delegate.a
-    ${ABSEIL_BINARY_DIR}/absl/base/libabsl_raw_logging_internal.a
-    ${ABSEIL_BINARY_DIR}/absl/base/libabsl_log_severity.a
-    ${ABSEIL_BINARY_DIR}/absl/debugging/libabsl_stacktrace.a
-    ${ABSEIL_BINARY_DIR}/absl/debugging/libabsl_symbolize.a
-    ${ABSEIL_BINARY_DIR}/absl/debugging/libabsl_debugging_internal.a
-    ${ABSEIL_BINARY_DIR}/absl/debugging/libabsl_demangle_internal.a
-    ${ABSEIL_BINARY_DIR}/absl/numeric/libabsl_int128.a
-    ${ABSEIL_BINARY_DIR}/absl/profiling/libabsl_exponential_biased.a
-    ${ABSEIL_BINARY_DIR}/absl/profiling/libabsl_periodic_sampler.a
-    ${ABSEIL_BINARY_DIR}/absl/profiling/libabsl_scoped_trace.a
-)
-
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     glslang::glslang
     spirv-cross-c
-    ${ABSL_LIBS}
+    absl::flat_hash_map
 )
 
 if(MACOS)
