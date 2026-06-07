@@ -1952,7 +1952,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                     ret = ret.replace(noperspectivePos, len_np, "");
                     noperspectivePos = ret.find(str_np);
 	}
-	inject_int64_support(ret);
+	//inject_int64_support(ret);
     inject_subgroup_BigGiftPackage(ret);
 	inject_subgroup_clustered(ret);
     // inject_gl_DepthRange(ret); please use angle...
@@ -2097,7 +2097,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, shader_type == GL_COMPUTE_SHADER ? 310 : essl_version);
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, essl_version);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
 	spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
