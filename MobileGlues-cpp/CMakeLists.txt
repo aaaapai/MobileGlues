@@ -37,6 +37,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     add_compile_options(/Zc:__cplusplus)
 endif()
 
+include(FetchContent)
+FetchContent_Declare(
+    abseil-cpp
+    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+    GIT_SHALLOW    TRUE                 # --depth 1
+)
+set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(ABSL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(abseil-cpp)
+
 set(PROFILING OFF)
 
 add_library(${CMAKE_PROJECT_NAME} SHARED
@@ -92,6 +102,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/incl
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     glslang::glslang
     spirv-cross-c
+    absl::container
 )
 
 if(MACOS)
