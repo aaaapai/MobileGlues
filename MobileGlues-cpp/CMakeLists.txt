@@ -102,10 +102,12 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
+# 假设你已经有了 ABSEIL_BINARY_DIR
+file(GLOB ABSL_STATIC_LIBS "${ABSEIL_BINARY_DIR}/absl/*/libabsl_*.a")
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     glslang::glslang
     spirv-cross-c
-    absl::container
+    ${ABSL_STATIC_LIBS}
 )
 
 if(MACOS)
