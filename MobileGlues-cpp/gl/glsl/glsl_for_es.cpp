@@ -1685,6 +1685,144 @@ mg_u64 mg_and_u64(mg_u64 a, mg_u64 b) { return mg_u64(a.x & b.x, a.y & b.y); }
     glsl = std::regex_replace(glsl, std::regex(R"(\bint64_t\b)"), "mg_i64");
 }
 
+
+// 查找 #version 后的插入点，若没有则找文件开头
+static size_t find_shader_insertion_point(const std::string& glsl) {
+    std::regex version_regex(R"(#version\s+\d+\s+(es\s+)?\d+\s*\n)", std::regex::ECMAScript);
+    std::smatch match;
+    if (std::regex_search(glsl, match, version_regex)) {
+        return match.position() + match.length();
+    }
+    return 0; // 无版本声明，直接在开头插入
+}
+
+// 检查是否已经注入转换层
+static bool is_1d_wrapper_injected(const std::string& glsl) {
+    // 通过特征函数或宏判断，例如 texture1D 的定义
+    return glsl.find("texture1D(") != std::string::npos ||
+           glsl.find("TEXTURE_1D_WRAPPER_INJECTED") != std::string::npos;
+}
+
+// 检查是否使用了任何 1D 纹理相关标识符
+static bool uses_1d_texture_features(const std::string& glsl) {
+    // 类型名
+    const std::vector<std::string> types = {
+        "sampler1D", "sampler1DShadow", "isampler1D", "usampler1D",
+        "image1D", "iimage1D", "uimage1D"
+    };
+    for (const auto& type : types) {
+        if (glsl.find(type) != std::string::npos) return true;
+    }
+
+    // 函数调用（粗略检测，避免不必要的注入）
+    const std::vector<std::string> funcs = {
+        "texture(", "texelFetch(", "textureLod(", "textureSize(",
+        "imageStore(", "imageLoad(", "imageSize("
+    };
+    for (const auto& func : funcs) {
+        if (glsl.find(func) != std::string::npos) return true;
+    }
+    return false;
+}
+
+// 自动替换 1D 纹理类型和函数调用
+static void replace_1d_texture_usage(std::string& glsl) {
+    // 类型替换 (单词边界)
+    std::vector<std::pair<std::string, std::string>> type_maps = {
+        {"sampler1DShadow", "sampler2DShadow"},
+        {"sampler1D",       "sampler2D"},
+        {"isampler1D",      "isampler2D"},
+        {"usampler1D",      "usampler2D"},
+        {"image1D",         "image2D"},
+        {"iimage1D",        "iimage2D"},
+        {"uimage1D",        "uimage2D"}
+    };
+    for (const auto& [from, to] : type_maps) {
+        std::regex from_regex("\\b" + from + "\\b");
+        glsl = std::regex_replace(glsl, from_regex, to);
+    }
+
+    // 函数调用替换 (注意括号，避免重复替换已转换的)
+    std::vector<std::pair<std::string, std::string>> func_maps = {
+        {"texture\\s*\\(",  "texture1D("},
+        {"texelFetch\\s*\\(", "texelFetch1D("},
+        {"textureLod\\s*\\(", "textureLod1D("},
+        {"textureSize\\s*\\(", "textureSize1D("},
+        {"imageStore\\s*\\(", "imageStore1D("},
+        {"imageLoad\\s*\\(", "imageLoad1D("},
+        {"imageSize\\s*\\(", "imageSize1D("}
+    };
+    for (const auto& [from, to] : func_maps) {
+        std::regex from_regex(from);
+        glsl = std::regex_replace(glsl, from_regex, to);
+    }
+}
+
+// 主函数：自动为 GLSL 代码添加 1D 纹理模拟支持
+static inline void inject_1d_texture_compatibility(std::string& glsl) {
+    // 如果已经注入过，跳过
+    if (is_1d_wrapper_injected(glsl)) return;
+
+    // 如果没有使用任何 1D 纹理特性，跳过
+    if (!uses_1d_texture_features(glsl)) return;
+
+    // 执行类型和函数名的自动替换
+    replace_1d_texture_usage(glsl);
+
+    // 注入转换层代码（定义所有模拟函数）
+    const std::string wrapper_code = R"(
+// ----- Auto-generated 1D texture compatibility layer -----
+// Simulates sampler1D/image1D using height=1 sampler2D/image2D.
+
+// 1. Normalized sampling
+vec4 texture1D(sampler2D tex, float s) { return texture(tex, vec2(s, 0.5)); }
+vec4 texture1D(sampler2D tex, float s, float bias) { return texture(tex, vec2(s, 0.5), bias); }
+vec4 textureLod1D(sampler2D tex, float s, float lod) { return textureLod(tex, vec2(s, 0.5), lod); }
+
+// 2. Integer texel fetch
+vec4 texelFetch1D(sampler2D tex, int x, int lod) { return texelFetch(tex, ivec2(x, 0), lod); }
+
+// 3. Texture size
+int textureSize1D(sampler2D tex, int lod) { return textureSize(tex, lod).x; }
+
+// 4. Shadow sampler
+float texture1D(sampler2DShadow tex, vec2 coord) { return texture(tex, vec3(coord.x, 0.5, coord.y)); }
+float texture1D(sampler2DShadow tex, vec2 coord, float bias) { return texture(tex, vec3(coord.x, 0.5, coord.y), bias); }
+float textureLod1D(sampler2DShadow tex, vec2 coord, float lod) { return textureLod(tex, vec3(coord.x, 0.5, coord.y), lod); }
+
+// 5. Signed integer sampler
+ivec4 texture1D(isampler2D tex, float s) { return texture(tex, vec2(s, 0.5)); }
+ivec4 texture1D(isampler2D tex, float s, float bias) { return texture(tex, vec2(s, 0.5), bias); }
+ivec4 textureLod1D(isampler2D tex, float s, float lod) { return textureLod(tex, vec2(s, 0.5), lod); }
+ivec4 texelFetch1D(isampler2D tex, int x, int lod) { return texelFetch(tex, ivec2(x, 0), lod); }
+int textureSize1D(isampler2D tex, int lod) { return textureSize(tex, lod).x; }
+
+// 6. Unsigned integer sampler
+uvec4 texture1D(usampler2D tex, float s) { return texture(tex, vec2(s, 0.5)); }
+uvec4 texture1D(usampler2D tex, float s, float bias) { return texture(tex, vec2(s, 0.5), bias); }
+uvec4 textureLod1D(usampler2D tex, float s, float lod) { return textureLod(tex, vec2(s, 0.5), lod); }
+uvec4 texelFetch1D(usampler2D tex, int x, int lod) { return texelFetch(tex, ivec2(x, 0), lod); }
+int textureSize1D(usampler2D tex, int lod) { return textureSize(tex, lod).x; }
+
+// 7. Image stores/loads (base)
+void imageStore1D(writeonly highp image2D img, int x, vec4 data) { imageStore(img, ivec2(x, 0), data); }
+vec4 imageLoad1D(readonly highp image2D img, int x) { return imageLoad(img, ivec2(x, 0)); }
+int imageSize1D(readonly highp image2D img) { return imageSize(img).x; }
+
+void imageStore1D(writeonly highp iimage2D img, int x, ivec4 data) { imageStore(img, ivec2(x, 0), data); }
+ivec4 imageLoad1D(readonly highp iimage2D img, int x) { return imageLoad(img, ivec2(x, 0)); }
+int imageSize1D(readonly highp iimage2D img) { return imageSize(img).x; }
+
+void imageStore1D(writeonly highp uimage2D img, int x, uvec4 data) { imageStore(img, ivec2(x, 0), data); }
+uvec4 imageLoad1D(readonly highp uimage2D img, int x) { return imageLoad(img, ivec2(x, 0)); }
+int imageSize1D(readonly highp uimage2D img) { return imageSize(img).x; }
+
+// ----- End of 1D texture wrapper -----
+)";
+
+    size_t insert_pos = find_shader_insertion_point(glsl);
+    glsl.insert(insert_pos, wrapper_code + "\n");
+}
 static inline void inject_shaderDrawParameters(std::string& glsl) {
     const std::regex defRegex(R"(#extension GL_ARB_shader_draw_parameters : enable)", std::regex::ECMAScript);
 
@@ -1800,6 +1938,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
 	}
 	
     replace_all(ret, "texture2D", "texture");
+	inject_1d_texture_compatibility(ret);
+
     // GI_TemporalFilter injection
     inject_temporal_filter(ret);
 
