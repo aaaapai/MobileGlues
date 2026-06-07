@@ -125,4 +125,10 @@ void glClear(GLbitfield mask) {
 void glHint(GLenum target, GLenum mode) {
     LOG()
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
+
+    GLES.glHint(target, mode);
+}
+
+void glPolygonMode (GLenum face, GLenum mode) {
+    GLES.glPolygonModeNV(face, mode);
 }
