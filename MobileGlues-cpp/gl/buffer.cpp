@@ -388,7 +388,7 @@ struct atomic_buffer {
 static std::vector<atomic_buffer> g_buffer_map_atomic_buffer_info;
 static std::vector<GLuint> g_buffer_map_ssbo_id; // shall we use this in the future?
 
-/*void bindAllAtomicCounterAsSSBO() {
+void bindAllAtomicCounterAsSSBO() {
     const size_t count = g_buffer_map_atomic_buffer_info.size();
     for (size_t i = 0; i < count; ++i) {
         atomic_buffer buf = g_buffer_map_atomic_buffer_info[i];
@@ -398,10 +398,10 @@ static std::vector<GLuint> g_buffer_map_ssbo_id; // shall we use this in the fut
             LOG_D("Bound atomic counter buffer %u(real: %u) as SSBO at index %zu", buf, realID, i);
         }
     }
-}*/
+}
 
 // 改进原子计数器到 SSBO 的映射
-void bindAllAtomicCounterAsSSBO() {
+/*void bindAllAtomicCounterAsSSBO() {
     const size_t count = g_buffer_map_atomic_buffer_info.size();
     if (count == 0) return;
     
@@ -462,7 +462,7 @@ void bindAllAtomicCounterAsSSBO() {
             }
         }
     }
-}
+}*/
 
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
     LOG()
@@ -481,6 +481,12 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offs
         CHECK_GL_ERROR
     }
     GLES.glBindBufferRange(target, index, real_buffer, offset, size);
+    if (target == GL_ATOMIC_COUNTER_BUFFER) {
+        if (g_buffer_map_atomic_buffer_info.empty()) {
+            g_buffer_map_atomic_buffer_info.resize(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, {});
+        }
+        g_buffer_map_atomic_buffer_info[index] = {buffer, size, offset};
+    }
     CHECK_GL_ERROR
 }
 
@@ -500,6 +506,12 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
         CHECK_GL_ERROR
     }
     GLES.glBindBufferBase(target, index, real_buffer);
+    if (target == GL_ATOMIC_COUNTER_BUFFER) {
+        if (g_buffer_map_atomic_buffer_info.empty()) {
+            g_buffer_map_atomic_buffer_info.resize(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, {});
+        }
+        g_buffer_map_atomic_buffer_info[index] = {buffer, size, offset};
+    }
     CHECK_GL_ERROR
 }
 
@@ -842,16 +854,12 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
-    
-    if (GLES.glBufferStorageEXT) {
-        GLbitfield es_supported_flags = flags & (GL_DYNAMIC_STORAGE_BIT | 
-                                                 GL_MAP_READ_BIT | 
-                                                 GL_MAP_WRITE_BIT | 
-                                                 GL_MAP_PERSISTENT_BIT_EXT |  // 需要扩展
-                                                 GL_MAP_COHERENT_BIT_EXT);    // 需要扩展
-        
-            GLES.glBufferStorageEXT(target, size, data, es_supported_flags);
-        }
+
+    if (global_settings.buffer_coherent_as_flush &&
+            ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0))
+    flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
+        GLES.glBufferStorageEXT(target, size, data, flags);
+
     CHECK_GL_ERROR
 }
 
