@@ -302,7 +302,7 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access) {
     return mappedData;
 }
 
-/*GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     LOG()
     LOG_D("[DSA] glMapNamedBufferRange, buffer: %u, offset: %lld, length: %lld, access: 0x%X", buffer, offset, length,
           access);
@@ -322,8 +322,8 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access) {
         LOG_D("[DSA] Mapped buffer range for buffer %u successfully", buffer);
     }
     return mappedData;
-}*/
-GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+}
+/*GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     LOG()
     LOG_D("[DSA] glMapNamedBufferRange, buffer: %u, offset: %lld, length: %lld, access: 0x%X", buffer, offset, length,
           access);
@@ -389,7 +389,7 @@ GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
     }
     
     return mappedData;
-}
+}*/
 
 GLboolean glUnmapNamedBuffer(GLuint buffer) {
     LOG()
