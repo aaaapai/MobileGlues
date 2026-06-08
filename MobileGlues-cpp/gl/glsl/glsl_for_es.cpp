@@ -1952,7 +1952,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
                     ret = ret.replace(noperspectivePos, len_np, "");
                     noperspectivePos = ret.find(str_np);
 	}
-	//inject_int64_support(ret);
+	inject_int64_support(ret);
     inject_subgroup_BigGiftPackage(ret);
 	inject_subgroup_clustered(ret);
     // inject_gl_DepthRange(ret); please use angle...
@@ -1978,10 +1978,10 @@ int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
         glsl_version = 330;
-        glsl.insert(0, "#version 330 compatiblity\n");
+        glsl.insert(0, "#version 330\n");
     } else if (glsl_version < 330) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 330 compatibility\n");
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
         glsl_version = 330;
     }
 
@@ -2048,7 +2048,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, 460, ECompatibilityProfile, true, true, messages)) {
+    if (!shader.parse(&TBuiltInResource_resources, glsl_version, ECompatibilityProfile, true, true, messages)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
