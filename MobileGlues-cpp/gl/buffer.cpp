@@ -509,7 +509,8 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
     if (target == GL_SHADER_STORAGE_BUFFER) {
         if (g_buffer_map_ssbo_id.empty()) {
             g_buffer_map_ssbo_id.resize(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, 0);
-         g_buffer_map_ssbo_id[index] = buffer;
+        }
+        g_buffer_map_ssbo_id[index] = buffer;
     }
     CHECK_GL_ERROR
 }
