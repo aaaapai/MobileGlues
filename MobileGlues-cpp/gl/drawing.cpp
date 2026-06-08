@@ -136,6 +136,12 @@ void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_grou
     LOG()
     LOG_D("glDispatchCompute, num_groups_x: %d, num_groups_y: %d, num_groups_z: %d", num_groups_x, num_groups_y,
           num_groups_z)
+    if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
+        bindAllAtomicCounterAsSSBO();
+        LOG_D("Atomic counters bound as SSBOs for program %d", gl_state->current_program);
+    } else {
+        LOG_D("No atomic counters bound as SSBOs for program %d", gl_state->current_program);
+    }
     GLES.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
     CHECK_GL_ERROR
 }
@@ -158,7 +164,7 @@ GLbitfield glGetSupportedMemoryBarrierBits() {
     
     return supported;
 }
-/*void glMemoryBarrier(GLbitfield barriers) {
+void glMemoryBarrier(GLbitfield barriers) {
     LOG()
     LOG_D("glMemoryBarrier, barriers: %d", barriers)
     if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
@@ -167,15 +173,15 @@ GLbitfield glGetSupportedMemoryBarrierBits() {
     }
     GLES.glMemoryBarrier(barriers);
     CHECK_GL_ERROR
-}*/
-void glMemoryBarrier(GLbitfield barriers) {
+}
+/*void glMemoryBarrier(GLbitfield barriers) {
     LOG()
     LOG_D("glMemoryBarrier, barriers: 0x%x", barriers)
 
     GLES.glMemoryBarrier(barriers);
 
     CHECK_GL_ERROR
-}
+}*/
 
 void glTextureBarrier(void) {
     glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
