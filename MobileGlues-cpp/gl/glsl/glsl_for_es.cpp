@@ -1919,6 +1919,8 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType, bool* at
     // Act as if disable_GL_ARB_derivative_control is false
     replace_all(ret, "#ifdef GL_ARB_derivative_control", "#if 0");
     replace_all(ret, "#ifndef GL_ARB_derivative_control", "#if 1");
+	replace_all(ret, "sample_uniform_sphere", "SampleUniformSphere");
+    replace_all(ret, "_uniform_", "UniformMg");
 
     // Polyfill transpose()
     replace_all(ret, "const mat3 rotInverse = transpose(rot);",
@@ -1978,10 +1980,10 @@ int get_or_add_glsl_version(std::string& glsl) {
     int glsl_version = getGLSLVersion(glsl.c_str());
     if (glsl_version == -1) {
         glsl_version = 330;
-        glsl.insert(0, "#version 330\n");
+        glsl.insert(0, "#version 330 compatibility\n");
     } else if (glsl_version < 330) {
         // force upgrade glsl version
-        glsl = replace_line_starting_with(glsl, "#version", "#version 330\n");
+        glsl = replace_line_starting_with(glsl, "#version", "#version 330 compatibility\n");
         glsl_version = 330;
     }
 
