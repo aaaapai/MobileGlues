@@ -169,7 +169,12 @@ extern "C"
               "attrib_list: %p",
               dpy, config, share_context, attrib_list);
         LOAD_EGL(eglCreateContext)
-        return egl_eglCreateContext(dpy, config, share_context, attrib_list);
+        EGLContext man_context = egl_eglCreateContext(dpy, config, share_context, attrib_list);
+        if (man_context != EGL_NO_CONTEXT) return man_context;
+        if (man_context == EGL_NO_CONTEXT) {
+            LOAD_EGL(eglGetCurrentContext)
+            return egl_eglGetCurrentContext();
+        }
     }
 
     EGL_API EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx) {
