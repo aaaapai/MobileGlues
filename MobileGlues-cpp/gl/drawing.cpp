@@ -146,6 +146,24 @@ void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_grou
     CHECK_GL_ERROR
 }
 
+GLbitfield glGetSupportedMemoryBarrierBits() {
+    GLbitfield supported = 0;
+    supported |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+    supported |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+    supported |= GL_UNIFORM_BARRIER_BIT;
+    supported |= GL_TEXTURE_FETCH_BARRIER_BIT;
+    supported |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+    supported |= GL_COMMAND_BARRIER_BIT;
+    supported |= GL_PIXEL_BUFFER_BARRIER_BIT;
+    supported |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+    supported |= GL_BUFFER_UPDATE_BARRIER_BIT;
+    supported |= GL_FRAMEBUFFER_BARRIER_BIT;
+    supported |= GL_TRANSFORM_FEEDBACK_BARRIER_BIT;
+    supported |= GL_ATOMIC_COUNTER_BARRIER_BIT;
+    supported |= GL_SHADER_STORAGE_BARRIER_BIT;
+    
+    return supported;
+}
 void glMemoryBarrier(GLbitfield barriers) {
     LOG()
     LOG_D("glMemoryBarrier, barriers: %d", barriers)
@@ -155,6 +173,18 @@ void glMemoryBarrier(GLbitfield barriers) {
     }
     GLES.glMemoryBarrier(barriers);
     CHECK_GL_ERROR
+}
+/*void glMemoryBarrier(GLbitfield barriers) {
+    LOG()
+    LOG_D("glMemoryBarrier, barriers: 0x%x", barriers)
+
+    GLES.glMemoryBarrier(barriers);
+
+    CHECK_GL_ERROR
+}*/
+
+void glTextureBarrier(void) {
+    glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 }
 
 void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex) {
