@@ -15,7 +15,7 @@
 
 #define MAJOR 1
 #define MINOR 3
-#define REVISION 4
+#define REVISION 5
 #define PATCH 0
 
 #define VERSION_TYPE VERSION_RELEASE

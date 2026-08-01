@@ -7,6 +7,7 @@
 
 #include "../includes.h"
 #include <GL/gl.h>
+#include <cmath>
 #include "glcorearb.h"
 #include "log.h"
 #include "../gles/loader.h"
