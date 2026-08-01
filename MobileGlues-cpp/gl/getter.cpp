@@ -245,7 +245,7 @@ const GLubyte* glGetString(GLenum name) {
     case GL_VENDOR: {
         if (vendorString.empty()) {
             if (global_settings.hide_mg_env_level == HideMGEnvLevel::Disabled) {
-                std::string vendor = "Swung0x48, BZLZHH, Tungsten";
+                std::string vendor = "Swung0x48, BZLZHH, Tungsten, aaaapai(editor)";
                 vendorString = vendor;
             } else {
                 const char choices[] = "AINM";
@@ -268,10 +268,10 @@ const GLubyte* glGetString(GLenum name) {
             versionString = GLVersion.toString();
             if (global_settings.hide_mg_env_level == HideMGEnvLevel::Disabled) {
                 if (GLVersion.toInt(2) == DEFAULT_GL_VERSION) {
-                    versionString += " MobileGlues ";
+                    versionString += " MobileGlues_ap ";
                 } else {
                     Version defaultVersion = Version(DEFAULT_GL_VERSION);
-                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileGlues§r ";
+                    versionString += " §4§l(" + defaultVersion.toString() + ") MobileGlues_ap§r ";
                 }
 
                 versionString += std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(REVISION);
