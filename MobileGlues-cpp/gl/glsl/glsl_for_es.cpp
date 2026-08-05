@@ -22,7 +22,7 @@
 #include "cache.h"
 #include "../../version.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 const char* atomicCounterEmulatedWatermark = "// Non-opaque atomic uniform converted to SSBO";
 
