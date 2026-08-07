@@ -20,7 +20,11 @@ struct attachment_t {
 struct framebuffer_t {
     bool initialized = false;
     bool color_attachments_all_none = false;
-    attachment_t* color_attachments = nullptr;
+    // A vector rather than a raw new[]: these records live in a std::vector that
+    // reallocates as framebuffer names grow, and the struct has no destructor or
+    // copy control, so an owning raw pointer here both leaked every array it ever
+    // allocated and made the type unsafe to copy. Indexing syntax is unchanged.
+    std::vector<attachment_t> color_attachments;
     attachment_t depth_attachment = {0};
     attachment_t stencil_attachment = {0};
 };
@@ -50,6 +54,10 @@ void InitFramebufferMap(size_t expectedSize);
 // The framebuffer table of the current context. It used to be a plain global
 // that gl/gl.cpp reached by extern; it is per-context now, so it has to be
 // fetched rather than named.
-std::vector<framebuffer_t>& mg_framebuffers();
+// True when the draw framebuffer currently bound in *this* context has had every
+// colour attachment set to GL_NONE. Answers false for an id this context has
+// never bound, which the caller could not check when it indexed the table
+// directly from another translation unit.
+bool mg_draw_framebuffer_all_none();
 
 #endif // MOBILEGLUES_FRAMEBUFFER_H

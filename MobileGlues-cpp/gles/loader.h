@@ -14,6 +14,22 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
+
+// The value a stub hands back when it has nothing to say. Defined out here rather
+// than inside the extern "C" block below because a template cannot have C language
+// linkage.
+//
+// STUB_FUNCTION_END_NO_RETURN is used by ~90 entry points whose return type is not
+// void, and those simply ran off the end of the function: at -O3 the body is a
+// zero-byte fall-through into whatever the linker put next, so the caller reads an
+// untouched return register. GL_EXT_direct_state_access is advertised by default
+// (gles/loader.cpp), so several of those entry points are reachable and were
+// answering an arbitrary value for a status or a boolean. `return f<void>();` is
+// legal in a void function, so the ~2400 void users need no change.
+template <class T> static inline T mg_stub_default() {
+    if constexpr (!std::is_void_v<T>) return T{};
+}
 
 #ifdef __cplusplus
 extern "C"
@@ -159,6 +175,7 @@ extern "C"
 
 #define STUB_FUNCTION_END_NO_RETURN(type, name, ...)                                                                   \
     LOG_W("Stub function: %s @ %s(...)", RENDERERNAME, __FUNCTION__);                                                  \
+    return mg_stub_default<type>();                                                                                    \
     }
 
     struct gles_caps_t {

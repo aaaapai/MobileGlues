@@ -17,12 +17,6 @@ thread_local MGContext* g_current_ctx = nullptr;
 
 namespace {
 
-// Where gl_state points when no tracked context is current. gl_state is written
-// through on the draw hot path, so it must never be left pointing at a released
-// record. Every member is a scalar, so this is constant-initialised and is
-// already usable when the library's constructors run.
-gl_state_s g_default_gl_state;
-
 // The library initialises itself from a static constructor, and that
 // constructor reaches these tables through mg_display_initialised. A namespace
 // scope std::unordered_map is dynamically initialised, so whether it had been
@@ -63,6 +57,14 @@ void release_locked(const std::shared_ptr<MGContext>& ctx) {
     // The map is the only owner, so erasing frees the record and the gl_state_s
     // embedded in it.
     if (gl_state == &ctx->gl) gl_state = &g_default_gl_state;
+    // Drop the per-context bookkeeping each subsystem keeps for this id. Safe
+    // here and only here: current_count has reached zero, so no thread still has
+    // a pointer into the entries being erased.
+    mg_buffer_forget_context(ctx->id);
+    mg_texture_forget_context(ctx->id);
+    mg_framebuffer_forget_context(ctx->id);
+    mg_fsr1_forget_context(ctx->id);
+    mg_depth_clear_forget_context(ctx->id);
     g_contexts.erase(ctx->handle);
 }
 

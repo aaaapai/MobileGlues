@@ -87,6 +87,20 @@ void mg_texture_bind_context(unsigned long long ctx_id, unsigned long long group
 void mg_framebuffer_bind_context(unsigned long long ctx_id);
 void mg_fsr1_bind_context(unsigned long long ctx_id);
 
+// ...and the matching teardown. Every table above inserts with operator[] and
+// none of them had an erase, so a context's bookkeeping outlived the context for
+// the life of the process. Called from release_locked once the record is going
+// away, i.e. after the last thread has stopped using it, so the entry being
+// erased is guaranteed not to be the one any thread_local pointer refers to.
+//
+// The share group is deliberately not torn down here: sibling contexts may still
+// be using it, and the group record is small. Only per-context state is dropped.
+void mg_buffer_forget_context(unsigned long long ctx_id);
+void mg_texture_forget_context(unsigned long long ctx_id);
+void mg_framebuffer_forget_context(unsigned long long ctx_id);
+void mg_fsr1_forget_context(unsigned long long ctx_id);
+void mg_depth_clear_forget_context(unsigned long long ctx_id);
+
 // Per-display eglInitialize accounting.
 //
 // EGL does not reference-count initialisation per caller: whoever calls

@@ -401,13 +401,15 @@ const GLubyte* glGetString(GLenum name) {
         return reinterpret_cast<const GLubyte*>(shadingLangString.c_str());
     }
     case GL_EXTENSIONS: {
-#if !defined(__APPLE__)
-        static std::string cached;
-        cached = GetExtensionsList();
-        return (const GLubyte*)cached.c_str();
-#else
-        return (const GLubyte*)GetExtensionsList().c_str();
-#endif
+        // GetExtensionsList() returns by value, so assigning it on every call freed the buffer handed
+        // out last time and dangled every pointer already returned. Build it once, like the strings above.
+        static std::string extensionsString;
+
+        if (extensionsString.empty()) {
+            extensionsString = GetExtensionsList();
+        }
+
+        return (const GLubyte*)extensionsString.c_str();
     }
     case GL_SETTINGS_MG: {
         if (global_settings.hide_mg_env_level >= HideMGEnvLevel::Level1) return GLES.glGetString(name);

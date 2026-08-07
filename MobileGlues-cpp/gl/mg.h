@@ -77,8 +77,20 @@ extern "C"
         GLuint current_draw_fbo;
     };
     typedef struct gl_state_s* gl_state_t;
+    // Where gl_state points when no tracked context is current. Every member is a
+    // scalar, so this is constant-initialised and is already usable while the
+    // library's own constructors run.
+    extern gl_state_s g_default_gl_state;
     // thread_local: EGL scopes the current context per thread, so two threads
     // each holding a context must not share this pointer.
+    //
+    // It is initialised to the fallback rather than left null. Of the per-context
+    // pointers this layer swaps on eglMakeCurrent -- the buffer, texture,
+    // framebuffer and FSR1 ones -- this was the only one that started as a bare
+    // null, and the fallback was only ever installed from inside
+    // mg_context_make_current. A thread whose current context this layer never saw
+    // created therefore reached glUseProgram with a null gl_state and dereferenced
+    // address zero.
     extern thread_local gl_state_t gl_state;
 
     GLenum pname_convert(GLenum pname);

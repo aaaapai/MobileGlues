@@ -54,6 +54,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, c
     LOG()
     shaderInfo.id = 0;
     shaderInfo.converted = "";
+    shaderInfo.frag_data_changed_converted.clear();
     shaderInfo.frag_data_changed = 0;
     size_t l = 0;
     for (int i = 0; i < count; i++)

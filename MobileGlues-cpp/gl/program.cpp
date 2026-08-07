@@ -31,8 +31,8 @@ enum class ShouldGenerateFSState : int {
 
 UnorderedMap<GLuint, ShouldGenerateFSState> program_map_should_generate_fs;
 
-char* updateLayoutLocation(const char* esslSource, GLuint color, const char* name) {
-    std::string shaderCode(esslSource);
+std::string updateLayoutLocation(const std::string& esslSource, GLuint color, const char* name) {
+    const std::string& shaderCode = esslSource;
 
     std::string pattern = std::string(R"((layout\s*$[^)]*location\s*=\s*\d+[^)]*$\s*)?)") +
                           R"(out\s+((?:highp|mediump|lowp|\w+\s+)*\w+)\s+)" + name + R"(\s*;)";
@@ -42,9 +42,7 @@ char* updateLayoutLocation(const char* esslSource, GLuint color, const char* nam
     std::regex reg(pattern);
     std::string modifiedCode = std::regex_replace(shaderCode, reg, replacement);
 
-    char* result = new char[modifiedCode.size() + 1];
-    strcpy(result, modifiedCode.c_str());
-    return result;
+    return modifiedCode;
 }
 
 void glBindFragDataLocation(GLuint program, GLuint color, const GLchar* name) {
@@ -71,29 +69,12 @@ void glBindFragDataLocation(GLuint program, GLuint color, const GLchar* name) {
         }
     }
 
-    char* origin_glsl = nullptr;
-    if (shaderInfo.frag_data_changed) {
-        size_t glslLen = strlen(shaderInfo.frag_data_changed_converted) + 1;
-        origin_glsl = (char*)malloc(glslLen);
-        if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for frag_data_changed_converted\n")
-            return;
-        }
-        strcpy(origin_glsl, shaderInfo.frag_data_changed_converted);
-    } else {
-        size_t glslLen = shaderInfo.converted.length() + 1;
-        origin_glsl = (char*)malloc(glslLen);
-        if (origin_glsl == nullptr) {
-            LOG_E("Memory reallocation failed for converted\n")
-            return;
-        }
-        strcpy(origin_glsl, shaderInfo.converted.c_str());
-    }
+    // Copied before the call, not aliased into it: the result is assigned back
+    // over the same member that supplies the input.
+    const std::string origin_glsl =
+        shaderInfo.frag_data_changed ? shaderInfo.frag_data_changed_converted : shaderInfo.converted;
 
-    char* result_glsl = updateLayoutLocation(origin_glsl, color, name);
-    free(origin_glsl);
-
-    shaderInfo.frag_data_changed_converted = result_glsl;
+    shaderInfo.frag_data_changed_converted = updateLayoutLocation(origin_glsl, color, name);
     shaderInfo.frag_data_changed = 1;
 }
 
@@ -121,7 +102,8 @@ void glLinkProgram(GLuint program) {
 
     LOG_D("glLinkProgram(%d)", program)
     if (!shaderInfo.converted.empty() && shaderInfo.frag_data_changed) {
-        GLES.glShaderSource(shaderInfo.id, 1, (const GLchar* const*)&shaderInfo.frag_data_changed_converted, nullptr);
+        const GLchar* patched = shaderInfo.frag_data_changed_converted.c_str();
+        GLES.glShaderSource(shaderInfo.id, 1, &patched, nullptr);
         GLES.glCompileShader(shaderInfo.id);
         GLint status = 0;
         GLES.glGetShaderiv(shaderInfo.id, GL_COMPILE_STATUS, &status);
@@ -136,7 +118,7 @@ void glLinkProgram(GLuint program) {
     }
     shaderInfo.id = 0;
     shaderInfo.converted = "";
-    shaderInfo.frag_data_changed_converted = nullptr;
+    shaderInfo.frag_data_changed_converted.clear();
     shaderInfo.frag_data_changed = 0;
 
     // Generate defaut fragment shader if needed

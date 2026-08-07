@@ -462,3 +462,16 @@ void mg_fsr1_bind_context(unsigned long long ctx_id) {
     load_from(ctx_id == 0 ? g_fsr_default : g_fsr_states[ctx_id]);
     g_fsr_current_id = ctx_id;
 }
+
+void mg_fsr1_forget_context(unsigned long long ctx_id) {
+    if (ctx_id == 0) return;
+    std::lock_guard<std::mutex> lock(g_fsr_mutex);
+    // If this is still the loaded set, the live globals describe a context that is
+    // gone. Drop back to the default set rather than storing them into the entry
+    // about to be erased.
+    if (g_fsr_current_id == ctx_id) {
+        load_from(g_fsr_default);
+        g_fsr_current_id = 0;
+    }
+    g_fsr_states.erase(ctx_id);
+}

@@ -63,6 +63,16 @@ void init_settings() {
         maxGlslCacheSize = success ? config_get_int("maxGlslCacheSize") * 1024 * 1024 : 0;
     }
 
+    // config_get_int returns -1 for a key that is absent, so a config.json written
+    // without "enableANGLE" -- what a launcher that only sets some keys produces --
+    // lands here and means EnableIfPossible, not the DisableIfPossible used when
+    // there is no config at all. That asymmetry never showed until now:
+    // checkIfANGLESupported reduces to hasVulkan12() off Adreno 730/740, and
+    // hasVulkan12 could not succeed while config/gpu_utils.cpp was passing dlopen
+    // library names with no ".so". With that fixed, this branch decides ANGLE for
+    // real on any device whose *physical device* reports Vulkan 1.2 or newer.
+    // (Measured: Mali-G77 r32p1 answers 1.1 at device level even though the
+    // instance reports 1.3, so it still resolves to disabled there.)
     if (static_cast<int>(angleConfig) < 0 || static_cast<int>(angleConfig) > 3) {
         angleConfig = AngleConfig::EnableIfPossible;
     }

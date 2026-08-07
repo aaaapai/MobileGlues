@@ -10,6 +10,7 @@
 #include "log.h"
 #include "../gles/loader.h"
 #include "mg.h"
+#include "ExtWrappers/DSAWrapper.h"
 #define DEBUG false
 
 #ifdef __cplusplus
@@ -1506,7 +1507,12 @@ STUB_FUNCTION_HEAD(void, glMatrixMultTransposefEXT, GLenum mode, const GLfloat* 
 STUB_FUNCTION_HEAD(void, glMatrixMultTransposedEXT, GLenum mode, const GLdouble* m); STUB_FUNCTION_END_NO_RETURN(void, glMatrixMultTransposedEXT,mode,m)
 STUB_FUNCTION_HEAD(void, glNamedBufferDataEXT, GLuint buffer, GLsizeiptr size, const void* data, GLenum usage); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferDataEXT,buffer,size,data,usage)
 STUB_FUNCTION_HEAD(void, glNamedBufferSubDataEXT, GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data); STUB_FUNCTION_END_NO_RETURN(void, glNamedBufferSubDataEXT,buffer,offset,size,data)
-STUB_FUNCTION_HEAD(GLboolean, glUnmapNamedBufferEXT, GLuint buffer); STUB_FUNCTION_END_NO_RETURN(GLboolean, glUnmapNamedBufferEXT,buffer)
+// EXT_direct_state_access spells this exactly like the core DSA entry point, so
+// forward instead of stubbing: a stub would answer GL_FALSE for every unmap, and
+// before that it answered whatever was left in the return register.
+GLAPI GLAPIENTRY GLboolean glUnmapNamedBufferEXT(GLuint buffer) {
+    return glUnmapNamedBuffer(buffer);
+}
 STUB_FUNCTION_HEAD(void, glGetNamedBufferParameterivEXT, GLuint buffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferParameterivEXT,buffer,pname,params)
 STUB_FUNCTION_HEAD(void, glGetNamedBufferPointervEXT, GLuint buffer, GLenum pname, void* *params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferPointervEXT,buffer,pname,*params)
 STUB_FUNCTION_HEAD(void, glGetNamedBufferSubDataEXT, GLuint buffer, GLintptr offset, GLsizeiptr size, void* data); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedBufferSubDataEXT,buffer,offset,size,data)
@@ -1547,7 +1553,12 @@ STUB_FUNCTION_HEAD(void, glNamedRenderbufferStorageEXT, GLuint renderbuffer, GLe
 STUB_FUNCTION_HEAD(void, glGetNamedRenderbufferParameterivEXT, GLuint renderbuffer, GLenum pname, GLint* params); STUB_FUNCTION_END_NO_RETURN(void, glGetNamedRenderbufferParameterivEXT,renderbuffer,pname,params)
 STUB_FUNCTION_HEAD(void, glNamedRenderbufferStorageMultisampleEXT, GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height); STUB_FUNCTION_END_NO_RETURN(void, glNamedRenderbufferStorageMultisampleEXT,renderbuffer,samples,internalformat,width,height)
 STUB_FUNCTION_HEAD(void, glNamedRenderbufferStorageMultisampleCoverageEXT, GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height); STUB_FUNCTION_END_NO_RETURN(void, glNamedRenderbufferStorageMultisampleCoverageEXT,renderbuffer,coverageSamples,colorSamples,internalformat,width,height)
-STUB_FUNCTION_HEAD(GLenum, glCheckNamedFramebufferStatusEXT, GLuint framebuffer, GLenum target); STUB_FUNCTION_END_NO_RETURN(GLenum, glCheckNamedFramebufferStatusEXT,framebuffer,target)
+// Same entry point as the core DSA one, and the only status a stub could invent is
+// 0, which is not GL_FRAMEBUFFER_COMPLETE either. Callers that check a framebuffer
+// before drawing to it would conclude it is unusable.
+GLAPI GLAPIENTRY GLenum glCheckNamedFramebufferStatusEXT(GLuint framebuffer, GLenum target) {
+    return glCheckNamedFramebufferStatus(framebuffer, target);
+}
 STUB_FUNCTION_HEAD(void, glNamedFramebufferTexture1DEXT, GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferTexture1DEXT,framebuffer,attachment,textarget,texture,level)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferTexture2DEXT, GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferTexture2DEXT,framebuffer,attachment,textarget,texture,level)
 STUB_FUNCTION_HEAD(void, glNamedFramebufferTexture3DEXT, GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset); STUB_FUNCTION_END_NO_RETURN(void, glNamedFramebufferTexture3DEXT,framebuffer,attachment,textarget,texture,level,zoffset)

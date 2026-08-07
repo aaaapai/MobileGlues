@@ -82,6 +82,15 @@ void mg_buffer_bind_context(unsigned long long ctx_id, unsigned long long group_
     g_bc = &g_buf_ctxs[ctx_id];
 }
 
+void mg_buffer_forget_context(unsigned long long ctx_id) {
+    if (ctx_id == 0) return;
+    std::lock_guard<std::mutex> lock(g_buf_mutex);
+    const auto it = g_buf_ctxs.find(ctx_id);
+    if (it == g_buf_ctxs.end()) return;
+    if (g_bc == &it->second) g_bc = &g_buf_ctx_default;
+    g_buf_ctxs.erase(it);
+}
+
 #define g_gen_buffers (g_bg->gen_buffers)
 #define g_gen_buffer_exists (g_bg->gen_buffer_exists)
 #define g_free_buffer_ids (g_bg->free_buffer_ids)

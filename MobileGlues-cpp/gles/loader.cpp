@@ -103,7 +103,9 @@ void set_hardware() {
 }
 
 void init_gl_state() {
-    gl_state = new gl_state_s;
+    // gl_state already points at g_default_gl_state (gl/mg.h). It used to be
+    // assigned a fresh `new gl_state_s` here -- not value-initialised, so its
+    // members held indeterminate values until each setter ran, and never freed.
     set_gl_state_proxy_height(0);
     set_gl_state_proxy_width(0);
     set_gl_state_proxy_intformat(0);

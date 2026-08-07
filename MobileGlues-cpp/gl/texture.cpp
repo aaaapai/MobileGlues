@@ -198,6 +198,10 @@ struct texture_group_state_t {
 struct texture_ctx_state_t {
     std::array<TextureUnit, MAX_TEXTURE_IMAGE_UNITS> units;
     int current_unit = 0;
+    // Which share group this context draws its texture objects from. Deleting an
+    // object has to clear it out of every context in that group, not only the one
+    // that happened to issue the glDeleteTextures.
+    unsigned long long group = 0;
 };
 
 std::mutex g_tex_mutex;
@@ -219,6 +223,19 @@ void mg_texture_bind_context(unsigned long long ctx_id, unsigned long long group
     std::lock_guard<std::mutex> lock(g_tex_mutex);
     g_tg = &g_tex_groups[group_id];
     g_tc = &g_tex_ctxs[ctx_id];
+    g_tc->group = group_id;
+}
+
+void mg_texture_forget_context(unsigned long long ctx_id) {
+    if (ctx_id == 0) return;
+    std::lock_guard<std::mutex> lock(g_tex_mutex);
+    const auto it = g_tex_ctxs.find(ctx_id);
+    if (it == g_tex_ctxs.end()) return;
+    if (g_tc == &it->second) g_tc = &g_tex_ctx_default;
+    g_tex_ctxs.erase(it);
+    // The object table is not dropped: it belongs to the share group, whose other
+    // contexts may still be alive, and the objects in it are owned by GL names the
+    // application is still entitled to delete.
 }
 
 #define BufferObjectsVec (g_tg->objects)
@@ -263,6 +280,11 @@ TextureUnit& GetTextureUnit(int unit) {
 }
 
 void MarkTextureObjectForDeletion(unsigned texture) {
+    // Name 0 is not deletable. glBindTexture creates a record for it like any
+    // other name and rewrites that record's target on every bind, so deleting it
+    // would free an object the binding slots of every other target still point at.
+    if (texture == 0) return;
+
     if (texture >= BufferObjectsVec.size() || !BufferObjectsVec[texture]) {
         LOG_D("Texture %u not found in BufferObjectsVec!", texture);
         return;
@@ -270,12 +292,33 @@ void MarkTextureObjectForDeletion(unsigned texture) {
 
     auto textureObject = BufferObjectsVec[texture];
 
-    for (auto& unit : TextureUnits) {
-        auto& bindingSlot = unit.GetBindingSlot(textureObject->target);
-        if (bindingSlot.GetBoundObject() == textureObject) {
-            bindingSlot.Bind(nullptr);
+    // The object table is per share group but the binding slots are per context,
+    // so clearing only this context's slots left every sibling context in the group
+    // holding a pointer to the record about to be freed. Sweep the whole group.
+    //
+    // Every target is scanned rather than just textureObject->target: that field
+    // only remembers the target of the most recent bind, so slots for the other
+    // targets this name was ever bound to would have been left behind.
+    auto sweep = [&](texture_ctx_state_t& ctx) {
+        for (auto& unit : ctx.units) {
+            for (int t = 0; t < (int)TextureTarget::TEXTURES_COUNT; ++t) {
+                auto& slot = unit.GetBindingSlot((TextureBindingSlot::TargetEnum)t);
+                if (slot.GetBoundObject() == textureObject) slot.Bind(nullptr);
+            }
+        }
+    };
+
+    sweep(*g_tc);
+    {
+        std::lock_guard<std::mutex> lock(g_tex_mutex);
+        const unsigned long long group = g_tc->group;
+        for (auto& entry : g_tex_ctxs) {
+            if (&entry.second != g_tc && entry.second.group == group) sweep(entry.second);
         }
     }
+    // The fallback record is not in the map and is what every untracked context
+    // shares, so it can hold a stale binding too.
+    if (g_tc != &g_tex_ctx_default) sweep(g_tex_ctx_default);
 
     BufferObjectsVec[texture] = nullptr;
     delete textureObject;

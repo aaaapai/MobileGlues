@@ -13,7 +13,11 @@
 struct shader_t {
     GLuint id;
     std::string converted;
-    char* frag_data_changed_converted;
+    // Owned by value. It was a char* holding a `new char[]` that nothing ever
+    // deleted: glBindFragDataLocation overwrote it, glLinkProgram nulled it and
+    // glShaderSource abandoned it, so every patched shader source stayed on the
+    // heap for the life of the process.
+    std::string frag_data_changed_converted;
     int frag_data_changed;
 };
 
