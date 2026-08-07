@@ -234,6 +234,16 @@ void set_bound_buffer_by_target(GLenum target, GLuint buffer) {
     if (idx >= 0) g_bound_buffers_arr[idx] = buffer;
 }
 
+// find_bound_buffer below answers the *_BINDING query enums, which is what
+// glGetIntegerv passes it. Callers holding a bind target need this one instead:
+// handing a target to find_bound_buffer falls through to its default and comes
+// back 0, which is a valid buffer name and so goes unnoticed.
+GLuint find_bound_buffer_by_target(GLenum target) {
+    if (target == GL_ELEMENT_ARRAY_BUFFER) return get_ibo_by_vao(find_bound_array());
+    const int idx = binding_target_to_index(target);
+    return idx >= 0 ? g_bound_buffers_arr[idx] : 0;
+}
+
 GLuint find_bound_buffer(GLenum key) {
     GLenum target = 0;
     switch (key) {
@@ -875,7 +885,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage
           glEnumToString(usage))
     borrowed_target_t t(target);
     GLES.glBufferData(t.target, size, data, usage);
-    set_buffer_data_size(find_bound_buffer(target), size);
+    set_buffer_data_size(find_bound_buffer_by_target(target), size);
     CHECK_GL_ERROR
 }
 
@@ -977,6 +987,8 @@ void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfiel
             flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
         borrowed_target_t t(target);
         GLES.glBufferStorageEXT(t.target, size, data, flags);
+        // Allocates storage just as glBufferData does, so it owes the same record.
+        set_buffer_data_size(find_bound_buffer_by_target(target), size);
     }
     CHECK_GL_ERROR
 }
