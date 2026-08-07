@@ -1884,6 +1884,7 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType) {
     return ret;
 }
 
+#undef str
 int get_or_add_glsl_version(std::string& glsl) {
     std::regex version_regex(R"(^\s*#version\s+\d+)", std::regex::multiline);
     std::smatch match;
@@ -1904,11 +1905,11 @@ int get_or_add_glsl_version(std::string& glsl) {
             return glsl_version;
         }
     }
-    // 没有找到 #version，插入默认
     glsl.insert(0, "#version 150\n");
     LOG_D("GLSL version: 150 (inserted)");
     return 150;
 }
+#define str(s) #s
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src,
                                         int& errc) {
