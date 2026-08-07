@@ -22,7 +22,7 @@
 #include "cache.h"
 #include "../../version.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 static TBuiltInResource InitResources() {
     TBuiltInResource Resources{};
