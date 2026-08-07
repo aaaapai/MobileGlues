@@ -992,14 +992,16 @@ void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfiel
     LOG()
 
     if (global_settings.buffer_coherent_as_flush &&
-            ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0))
+            ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0)) {
             flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
-        borrowed_target_t t(target);
-        GLES.glBufferStorageEXT(t.target, size, data, flags);
-        // Allocates storage just as glBufferData does, so it owes the same record.
-        set_buffer_data_size(find_bound_buffer_by_target(target), size);
     }
+
+    borrowed_target_t t(target);
+    GLES.glBufferStorageEXT(t.target, size, data, flags);
+    // Allocates storage just as glBufferData does, so it owes the same record.
+    set_buffer_data_size(find_bound_buffer_by_target(target), size);
     CHECK_GL_ERROR
+
 }
 
 
