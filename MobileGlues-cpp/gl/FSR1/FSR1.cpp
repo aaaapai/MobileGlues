@@ -321,17 +321,20 @@ void ApplyFSR() {
     GLES.glActiveTexture(GL_TEXTURE0);
     GLES.glBindTexture(GL_TEXTURE_2D, FSR1_Context::g_renderTexture);
 
-    glm::vec4 const0 = {float(FSR1_Context::g_renderWidth) / FSR1_Context::g_targetWidth,
-                        float(FSR1_Context::g_renderHeight) / FSR1_Context::g_targetHeight,
-                        1.0f / FSR1_Context::g_targetWidth, 1.0f / FSR1_Context::g_targetHeight};
+    // Plain arrays rather than a vector type from a maths library: these two are
+    // handed straight to glUniform*fv, and nothing is ever computed with them.
+    const GLfloat const0[4] = {float(FSR1_Context::g_renderWidth) / FSR1_Context::g_targetWidth,
+                               float(FSR1_Context::g_renderHeight) / FSR1_Context::g_targetHeight,
+                               1.0f / FSR1_Context::g_targetWidth,
+                               1.0f / FSR1_Context::g_targetHeight};
 
     GLES.glUniform1i(glGetUniformLocation(FSR1_Context::g_fsrProgram, "uInputTex"), 0);
-    GLES.glUniform4fv(glGetUniformLocation(FSR1_Context::g_fsrProgram, "uConst0"), 1,
-                      reinterpret_cast<const GLfloat*>(&const0));
+    GLES.glUniform4fv(glGetUniformLocation(FSR1_Context::g_fsrProgram, "uConst0"), 1, const0);
 
-    glm::vec2 viewportSize = {(float)FSR1_Context::g_renderWidth, (float)FSR1_Context::g_renderHeight};
+    const GLfloat viewportSize[2] = {(float)FSR1_Context::g_renderWidth,
+                                     (float)FSR1_Context::g_renderHeight};
     GLES.glUniform2fv(glGetUniformLocation(FSR1_Context::g_fsrProgram, "uViewportSize"), 1,
-                      reinterpret_cast<const GLfloat*>(&viewportSize));
+                      viewportSize);
 
     GLES.glBindVertexArray(FSR1_Context::g_quadVAO);
     GLES.glDrawArrays(GL_TRIANGLES, 0, 6);

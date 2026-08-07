@@ -26,6 +26,7 @@
 #include "../gles/loader.h"
 #include "framebuffer.h"
 #include "log.h"
+#include "transfer.h"
 #include "mg.h"
 #include <GL/gl.h>
 #include <ankerl/unordered_dense.h>
@@ -296,7 +297,9 @@ TextureObject* mgGetTexObjectByID(unsigned texture) {
 
 // Inline mapping for various internal formats to format and type
 void internal_convert(GLenum* internal_format, GLenum* type, GLenum* format) {
-    if (format && *format == GL_BGRA) *format = GL_RGBA;
+    // GL_BGRA is deliberately not renamed here: a rename converts the enum and
+    // not the data. Every pixel-transfer entry point routes through
+    // mg_upload_fix_t (gl/transfer.h) before calling this, which converts both.
 
     switch (*internal_format) {
     case GL_DEPTH_COMPONENT16:
@@ -576,12 +579,16 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border,
                   GLenum format, GLenum type, const GLvoid* pixels) {
     LOG()
-    GLenum transfer_format = format;
-
     LOG_D("mg_glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: "
           "%d,height: %d,border: %d,format: %s,type: %s, pixels: 0x%x",
           glEnumToString(target), level, glEnumToString(internalFormat), glEnumToString(internalFormat), width, height,
           border, glEnumToString(format), glEnumToString(type), pixels)
+    // Before internal_convert: it rewrites the type for RGBA internalformats,
+    // which would leave BGRA-ordered bytes labelled GL_UNSIGNED_BYTE and no way
+    // to tell they still need the swap.
+    mg_upload_fix_t fix(width, height, 1, format, type, pixels);
+    format = fix.format;
+    type = fix.type;
     internal_convert(reinterpret_cast<GLenum*>(&internalFormat), &type, &format);
 
     LOG_D("GLES.glTexImage2D,target: %s,level: %d,internalFormat: %s->%s,width: "
@@ -609,37 +616,9 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
     tex->swizzle_param[2] = GL_BLUE;
     tex->swizzle_param[3] = GL_ALPHA;
 
-    if (transfer_format == GL_BGRA && tex->format != transfer_format && internalFormat == GL_RGBA8 && width <= 128 &&
-        height <= 128) { // xaero has 64x64 tiles...hack here
-        LOG_D("Detected GL_BGRA format @ tex = %d, do swizzle", tex->texture)
-        if (tex->swizzle_param[0] == 0) { // assert this as never called glTexParameteri(...,
-                                          // GL_TEXTURE_SWIZZLE_R, ...)
-            tex->swizzle_param[0] = GL_RED;
-            tex->swizzle_param[1] = GL_GREEN;
-            tex->swizzle_param[2] = GL_BLUE;
-            tex->swizzle_param[3] = GL_ALPHA;
-        }
-
-        GLint r = tex->swizzle_param[0];
-        GLint g = tex->swizzle_param[1];
-        GLint b = tex->swizzle_param[2];
-        GLint a = tex->swizzle_param[3];
-        tex->swizzle_param[0] = g;
-        tex->swizzle_param[1] = b;
-        tex->swizzle_param[2] = a;
-        tex->swizzle_param[3] = r;
-        tex->format = transfer_format;
-
-        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, tex->swizzle_param[0]);
-        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, tex->swizzle_param[1]);
-        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, tex->swizzle_param[2]);
-        GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, tex->swizzle_param[3]);
-        CHECK_GL_ERROR
-    }
-
     tex->format = format;
 
-    GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
+    GLES.glTexImage2D(target, level, internalFormat, width, height, border, format, type, fix.pixels);
 
     CHECK_GL_ERROR
 }
@@ -651,6 +630,9 @@ void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
           "0x%x, height: %d, depth: %d, border: %d, format: 0x%x, type: %d",
           target, level, internalFormat, width, height, depth, border, format, type)
 
+    mg_upload_fix_t fix(width, height, depth, format, type, pixels);
+    format = fix.format;
+    type = fix.type;
     internal_convert(reinterpret_cast<GLenum*>(&internalFormat), &type, &format);
     GLenum rtarget = map_tex_target(target);
     if (rtarget == GL_PROXY_TEXTURE_3D) {
@@ -663,7 +645,7 @@ void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
         return;
     }
 
-    GLES.glTexImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels);
+    GLES.glTexImage3D(target, level, internalFormat, width, height, depth, border, format, type, fix.pixels);
 
     GET_TEXTURE_OBJECT(target);
     tex->target = ConvertGLEnumToTextureTarget(target);
@@ -1030,22 +1012,13 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
           glEnumToString(target), level, xoffset, yoffset, width, height, glEnumToString(format), glEnumToString(type),
           pixels)
 
-    if (format == GL_BGRA) {
-        if (type == GL_UNSIGNED_INT_8_8_8_8) { // Stored as ARGB -> RGBA
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_RED);
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_GREEN);
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, GL_BLUE);
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_ALPHA);
+    // A sub-upload must convert its data like any other transfer. The previous
+    // code set a texture swizzle here instead -- sampling state, permanently
+    // changed as a side effect of an upload, wrong the moment the application
+    // uploads RGBA to the same texture, renders into it, or swizzles it itself.
+    mg_upload_fix_t fix(width, height, 1, format, type, pixels);
 
-        } else if (type == GL_UNSIGNED_INT_8_8_8_8_REV) { // Stored as BGRA -> RGBA
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_RED);
-            GLES.glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
-        }
-        format = GL_RGBA;
-        type = GL_UNSIGNED_BYTE;
-    }
-
-    GLES.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
+    GLES.glTexSubImage2D(target, level, xoffset, yoffset, width, height, fix.format, fix.type, fix.pixels);
 
     CHECK_GL_ERROR
 }
@@ -1183,36 +1156,33 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void*
 #include <fstream>
 #endif
 
+void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
+                     GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels) {
+    LOG()
+    LOG_D("glTexSubImage3D, target = %s, level = %d, offset = (%d,%d,%d), size = (%d,%d,%d), format = %s, type = %s",
+          glEnumToString(target), level, xoffset, yoffset, zoffset, width, height, depth, glEnumToString(format),
+          glEnumToString(type))
+    mg_upload_fix_t fix(width, height, depth, format, type, pixels);
+    GLES.glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, fix.format, fix.type,
+                         fix.pixels);
+    CHECK_GL_ERROR
+}
+
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* pixels) {
     LOG()
     LOG_D("glReadPixels, x=%d, y=%d, width=%d, height=%d, format=0x%x, "
           "type=0x%x, pixels=0x%x",
           x, y, width, height, format, type, pixels)
 
-    static int count = 0;
-    GLenum prevFormat = format;
-
-    if (format == GL_BGRA && type == GL_UNSIGNED_INT_8_8_8_8) {
-        format = GL_RGBA;
-        type = GL_UNSIGNED_BYTE;
+    // Encodes BGRA and the packed 8888 layouts from an RGBA readback; the old
+    // code renamed one type combination and wrote RGBA bytes into a buffer the
+    // application would read as BGRA.
+    if (mg_transfer_readback(x, y, width, height, format, type, pixels)) {
+        CHECK_GL_ERROR
+        return;
     }
-    LOG_D("glReadPixels converted, x=%d, y=%d, width=%d, height=%d, format=0x%x, "
-          "type=0x%x, pixels=0x%x",
-          x, y, width, height, format, type, pixels)
     GLES.glReadPixels(x, y, width, height, format, type, pixels);
 
-#if GLOBAL_DEBUG || DEBUG
-    if (prevFormat == GL_BGRA && type == GL_UNSIGNED_BYTE) {
-        std::vector<uint8_t> px(width * height * sizeof(uint8_t) * 4, 0);
-        GLES.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        GLES.glReadPixels(x, y, width, height, format, type, px.data());
-
-        std::fstream fs(std::string(concatenate(mg_directory_path, "/readpixels/")) + std::to_string(count++) + ".bin",
-                        std::ios::out | std::ios::binary | std::ios::trunc);
-        fs.write((const char*)px.data(), px.size());
-        fs.close();
-    }
-#endif
     CHECK_GL_ERROR
 }
 

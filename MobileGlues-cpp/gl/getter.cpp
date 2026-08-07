@@ -304,7 +304,7 @@ const GLubyte* glGetString(GLenum name) {
 #elif VERSION_TYPE == VERSION_BETA
                 versionString += "·Beta";
 #elif VERSION_TYPE == VERSION_DEVELOPMENT
-                versionString += "·Dev";
+                versionString += "·Dev" + std::to_string(VERSION_DEV_NUMBER);
 #elif VERSION_TYPE == VERSION_RC
                 versionString += "·RC" + std::to_string(VERSION_RC_NUMBER);
 #endif

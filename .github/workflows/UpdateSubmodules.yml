@@ -14,4 +14,4 @@ jobs:
       run: |
         chmod +x ./update.bash
         ./update.bash
-        
+

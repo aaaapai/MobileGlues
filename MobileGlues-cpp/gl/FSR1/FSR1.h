@@ -28,7 +28,6 @@
 #include "../pixel.h"
 #include <GL/gl.h>
 #include <ankerl/unordered_dense.h>
-#include <glm/glm.hpp>
 
 namespace FSR1_Context {
     extern GLuint g_renderFBO;

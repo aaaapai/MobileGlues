@@ -79,6 +79,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
     gl/restart.cpp
     egl/context.cpp
     gl/pixel.cpp
+    gl/transfer.cpp
     gl/random_string_gen.cpp
     gl/ExtWrappers/DSAWrapper.cpp
     gl/ExtWrappers/MultiBindWrapper.cpp
@@ -100,7 +101,6 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ./includes
-    ./3rdparty/glm
     ./3rdparty/xxhash
     ./3rdparty 
     ./3rdparty/glslang
