@@ -6,6 +6,7 @@
 // End of Source File Header
 
 #include "loader.h"
+#include "context.h"
 #include "../gl/envvars.h"
 #include "../gl/log.h"
 #include "../gl/mg.h"
@@ -46,10 +47,10 @@ void init_target_egl() {
                               EGL_SURFACE_TYPE,
                               EGL_PBUFFER_BIT,
                               EGL_RENDERABLE_TYPE,
-                              EGL_OPENGL_ES2_BIT,
+                              EGL_OPENGL_ES3_BIT,
                               EGL_NONE};
 
-    EGLint ctxAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+    EGLint ctxAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
 
     EGLint pbAttribs[] = {EGL_WIDTH, 32, EGL_HEIGHT, 32, EGL_NONE};
 
@@ -62,7 +63,9 @@ void init_target_egl() {
         goto cleanup;
     }
 
-    if (egl_eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+    if (egl_eglInitialize(eglDisplay, NULL, NULL) == EGL_TRUE) {
+        mg_display_initialised(eglDisplay);
+    } else {
         LOG_E("eglInitialize failed (0x%x)", egl_eglGetError());
         goto cleanup;
     }
@@ -128,11 +131,18 @@ void destroy_temp_egl_ctx() {
     LOAD_EGL(eglDestroySurface);
     LOAD_EGL(eglDestroyContext);
     LOAD_EGL(eglMakeCurrent);
-    LOAD_EGL(eglTerminate);
 
     egl_eglMakeCurrent(eglDisplay, 0, 0, EGL_NO_CONTEXT);
     egl_eglDestroySurface(eglDisplay, eglSurface);
     egl_eglDestroyContext(eglDisplay, eglContext);
 
-    egl_eglTerminate(eglDisplay);
+    // Terminate only if this probe was the sole holder. EGL does not
+    // reference-count initialisation per caller, so terminating unconditionally
+    // marked every resource on EGL_DEFAULT_DISPLAY for destruction, including
+    // contexts and surfaces the host process created before this library was
+    // loaded.
+    if (mg_display_release(eglDisplay)) {
+        LOAD_EGL(eglTerminate);
+        if (egl_eglTerminate) egl_eglTerminate(eglDisplay);
+    }
 }

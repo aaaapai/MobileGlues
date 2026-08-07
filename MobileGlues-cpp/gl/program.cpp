@@ -23,9 +23,6 @@
 extern UnorderedMap<GLuint, bool> shader_map_is_sampler_buffer_emulated;
 UnorderedMap<GLuint, bool> program_map_is_sampler_buffer_emulated;
 
-extern UnorderedMap<GLuint, bool> shader_map_is_atomic_counter_emulated;
-UnorderedMap<GLuint, bool> program_map_is_atomic_counter_emulated;
-
 enum class ShouldGenerateFSState : int {
     Never = 0,
     Maybe = 1,
@@ -207,10 +204,6 @@ void glAttachShader(GLuint program, GLuint shader) {
     LOG_D("glAttachShader(%u, %u)", program, shader)
     if (hardware->emulate_texture_buffer && shader_map_is_sampler_buffer_emulated[shader])
         program_map_is_sampler_buffer_emulated[program] = true;
-    if (shader_map_is_atomic_counter_emulated[shader]) {
-        program_map_is_atomic_counter_emulated[program] = true;
-        LOG_D("Shader %d is atomic counter emulated, setting program %d to atomic counter emulated", shader, program)
-    }
 
     GLint type = 0;
     GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &type);
@@ -240,7 +233,6 @@ GLuint glCreateProgram() {
             g_samplerCacheForSamplerBuffer.erase(program);
         }
     }
-    program_map_is_atomic_counter_emulated[program] = false;
     program_map_should_generate_fs[program] = ShouldGenerateFSState::Unknown;
 
     CHECK_GL_ERROR

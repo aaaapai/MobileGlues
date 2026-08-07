@@ -6,6 +6,8 @@
 // End of Source File Header
 
 #include "getter.h"
+#include "enable.h"
+#include "../egl/context.h"
 #include "buffer.h"
 #include <string>
 #include <format>
@@ -50,10 +52,12 @@ void glGetIntegerv(GLenum pname, GLint* params) {
         (*params) = num_extensions;
         break;
     case GL_MAJOR_VERSION:
-        (*params) = GLVersion.Major;
+        // What THIS context was granted, which after the version gate was relaxed
+        // is what the application asked for rather than the configured maximum.
+        (*params) = g_current_ctx ? g_current_ctx->granted_major : GLVersion.Major;
         break;
     case GL_MINOR_VERSION:
-        (*params) = GLVersion.Minor;
+        (*params) = g_current_ctx ? g_current_ctx->granted_minor : GLVersion.Minor;
         break;
     case GL_MAX_TEXTURE_IMAGE_UNITS: {
         int es_params = 16;
@@ -63,8 +67,11 @@ void glGetIntegerv(GLenum pname, GLint* params) {
         break;
     }
     case GL_CONTEXT_FLAGS: {
-        (*params) =
-            GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT | GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT | GL_CONTEXT_FLAG_NO_ERROR_BIT;
+        // Reported from what the context was actually created with. Claiming
+        // flags the application never asked for -- as this did before it was
+        // reduced to 0 -- makes a loader believe it has a debug or robust context
+        // that does not behave like one.
+        (*params) = g_current_ctx ? g_current_ctx->context_flags : 0;
         break;
     }
     case GL_ARRAY_BUFFER_BINDING:
@@ -85,10 +92,23 @@ void glGetIntegerv(GLenum pname, GLint* params) {
     case GL_VERTEX_ARRAY_BINDING:
         (*params) = (int)find_bound_array();
         break;
-    default:
+    default: {
+        // The enable table owns every enable capability and the handful of limits
+        // that describe it, so glGetIntegerv can never disagree with glIsEnabled.
+        GLboolean enabled = GL_FALSE;
+        GLint ival = 0;
+        if (mg_enable_query(pname, &enabled)) {
+            (*params) = enabled ? 1 : 0;
+            break;
+        }
+        if (mg_enable_query_int(pname, &ival)) {
+            (*params) = ival;
+            break;
+        }
         GLES.glGetIntegerv(pname, params);
         LOG_D("  -> %d", *params)
         CHECK_GL_ERROR
+    }
     }
 }
 

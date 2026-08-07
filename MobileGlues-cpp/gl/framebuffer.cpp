@@ -6,6 +6,9 @@
 // End of Source File Header
 
 #include "framebuffer.h"
+#include "../egl/context.h"
+#include <mutex>
+#include <unordered_map>
 #include "log.h"
 #include "../config/settings.h"
 #include "FSR1/FSR1.h"
@@ -16,7 +19,29 @@ static GLint MAX_COLOR_ATTACHMENTS = 0;
 static GLint MAX_DRAW_BUFFERS = 0;
 GLuint current_draw_fbo = 0;
 GLuint current_read_fbo = 0;
-std::vector<framebuffer_t> framebuffers;
+// Framebuffer objects are container state: GL does not share them across a share
+// group, so they belong to one context. See gl/buffer.cpp for the pattern.
+namespace {
+std::mutex g_fbo_mutex;
+std::unordered_map<unsigned long long, std::vector<framebuffer_t>> g_fbo_ctxs;
+std::vector<framebuffer_t> g_fbo_default;
+thread_local std::vector<framebuffer_t>* g_fc = &g_fbo_default;
+} // namespace
+
+void mg_framebuffer_bind_context(unsigned long long ctx_id) {
+    if (ctx_id == 0) {
+        g_fc = &g_fbo_default;
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_fbo_mutex);
+    g_fc = &g_fbo_ctxs[ctx_id];
+}
+
+#define framebuffers (*g_fc)
+
+std::vector<framebuffer_t>& mg_framebuffers() {
+    return *g_fc;
+}
 void ensure_max_attachments() {
     if (MAX_COLOR_ATTACHMENTS == 0) {
         GLES.glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &MAX_COLOR_ATTACHMENTS);

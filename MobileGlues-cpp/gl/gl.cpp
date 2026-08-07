@@ -21,7 +21,7 @@
 static GLclampd currentDepthValue;
 
 extern GLuint current_draw_fbo;
-extern std::vector<framebuffer_t> framebuffers;
+#include "framebuffer.h"
 
 void glClearDepth(GLclampd depth) {
     LOG()

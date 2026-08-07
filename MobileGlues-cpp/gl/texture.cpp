@@ -6,6 +6,9 @@
 // End of Source File Header
 
 #include "texture.h"
+#include "../egl/context.h"
+#include <mutex>
+#include <unordered_map>
 #include "GLES3/gl32.h"
 
 #include <cstdlib>
@@ -182,9 +185,44 @@ private:
     std::array<TextureBindingSlot, (int)TextureTarget::TEXTURES_COUNT> m_slots;
 };
 
-static std::vector<TextureObject*> BufferObjectsVec;
-static std::array<TextureUnit, MAX_TEXTURE_IMAGE_UNITS> TextureUnits;
-static int CurrentTextureUnitIndex = 0;
+// Texture objects are shared across a share group; the texture unit bindings and
+// the active unit are container state and belong to one context. Both used to be
+// process-wide. See the note in gl/buffer.cpp for why this is a thread_local
+// pointer swap rather than an accessor at every use.
+namespace {
+
+struct texture_group_state_t {
+    std::vector<TextureObject*> objects;
+};
+struct texture_ctx_state_t {
+    std::array<TextureUnit, MAX_TEXTURE_IMAGE_UNITS> units;
+    int current_unit = 0;
+};
+
+std::mutex g_tex_mutex;
+std::unordered_map<unsigned long long, texture_group_state_t> g_tex_groups;
+std::unordered_map<unsigned long long, texture_ctx_state_t> g_tex_ctxs;
+texture_group_state_t g_tex_group_default;
+texture_ctx_state_t g_tex_ctx_default;
+thread_local texture_group_state_t* g_tg = &g_tex_group_default;
+thread_local texture_ctx_state_t* g_tc = &g_tex_ctx_default;
+
+} // namespace
+
+void mg_texture_bind_context(unsigned long long ctx_id, unsigned long long group_id) {
+    if (ctx_id == 0) {
+        g_tg = &g_tex_group_default;
+        g_tc = &g_tex_ctx_default;
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_tex_mutex);
+    g_tg = &g_tex_groups[group_id];
+    g_tc = &g_tex_ctxs[ctx_id];
+}
+
+#define BufferObjectsVec (g_tg->objects)
+#define TextureUnits (g_tc->units)
+#define CurrentTextureUnitIndex (g_tc->current_unit)
 
 void InitTextureMap(size_t expectedSize) {
     BufferObjectsVec.reserve(expectedSize);

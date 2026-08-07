@@ -6,6 +6,7 @@
 // End of Source File Header
 
 #include "drawing.h"
+#include "restart.h"
 #include "buffer.h"
 #include "framebuffer.h"
 #include "mg.h"
@@ -19,7 +20,6 @@ GLuint bufSampelerLoc;
 std::string bufSampelerName;
 
 extern UnorderedMap<GLuint, bool> program_map_is_sampler_buffer_emulated;
-extern UnorderedMap<GLuint, bool> program_map_is_atomic_counter_emulated;
 
 UnorderedMap<GLuint, SamplerInfo> g_samplerCacheForSamplerBuffer;
 
@@ -103,7 +103,11 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void
     LOG_D("glDrawElementsInstanced, mode: %d, count: %d, type: %d, indices: %p, primcount: %d", mode, count, type,
           indices, primcount)
     prepareForDraw();
+    if (mg_restart_needs_rewrite(type) && mg_draw_elements_restart(mode, count, type, indices, 0, primcount)) return;
+    const bool restart_fixed = mg_restart_needs_driver_fixed(type);
+    if (restart_fixed) GLES.glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     GLES.glDrawElementsInstanced(mode, count, type, indices, primcount);
+    if (restart_fixed) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     CHECK_GL_ERROR
 }
 
@@ -111,7 +115,11 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices
     LOG()
     LOG_D("glDrawElements, mode: %d, count: %d, type: %d, indices: %p", mode, count, type, indices)
     prepareForDraw();
+    if (mg_restart_needs_rewrite(type) && mg_draw_elements_restart(mode, count, type, indices, 0, -1)) return;
+    const bool restart_fixed = mg_restart_needs_driver_fixed(type);
+    if (restart_fixed) GLES.glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     GLES.glDrawElements(mode, count, type, indices);
+    if (restart_fixed) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     CHECK_GL_ERROR
 }
 
@@ -131,17 +139,10 @@ void glUniform1i(GLint location, GLint v0) {
     CHECK_GL_ERROR
 }
 
-void bindAllAtomicCounterAsSSBO();
 void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) {
     LOG()
     LOG_D("glDispatchCompute, num_groups_x: %d, num_groups_y: %d, num_groups_z: %d", num_groups_x, num_groups_y,
           num_groups_z)
-    if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
-        bindAllAtomicCounterAsSSBO();
-        LOG_D("Atomic counters bound as SSBOs for program %d", gl_state->current_program);
-    } else {
-        LOG_D("No atomic counters bound as SSBOs for program %d", gl_state->current_program);
-    }
     GLES.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
     CHECK_GL_ERROR
 }
@@ -167,10 +168,6 @@ GLbitfield glGetSupportedMemoryBarrierBits() {
 void glMemoryBarrier(GLbitfield barriers) {
     LOG()
     LOG_D("glMemoryBarrier, barriers: %d", barriers)
-    if (program_map_is_atomic_counter_emulated[gl_state->current_program]) {
-        barriers |= GL_ATOMIC_COUNTER_BARRIER_BIT;
-        barriers |= GL_SHADER_STORAGE_BARRIER_BIT;
-    }
     GLES.glMemoryBarrier(barriers);
     CHECK_GL_ERROR
 }
@@ -192,6 +189,17 @@ void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const voi
     LOG_D("glDrawElementsBaseVertex, mode: %d, count: %d, type: %d, indices: %p, basevertex: %d", mode, count, type,
           indices, basevertex);
     prepareForDraw();
+    // The rewrite applies the base vertex itself, so it covers both the emulated
+    // and the driver-supported branch below.
+    if (mg_restart_needs_rewrite(type) && mg_draw_elements_restart(mode, count, type, indices, basevertex, -1)) return;
+    const bool restart_fixed = mg_restart_needs_driver_fixed(type);
+    if (restart_fixed) GLES.glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    struct RestartGuard {
+        bool on;
+        ~RestartGuard() {
+            if (on) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+        }
+    } restart_guard{restart_fixed};
     if (hardware->es_version < 320 && !g_gles_caps.GL_EXT_draw_elements_base_vertex &&
         !g_gles_caps.GL_OES_draw_elements_base_vertex) {
         // TODO: use indirect drawing for GLES 3.1
