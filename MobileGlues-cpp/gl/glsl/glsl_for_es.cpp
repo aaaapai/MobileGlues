@@ -21,6 +21,7 @@
 #include <sstream>
 #include "cache.h"
 #include "../../version.h"
+#include <memory>
 
 #define DEBUG 0
 
@@ -2077,6 +2078,13 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc, GLenum shader_type) {
     spvc_context context = nullptr;
+    auto ctx_deleter = [](spvc_context* ctx) {
+        if (ctx && *ctx) {
+            spvc_context_destroy(*ctx);
+        }
+    };
+    std::unique_ptr<spvc_context, decltype(ctx_deleter)> ctx_guard(&context, ctx_deleter);
+
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
     spvc_compiler_options options = nullptr;
@@ -2089,12 +2097,12 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     size_t word_count = spirv.size();
 
     LOG_D("spirv_code.size(): %d", spirv.size())
-	if(context == nullptr) {
+    if(context == nullptr) {
         spvc_context_create(&context);
         if(context == nullptr) {
             printf("SPVC Context could not be created!\n");
         }
-	}
+    }
     spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
     spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
     spvc_compiler_create_shader_resources(compiler_glsl, &resources);
@@ -2102,7 +2110,7 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     spvc_compiler_create_compiler_options(compiler_glsl, &options);
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 320);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-	spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
     spvc_compiler_install_compiler_options(compiler_glsl, options);
     spvc_compiler_compile(compiler_glsl, &result);
@@ -2114,23 +2122,12 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
         } else {
             LOG_E("SPIRV-Cross failed without error message");
         }
-        
-        // 检查常见原因
-        if (essl_version < 300) {
-            LOG_E("Hint: ESSL version %u may be too low", essl_version);
-        }
-        
         spvc_compiler_get_current_id_bound(compiler_glsl);
-        
         errc = -1;
-        spvc_context_destroy(context);
         return "";
     }
 
     std::string essl = result;
-
-    spvc_context_destroy(context);
-
     errc = 0;
     return essl;
 }
