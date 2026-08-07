@@ -15,6 +15,13 @@
 
 #define DEBUG 0
 
+#define GL_MAP_PERSISTENT_BIT_EXT 0x0040
+#define GL_MAP_COHERENT_BIT_EXT 0x0080
+
+static void depth_to_format(float depth, GLenum internalformat, GLubyte* output);
+static GLhalf floatToHalf(float f);
+static void convert_components_to_internal_format(const float* components, int count, GLenum internalformat, GLubyte* output);
+
 GLuint bound_array;
 static GLint maxBufferId = 0;
 static GLint maxArrayId = 0;
@@ -393,6 +400,16 @@ void InitVertexArrayMap(size_t expectedSize) {
     g_element_array_buffer_per_vao.resize(1, 0);
 }
 
+// 在文件开头添加
+static GLenum convert_flags_to_usage(GLbitfield flags) {
+    // 将 GLbufferStorage 标志转换为传统的 GLbufferData usage
+    if (flags & GL_DYNAMIC_STORAGE_BIT)
+        return GL_DYNAMIC_DRAW;
+    if (flags & GL_MAP_WRITE_BIT)
+        return GL_STREAM_DRAW;
+    return GL_STATIC_DRAW;
+}
+
 void glGenBuffers(GLsizei n, GLuint* buffers) {
     LOG()
     LOG_D("glGenBuffers(%i, %p)", n, buffers)
@@ -469,6 +486,70 @@ void glBindBuffer(GLenum target, GLuint buffer) {
 }
 
 static std::vector<GLuint> g_buffer_map_ssbo_id;
+
+// 改进原子计数器到 SSBO 的映射
+/*void bindAllAtomicCounterAsSSBO() {
+    const size_t count = g_buffer_map_atomic_buffer_info.size();
+    if (count == 0) return;
+    
+    // 动态获取 SSBO 限制值
+    GLint max_ssbo_bindings = 0;
+    GLint max_ssbo_block_size = 0;
+    
+    // 获取最大 SSBO 绑定点数
+    GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_ssbo_bindings);
+    if (glGetError() != GL_NO_ERROR) {
+        // 如果不支持，使用保守的默认值
+        max_ssbo_bindings = 8; // ES 3.2 最小保证值
+        LOG_W("GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS not supported, using default %d", max_ssbo_bindings);
+    }
+    
+    // 获取最大 SSBO 块大小
+    GLES.glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_block_size);
+    if (glGetError() != GL_NO_ERROR) {
+        // 如果不支持，使用保守的默认值
+        max_ssbo_block_size = 16 * 1024 * 1024; // 16MB，ES 3.2 最小保证值
+        LOG_W("GL_MAX_SHADER_STORAGE_BLOCK_SIZE not supported, using default %d", max_ssbo_block_size);
+    }
+    
+    LOG_D("SSBO limits - bindings: %d, block size: %d bytes", max_ssbo_bindings, max_ssbo_block_size);
+    
+    for (size_t i = 0; i < count; ++i) {
+        atomic_buffer buf = g_buffer_map_atomic_buffer_info[i];
+        if (buf.id != 0) {
+            GLuint realID = find_real_buffer(buf.id);
+            if (!realID) {
+                LOG_W("Atomic counter buffer %u has no real buffer", buf.id);
+                continue;
+            }
+            
+            // 检查 SSBO 绑定索引是否超出限制
+            if (i >= (size_t)max_ssbo_bindings) {
+                LOG_W("Atomic counter index %zu exceeds SSBO bindings limit %d", 
+                      i, max_ssbo_bindings);
+                continue;
+            }
+            
+            // 检查块大小是否超出限制
+            if (buf.size > max_ssbo_block_size) {
+                LOG_W("Atomic buffer size %lld exceeds SSBO block size limit %d",
+                      (long long)buf.size, max_ssbo_block_size);
+                // 可以选择截断或继续但警告
+            }
+            
+            GLES.glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, realID, buf.offset, buf.size);
+            
+            // 检查绑定是否成功
+            GLenum err = glGetError();
+            if (err != GL_NO_ERROR) {
+                LOG_E("Failed to bind atomic counter %zu as SSBO: 0x%x", i, err);
+            } else {
+                LOG_D("Bound atomic counter buffer %u(real: %u) as SSBO at index %zu", 
+                      buf.id, realID, i);
+            }
+        }
+    }
+}*/
 
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) {
     LOG()
@@ -880,6 +961,11 @@ extern "C"
     GLAPI GLAPIENTRY void glBufferStorageARB(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags)
         __attribute__((alias("glBufferStorage")));
     GLAPI GLAPIENTRY void glBindBufferARB(GLenum target, GLuint buffer) __attribute__((alias("glBindBuffer")));
+    
+    /* 添加的 ARB 缓冲区函数别名 */
+    GLAPI GLAPIENTRY void glGenBuffersARB(GLsizei n, GLuint* buffers) __attribute__((alias("glGenBuffers")));
+    GLAPI GLAPIENTRY GLboolean glIsBufferARB(GLuint buffer) __attribute__((alias("glIsBuffer")));
+    GLAPI GLAPIENTRY void glDeleteBuffersARB(GLsizei n, const GLuint* buffers) __attribute__((alias("glDeleteBuffers")));
 }
 #endif
 
@@ -904,8 +990,8 @@ GLboolean glUnmapBuffer(GLenum target) {
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {
     LOG()
-    if (GLES.glBufferStorageEXT) {
-        if (global_settings.buffer_coherent_as_flush &&
+
+    if (global_settings.buffer_coherent_as_flush &&
             ((flags & GL_MAP_PERSISTENT_BIT) != 0 || (flags & GL_DYNAMIC_STORAGE_BIT) != 0))
             flags |= (GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
         borrowed_target_t t(target);
@@ -915,6 +1001,7 @@ void glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfiel
     }
     CHECK_GL_ERROR
 }
+
 
 void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) {
     LOG()
@@ -976,4 +1063,758 @@ void glBindVertexArray(GLuint array) {
     LOG_D("glBindVertexArray: %d -> %d", array, real_array)
     GLES.glBindVertexArray(real_array);
     CHECK_GL_ERROR
+}
+
+// 获取格式/类型组合的字节大小
+static GLsizei get_format_type_size(GLenum format, GLenum type) {
+    GLsizei component_count = 0;
+    switch (format) {
+        case GL_RED:
+        case GL_GREEN:
+        case GL_BLUE:
+        case GL_ALPHA:
+        case GL_DEPTH_COMPONENT:
+        case GL_STENCIL_INDEX:
+            component_count = 1;
+            break;
+        case GL_RG:
+            component_count = 2;
+            break;
+        case GL_RGB:
+            component_count = 3;
+            break;
+        case GL_RGBA:
+        case GL_BGRA:
+            component_count = 4;
+            break;
+        case GL_DEPTH_STENCIL:
+            component_count = 2;
+            break;
+        default:
+            return 0;
+    }
+
+    GLsizei component_size = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+            component_size = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_HALF_FLOAT:
+            component_size = 2;
+            break;
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FLOAT:
+            component_size = 4;
+            break;
+        default:
+            return 0;
+    }
+
+    return component_count * component_size;
+}
+
+// 深度值转换到特定格式
+static void depth_to_format(float depth, GLenum internalformat, GLubyte* output) {
+    if (!output) return;
+    
+    // 钳位深度值到有效范围 [0, 1]
+    depth = std::max(0.0f, std::min(1.0f, depth));
+    
+    switch (internalformat) {
+        // 16位深度（无符号归一化整数）
+        case GL_DEPTH_COMPONENT16: {
+            GLushort* depth_out = (GLushort*)output;
+            // 16位深度：0-65535 映射到 0.0-1.0
+            *depth_out = (GLushort)(depth * 65535.0f);
+            break;
+        }
+        
+        // 24位深度（无符号归一化整数）
+        case GL_DEPTH_COMPONENT24: {
+            // 24位存储，打包在3个字节中
+            GLuint depth_val = (GLuint)(depth * 16777215.0f); // 2^24 - 1
+            
+            // 小端序：低字节在前
+            output[0] = (GLubyte)(depth_val & 0xFF);
+            output[1] = (GLubyte)((depth_val >> 8) & 0xFF);
+            output[2] = (GLubyte)((depth_val >> 16) & 0xFF);
+            break;
+        }
+        
+        // 32位浮点深度
+        case GL_DEPTH_COMPONENT32F: {
+            GLfloat* depth_out = (GLfloat*)output;
+            *depth_out = depth;
+            break;
+        }
+        
+        default:
+            LOG_W("depth_to_format: Unsupported internalformat %s for depth conversion", 
+                  glEnumToString(internalformat));
+            break;
+    }
+}
+
+// 处理打包格式
+static std::vector<GLubyte> convert_packed_clear_data(const void* data, GLenum format, 
+                                                       GLenum type, GLenum internalformat) {
+    std::vector<GLubyte> result;
+    GLsizei internal_size = get_internal_format_size(internalformat);
+    if (internal_size == 0) return result;
+    
+    result.resize(internal_size);
+    
+    // 解析打包格式
+    uint32_t packed = 0;
+    GLsizei packed_size = 0;
+    
+    switch (type) {
+        case GL_UNSIGNED_SHORT_5_6_5:
+            packed = *(GLushort*)data;
+            packed_size = 2;
+            break;
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+            packed = *(GLushort*)data;
+            packed_size = 2;
+            break;
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+            packed = *(GLuint*)data;
+            packed_size = 4;
+            break;
+        default:
+            return result;
+    }
+    
+    // 提取组件
+    float components[4] = {0, 0, 0, 1}; // 默认alpha=1
+    
+    switch (type) {
+        case GL_UNSIGNED_SHORT_5_6_5:
+            components[0] = ((packed >> 11) & 0x1F) / 31.0f;  // R
+            components[1] = ((packed >> 5) & 0x3F) / 63.0f;   // G
+            components[2] = (packed & 0x1F) / 31.0f;          // B
+            break;
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+            components[0] = ((packed >> 12) & 0xF) / 15.0f;   // R
+            components[1] = ((packed >> 8) & 0xF) / 15.0f;    // G
+            components[2] = ((packed >> 4) & 0xF) / 15.0f;    // B
+            components[3] = (packed & 0xF) / 15.0f;           // A
+            break;
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+            components[0] = ((packed >> 11) & 0x1F) / 31.0f;  // R
+            components[1] = ((packed >> 6) & 0x1F) / 31.0f;   // G
+            components[2] = ((packed >> 1) & 0x1F) / 31.0f;   // B
+            components[3] = (packed & 0x1);                  // A
+            break;
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+            components[0] = (packed & 0x3FF) / 1023.0f;       // R
+            components[1] = ((packed >> 10) & 0x3FF) / 1023.0f; // G
+            components[2] = ((packed >> 20) & 0x3FF) / 1023.0f; // B
+            components[3] = ((packed >> 30) & 0x3) / 3.0f;    // A
+            break;
+        // 其他打包格式...
+    }
+    
+    // 转换到内部格式
+    convert_components_to_internal_format(components, 4, internalformat, result.data());
+    
+    return result;
+}
+
+// 处理深度模板格式
+static std::vector<GLubyte> convert_depth_stencil_clear_data(const void* data, GLenum format,
+                                                              GLenum type, GLenum internalformat) {
+    std::vector<GLubyte> result;
+    GLsizei internal_size = get_internal_format_size(internalformat);
+    if (internal_size == 0) return result;
+    
+    result.resize(internal_size);
+    memset(result.data(), 0, internal_size);
+    
+    float depth = 0.0f;
+    int stencil = 0;
+    
+    if (format == GL_DEPTH_STENCIL || format == GL_DEPTH_COMPONENT) {
+        // 提取深度值
+        switch (type) {
+            case GL_UNSIGNED_INT_24_8:
+            case GL_FLOAT_32_UNSIGNED_INT_24_8_REV: {
+                uint32_t packed = *(GLuint*)data;
+                if (type == GL_UNSIGNED_INT_24_8) {
+                    depth = (packed >> 8) / 16777215.0f;
+                    stencil = packed & 0xFF;
+                } else {
+                    depth = *(GLfloat*)data;
+                    stencil = ((uint32_t*)data)[1] & 0xFF;
+                }
+                break;
+            }
+            case GL_FLOAT:
+                depth = *(GLfloat*)data;
+                break;
+            case GL_UNSIGNED_INT:
+                depth = *(GLuint*)data / 4294967295.0f;
+                break;
+            case GL_UNSIGNED_SHORT:
+                depth = *(GLushort*)data / 65535.0f;
+                break;
+        }
+    }
+    
+    if (format == GL_STENCIL_INDEX) {
+        // 提取模板值
+        switch (type) {
+            case GL_UNSIGNED_BYTE:
+                stencil = *(GLubyte*)data;
+                break;
+            case GL_UNSIGNED_INT:
+                stencil = *(GLuint*)data;
+                break;
+        }
+    }
+    
+    // 根据internalformat写入目标格式
+    switch (internalformat) {
+        case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
+        case GL_DEPTH_COMPONENT32F:
+            // 只写深度
+            depth_to_format(depth, internalformat, result.data());
+            break;
+        case GL_DEPTH24_STENCIL8:
+            // 24位深度 + 8位模板
+            depth_to_format(depth, GL_DEPTH_COMPONENT24, result.data());
+            result[3] = stencil & 0xFF;  // 模板值存储在第4字节
+            break;
+        case GL_DEPTH32F_STENCIL8:
+            // 32位浮点深度 + 8位模板
+            *(GLfloat*)result.data() = depth;
+            result[4] = stencil & 0xFF;  // 模板值存储在第5字节
+            break;
+    }
+    
+    return result;
+}
+
+// 将组件值转换到内部格式
+static void convert_components_to_internal_format(const float* components, int count,
+                                                   GLenum internalformat, GLubyte* output) {
+    // 获取内部格式的组件数量和类型
+    GLenum base_format;
+    GLenum data_type;
+    GLint internal_components;
+    bool is_snorm = false;
+    bool is_unorm = false;
+    bool is_int = false;
+    bool is_uint = false;
+    bool is_float = false;
+    
+    switch (internalformat) {
+        // 8-bit
+        case GL_R8:
+        case GL_R8_SNORM:
+            internal_components = 1;
+            base_format = GL_RED;
+            data_type = is_snorm ? GL_BYTE : GL_UNSIGNED_BYTE;
+            is_unorm = !is_snorm;
+            break;
+        case GL_R8I:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_BYTE;
+            is_int = true;
+            break;
+        case GL_R8UI:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_UNSIGNED_BYTE;
+            is_uint = true;
+            break;
+            
+        // 16-bit
+        case GL_R16:
+        case GL_R16_SNORM:
+            internal_components = 1;
+            base_format = GL_RED;
+            data_type = is_snorm ? GL_SHORT : GL_UNSIGNED_SHORT;
+            is_unorm = !is_snorm;
+            break;
+        case GL_R16I:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_SHORT;
+            is_int = true;
+            break;
+        case GL_R16UI:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_UNSIGNED_SHORT;
+            is_uint = true;
+            break;
+        case GL_R16F:
+            internal_components = 1;
+            base_format = GL_RED;
+            data_type = GL_HALF_FLOAT;
+            is_float = true;
+            break;
+            
+        // 32-bit
+        case GL_R32I:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_INT;
+            is_int = true;
+            break;
+        case GL_R32UI:
+            internal_components = 1;
+            base_format = GL_RED_INTEGER;
+            data_type = GL_UNSIGNED_INT;
+            is_uint = true;
+            break;
+        case GL_R32F:
+            internal_components = 1;
+            base_format = GL_RED;
+            data_type = GL_FLOAT;
+            is_float = true;
+            break;
+            
+        // RG formats...
+        case GL_RG8:
+        case GL_RG8_SNORM:
+            internal_components = 2;
+            base_format = GL_RG;
+            data_type = is_snorm ? GL_BYTE : GL_UNSIGNED_BYTE;
+            is_unorm = !is_snorm;
+            break;
+        case GL_RG8I:
+            internal_components = 2;
+            base_format = GL_RG_INTEGER;
+            data_type = GL_BYTE;
+            is_int = true;
+            break;
+        // ... 其他RG格式类似
+        
+        // RGB formats...
+        case GL_RGB8:
+        case GL_RGB8_SNORM:
+            internal_components = 3;
+            base_format = GL_RGB;
+            data_type = is_snorm ? GL_BYTE : GL_UNSIGNED_BYTE;
+            is_unorm = !is_snorm;
+            break;
+        // ... 其他RGB格式类似
+        
+        // RGBA formats...
+        case GL_RGBA8:
+        case GL_RGBA8_SNORM:
+            internal_components = 4;
+            base_format = GL_RGBA;
+            data_type = is_snorm ? GL_BYTE : GL_UNSIGNED_BYTE;
+            is_unorm = !is_snorm;
+            break;
+        // ... 其他RGBA格式类似
+        
+        default:
+            // 尝试通过get_internal_format_size推断组件数
+            int total_size = get_internal_format_size(internalformat);
+            // 常见格式：R=1, RG=2, RGB=3, RGBA=4
+            // 这里简化处理，实际需要完整格式映射表
+            return;
+    }
+    
+    // 写入转换后的数据
+    for (int i = 0; i < internal_components; i++) {
+        float val = (i < count) ? components[i] : (i == 3 ? 1.0f : 0.0f);
+        
+        if (is_float) {
+            if (data_type == GL_HALF_FLOAT) {
+                GLhalf* half_out = (GLhalf*)output;
+                half_out[i] = floatToHalf(val);
+            } else {
+                float* float_out = (float*)output;
+                float_out[i] = val;
+            }
+        } else if (is_int || is_snorm) {
+            if (data_type == GL_BYTE) {
+                GLbyte* byte_out = (GLbyte*)output;
+                byte_out[i] = (GLbyte)(val * (is_snorm ? 127.0f : 1.0f));
+            } else if (data_type == GL_SHORT) {
+                GLshort* short_out = (GLshort*)output;
+                short_out[i] = (GLshort)(val * (is_snorm ? 32767.0f : 1.0f));
+            } else if (data_type == GL_INT) {
+                GLint* int_out = (GLint*)output;
+                int_out[i] = (GLint)val;
+            }
+        } else if (is_uint || is_unorm) {
+            if (data_type == GL_UNSIGNED_BYTE) {
+                GLubyte* ubyte_out = (GLubyte*)output;
+                ubyte_out[i] = (GLubyte)(val * (is_unorm ? 255.0f : 1.0f));
+            } else if (data_type == GL_UNSIGNED_SHORT) {
+                GLushort* ushort_out = (GLushort*)output;
+                ushort_out[i] = (GLushort)(val * (is_unorm ? 65535.0f : 1.0f));
+            } else if (data_type == GL_UNSIGNED_INT) {
+                GLuint* uint_out = (GLuint*)output;
+                uint_out[i] = (GLuint)val;
+            }
+        }
+    }
+}
+
+// Half-float转换辅助函数
+static GLhalf floatToHalf(float f) {
+    uint32_t u = *(uint32_t*)&f;
+    uint32_t sign = (u >> 16) & 0x8000;
+    uint32_t exponent = (u >> 23) & 0xFF;
+    uint32_t mantissa = u & 0x7FFFFF;
+    
+    if (exponent > 127 + 15) {
+        // 无穷大
+        return sign | 0x7C00;
+    }
+    if (exponent <= 127 - 15) {
+        // 非规格化数
+        return sign | (mantissa >> (exponent == 0 ? 1 : (127 - 15 - exponent + 1)));
+    }
+    
+    uint32_t half_exp = exponent - 127 + 15;
+    uint32_t half_mantissa = mantissa >> 13;
+    
+    return sign | (half_exp << 10) | half_mantissa;
+}
+
+static float halfToFloat(GLhalf h) {
+    uint32_t sign = (h >> 15) & 0x1;
+    uint32_t exponent = (h >> 10) & 0x1F;
+    uint32_t mantissa = h & 0x3FF;
+    
+    if (exponent == 0) {
+        if (mantissa == 0) {
+            // 0
+            return sign ? -0.0f : 0.0f;
+        } else {
+            // 非规格化
+            exponent = 127 - 15;
+            while (!(mantissa & 0x400)) {
+                mantissa <<= 1;
+                exponent--;
+            }
+            mantissa &= 0x3FF;
+        }
+    } else if (exponent == 31) {
+        // 无穷大或NaN
+        exponent = 255;
+    } else {
+        exponent += 127 - 15;
+    }
+    
+    uint32_t u = (sign << 31) | (exponent << 23) | (mantissa << 13);
+    return *(float*)&u;
+}
+
+static std::vector<GLubyte> convert_clear_data(const void* data, GLenum format, 
+                                                GLenum type, GLenum internalformat) {
+    std::vector<GLubyte> result;
+    
+    // OpenGL ES 3.2支持的internalformat
+    GLsizei internal_size = get_internal_format_size(internalformat);
+    if (internal_size == 0) return result;
+    
+    result.resize(internal_size);
+    
+    // 解析输入数据
+    GLsizei component_count = 0;
+    GLenum base_format = format;
+    
+    // 处理特殊情况
+    if (format == GL_DEPTH_STENCIL || internalformat == GL_DEPTH24_STENCIL8 || 
+        internalformat == GL_DEPTH32F_STENCIL8) {
+        // 处理深度模板格式
+        return convert_depth_stencil_clear_data(data, format, type, internalformat);
+    }
+    
+    // 获取组件数量
+    switch (format) {
+        case GL_RED:
+        case GL_GREEN:
+        case GL_BLUE:
+        case GL_ALPHA:
+        case GL_LUMINANCE:
+        case GL_DEPTH_COMPONENT:
+        case GL_STENCIL_INDEX:
+            component_count = 1;
+            break;
+        case GL_RG:
+        case GL_LUMINANCE_ALPHA:
+            component_count = 2;
+            break;
+        case GL_RGB:
+            component_count = 3;
+            break;
+        case GL_RGBA:
+            component_count = 4;
+            break;
+        default:
+            LOG_E("convert_clear_data: Unsupported format %s", glEnumToString(format));
+            return result;
+    }
+    
+    // 获取每个组件的字节数
+    GLsizei component_size = 0;
+    bool is_signed = false;
+    bool is_float = false;
+    bool is_normalized = false;
+    
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+            component_size = 1;
+            is_normalized = true;
+            break;
+        case GL_BYTE:
+            component_size = 1;
+            is_signed = true;
+            is_normalized = true;
+            break;
+        case GL_UNSIGNED_SHORT:
+            component_size = 2;
+            is_normalized = true;
+            break;
+        case GL_SHORT:
+            component_size = 2;
+            is_signed = true;
+            is_normalized = true;
+            break;
+        case GL_UNSIGNED_INT:
+            component_size = 4;
+            is_normalized = true;
+            break;
+        case GL_INT:
+            component_size = 4;
+            is_signed = true;
+            is_normalized = true;
+            break;
+        case GL_HALF_FLOAT:
+            component_size = 2;
+            is_float = true;
+            break;
+        case GL_FLOAT:
+            component_size = 4;
+            is_float = true;
+            break;
+        case GL_UNSIGNED_SHORT_5_6_5:
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+            // 打包格式，特殊处理
+            return convert_packed_clear_data(data, format, type, internalformat);
+        default:
+            LOG_E("convert_clear_data: Unsupported type %s", glEnumToString(type));
+            return result;
+    }
+    
+    // 提取组件值
+    std::vector<float> components(4, 0.0f); // RGBA，默认0
+    
+    for (int i = 0; i < component_count; i++) {
+        const char* src = (const char*)data + i * component_size;
+        
+        if (is_float) {
+            if (component_size == 2) {
+                // half float
+                GLhalf half_val = *(GLhalf*)src;
+                components[i] = halfToFloat(half_val);
+            } else {
+                // float
+                components[i] = *(float*)src;
+            }
+        } else if (is_signed) {
+            if (component_size == 1) {
+                components[i] = *(GLbyte*)src;
+            } else if (component_size == 2) {
+                components[i] = *(GLshort*)src;
+            } else {
+                components[i] = *(GLint*)src;
+            }
+            if (is_normalized) {
+                // 归一化整数转浮点
+                if (component_size == 1) components[i] /= 127.0f;
+                else if (component_size == 2) components[i] /= 32767.0f;
+                else components[i] /= 2147483647.0f;
+            }
+        } else {
+            if (component_size == 1) {
+                components[i] = *(GLubyte*)src;
+            } else if (component_size == 2) {
+                components[i] = *(GLushort*)src;
+            } else {
+                components[i] = *(GLuint*)src;
+            }
+            if (is_normalized) {
+                // 无符号归一化整数转浮点
+                if (component_size == 1) components[i] /= 255.0f;
+                else if (component_size == 2) components[i] /= 65535.0f;
+                else components[i] /= 4294967295.0f;
+            }
+        }
+    }
+    
+    // 根据internalformat转换到目标格式
+    convert_components_to_internal_format(components.data(), component_count, 
+                                         internalformat, result.data());
+    
+    return result;
+}
+
+// 创建默认清除值（全0）
+static std::vector<GLubyte> create_default_clear_value(GLenum internalformat) {
+    GLsizei size = get_internal_format_size(internalformat);
+    return std::vector<GLubyte>(size, 0);
+}
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, 
+                          GLintptr offset, GLsizeiptr size,
+                          GLenum format, GLenum type, 
+                          const void* data) {
+    LOG()
+    LOG_D("glClearBufferSubData: target=%s, internalformat=%s, offset=%ld, size=%ld, format=%s, type=%s",
+          glEnumToString(target), glEnumToString(internalformat), offset, size,
+          glEnumToString(format), glEnumToString(type));
+
+    // 1. 参数验证
+    if (size <= 0 || offset < 0) {
+        LOG_W("glClearBufferSubData: Invalid offset or size");
+        return;
+    }
+
+    // 2. 获取当前绑定的缓冲区
+    GLuint bound_buffer = find_bound_buffer(target);
+    if (!bound_buffer) {
+        LOG_W("glClearBufferSubData: No buffer bound to target %s", glEnumToString(target));
+        return;
+    }
+
+    // 3. 获取缓冲区大小并验证范围
+    GLuint real_buffer = find_real_buffer(bound_buffer);
+    if (!real_buffer) {
+        LOG_W("glClearBufferSubData: Invalid buffer %d", bound_buffer);
+        return;
+    }
+
+    // 保存当前绑定的缓冲区状态
+    GLenum binding_query = get_binding_query(target);
+    GLint prev_buffer = 0;
+    if (binding_query) {
+        GLES.glGetIntegerv(binding_query, &prev_buffer);
+    }
+
+    // 临时绑定目标缓冲区
+    GLES.glBindBuffer(target, real_buffer);
+
+    // 检查缓冲区大小
+    GLint buffer_size = 0;
+    GLES.glGetBufferParameteriv(target, GL_BUFFER_SIZE, &buffer_size);
+    if (offset + size > (GLintptr)buffer_size) {
+        LOG_W("glClearBufferSubData: Range [%ld, %ld) exceeds buffer size %d", 
+              offset, offset + size, buffer_size);
+        GLES.glBindBuffer(target, prev_buffer);
+        return;
+    }
+
+    // 4. 获取内部格式的像素大小（字节数）
+    GLsizei internal_format_size = get_internal_format_size(internalformat);
+    if (internal_format_size == 0) {
+        LOG_E("glClearBufferSubData: Unsupported internalformat %s", glEnumToString(internalformat));
+        GLES.glBindBuffer(target, prev_buffer);
+        return;
+    }
+
+    // 5. 计算清除值的实际大小
+    GLsizei clear_value_size = get_format_type_size(format, type);
+    if (clear_value_size == 0) {
+        LOG_E("glClearBufferSubData: Unsupported format/type combination: %s/%s",
+              glEnumToString(format), glEnumToString(type));
+        GLES.glBindBuffer(target, prev_buffer);
+        return;
+    }
+
+    // 6. 处理清除数据
+    std::vector<GLubyte> converted_clear_value;
+    
+    if (data != nullptr) {
+        // 根据internalformat转换清除值
+        converted_clear_value = convert_clear_data(data, format, type, internalformat);
+        if (converted_clear_value.empty()) {
+            LOG_E("glClearBufferSubData: Failed to convert clear data");
+            GLES.glBindBuffer(target, prev_buffer);
+            return;
+        }
+    } else {
+        // 默认清除值为0，根据internalformat创建
+        converted_clear_value = create_default_clear_value(internalformat);
+    }
+
+    // 7. 确保清除值大小与内部格式匹配
+    if ((GLsizei)converted_clear_value.size() != internal_format_size) {
+        LOG_W("glClearBufferSubData: Clear value size %zu doesn't match internal format size %d",
+              converted_clear_value.size(), internal_format_size);
+        // 调整大小
+        converted_clear_value.resize(internal_format_size, 0);
+    }
+
+    // 8. 执行清除操作 - 使用重复数据填充
+    GLsizeiptr remaining = size;
+    GLintptr current_offset = offset;
+    const GLsizeiptr chunk_size = 1024 * 1024; // 1MB chunks
+    std::vector<GLubyte> clear_pattern;
+
+    // 构建清除模式数据
+    clear_pattern.reserve(chunk_size);
+    while (clear_pattern.size() < (size_t)chunk_size) {
+        clear_pattern.insert(clear_pattern.end(), 
+                           converted_clear_value.begin(), 
+                           converted_clear_value.end());
+    }
+    clear_pattern.resize(chunk_size);
+
+    // 使用glBufferSubData重复写入清除数据
+    while (remaining > 0) {
+        GLsizeiptr write_size = std::min(remaining, chunk_size);
+        
+        // 调整写入大小使其为清除值大小的整数倍
+        write_size = (write_size / internal_format_size) * internal_format_size;
+        if (write_size == 0) break;
+
+        GLES.glBufferSubData(target, current_offset, write_size, clear_pattern.data());
+        
+        remaining -= write_size;
+        current_offset += write_size;
+    }
+
+    // 处理剩余部分（如果有）
+    if (remaining > 0) {
+        std::vector<GLubyte> last_chunk;
+        last_chunk.reserve(remaining);
+        while (last_chunk.size() < (size_t)remaining) {
+            last_chunk.insert(last_chunk.end(), 
+                            converted_clear_value.begin(), 
+                            converted_clear_value.end());
+        }
+        last_chunk.resize(remaining);
+        GLES.glBufferSubData(target, current_offset, remaining, last_chunk.data());
+    }
+
+    // 9. 恢复之前的缓冲区绑定
+    GLES.glBindBuffer(target, prev_buffer);
+
+    CHECK_GL_ERROR
+    LOG_D("glClearBufferSubData: Successfully cleared range [%ld, %ld) of buffer %d", 
+          offset, offset + size, bound_buffer);
 }

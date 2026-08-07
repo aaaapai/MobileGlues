@@ -17,6 +17,7 @@
 #include "../egl/context.h"
 #include <mutex>
 #include <unordered_map>
+#include <cmath>
 
 #define DEBUG 0
 
@@ -26,6 +27,9 @@ static GLclampd currentDepthValue;
 
 void glClearDepth(GLclampd depth) {
     LOG()
+    if (depth < 0.0) depth = 0.0;
+    if (depth > 1.0) depth = 1.0;
+    
     currentDepthValue = depth;
     GLES.glClearDepthf((float)depth);
     CHECK_GL_ERROR
@@ -152,32 +156,17 @@ void glClear(GLbitfield mask) {
     LOG();
     LOG_D("glClear, mask = 0x%x", mask);
 
-    INIT_CHECK_GL_ERROR
+    GLES.glClear(mask);
 
-    CHECK_GL_ERROR_NO_INIT
-
-    if (global_settings.angle == AngleMode::Enabled && mask == GL_DEPTH_BUFFER_BIT &&
-        std::fabs(currentDepthValue - 1.0f) <= 0.001f && mg_draw_framebuffer_all_none()) {
-        LOG_D("doing depth workaround")
-        if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode1)
-            // Workaround for ANGLE depth-clear bug: if depth≈1.0, draw a fullscreen triangle at z=1.0 to force actual
-            // depth buffer write.
-            DrawDepthClearTri();
-        else if (global_settings.angle_depth_clear_fix_mode == AngleDepthClearFixMode::Mode2) {
-            // Or just explicitly clear depth buffer and see what's happened
-            const GLfloat clear_depth_value = 1.0f;
-            GLES.glClearBufferfv(GL_DEPTH, 0, &clear_depth_value);
-        }
-        // Clear again
-        GLES.glClear(mask);
-    } else {
-        GLES.glClear(mask);
-    }
-
-    CHECK_GL_ERROR_NO_INIT;
 }
 
 void glHint(GLenum target, GLenum mode) {
     LOG()
     LOG_D("glHint, target = %s, mode = %s", glEnumToString(target), glEnumToString(mode))
+
+    GLES.glHint(target, mode);
+}
+
+void glPolygonMode (GLenum face, GLenum mode) {
+    GLES.glPolygonModeNV(face, mode);
 }
