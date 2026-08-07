@@ -2009,7 +2009,7 @@ static bool spvc_ok(spvc_context context, spvc_result res, const char* what) {
     return false;
 }
 
-std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc, GLenum shader_type) {
+std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
     spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
