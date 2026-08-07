@@ -1962,7 +1962,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     using namespace glslang;
 
 	shader.setPreamble(preamble.c_str());
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
