@@ -1889,12 +1889,16 @@ int get_or_add_glsl_version(std::string& glsl) {
         glsl_version = 330;
         glsl.insert(0, "#version 330 compatibility\n");
     } else if (glsl_version < 330) {
-        // 使用正则替换 #version 行
-        std::regex version_regex(R"(#version\s+\d+)");
-        glsl = std::regex_replace(glsl, version_regex, "#version 330 compatibility");
+        size_t pos = glsl.find("#version");
+        if (pos != std::string::npos) {
+            size_t end = glsl.find('\n', pos);
+            if (end == std::string::npos) end = glsl.length();
+            glsl.replace(pos, end - pos, "#version 330 compatibility");
+        }
         glsl_version = 330;
     }
     LOG_D("GLSL version: %d", glsl_version);
+    LOG_D("GLSL after upgrade:\n%s", glsl.c_str());
     return glsl_version;
 }
 
