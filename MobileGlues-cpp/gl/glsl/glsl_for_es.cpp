@@ -1884,7 +1884,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType) {
 }
 
 int get_or_add_glsl_version(std::string& glsl) {
-    // 匹配行首（可能有前导空白）的 #version 指令
     std::regex version_regex(R"(^\s*#version\s+\d+)", std::regex::multiline);
     std::smatch match;
     if (std::regex_search(glsl, match, version_regex)) {
@@ -1894,10 +1893,10 @@ int get_or_add_glsl_version(std::string& glsl) {
         std::smatch num_match;
         if (std::regex_search(version_line, num_match, num_regex)) {
             int glsl_version = std::stoi(num_match.str());
-            if (glsl_version < 330) {
+            if (glsl_version < 150) {
                 // 替换整行
-                glsl = std::regex_replace(glsl, version_regex, "#version 330 compatibility");
-                glsl_version = 330;
+                glsl = std::regex_replace(glsl, version_regex, "#version 150");
+                glsl_version = 150;
             }
             LOG_D("GLSL version: %d", glsl_version);
             LOG_D("GLSL after upgrade:\n%s", glsl.c_str());
@@ -1905,9 +1904,9 @@ int get_or_add_glsl_version(std::string& glsl) {
         }
     }
     // 没有找到 #version，插入默认
-    glsl.insert(0, "#version 330 compatibility\n");
-    LOG_D("GLSL version: 330 (inserted)");
-    return 330;
+    glsl.insert(0, "#version 150\n");
+    LOG_D("GLSL version: 150 (inserted)");
+    return 150;
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src,
@@ -1961,16 +1960,16 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     using namespace glslang;
 
 	shader.setPreamble(preamble.c_str());
-    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientOpenGL, glsl_version);
+    shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
     shader.setAutoMapLocations(true);
-    //shader.setPreamble("#undef VULKAN\n");
+    shader.setPreamble("#undef VULKAN\n");
     shader.setAutoMapBindings(true);
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, glsl_version, ECompatibilityProfile, true, true, messages)) {
+    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, messages)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
@@ -2018,65 +2017,70 @@ static bool spvc_ok(spvc_context context, spvc_result res, const char* what) {
         return true;
     }
     LOG_E("Error: %s failed in spirv-cross: %s", what, spvc_context_get_last_error_string(context))
-    return false;
+    return true;
 }
 
 std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, int& errc) {
-    spvc_context context = nullptr;
     spvc_parsed_ir ir = nullptr;
     spvc_compiler compiler_glsl = nullptr;
     spvc_compiler_options options = nullptr;
-    spvc_resources resources = nullptr;
-    const spvc_reflected_resource *list = nullptr;
-    const char *result = nullptr;
-    size_t count;
+    const char* result = nullptr;
 
-    const SpvId *p_spirv = spirv.data();
+    const SpvId* p_spirv = spirv.data();
     size_t word_count = spirv.size();
 
-    LOG_D("spirv_code.size(): %zu", word_count); // 修正格式符
+    LOG_D("spirv_code.size(): %d", spirv.size())
 
-    // 使用 RAII guard 管理 context 生命周期
+    // Declared before 'essl': the compiled source lives in context-owned memory and is only
+    // copied out when the std::string is constructed, so the guard has to outlive it.
     spvc_context_guard_t guard;
     if (spvc_context_create(&guard.context) != SPVC_SUCCESS || !guard.context) {
-        LOG_E("SPVC Context could not be created!");
+        LOG_E("Error: could not create a spirv-cross context.")
         errc = -1;
         return "";
     }
-    context = guard.context; // 获取指针，后续使用
+    spvc_context context = guard.context;
 
-    // 以下保持原样，不检查返回值
-    spvc_context_parse_spirv(context, p_spirv, word_count, &ir);
-    spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
-    spvc_compiler_create_shader_resources(compiler_glsl, &resources);
-    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
-    spvc_compiler_create_compiler_options(compiler_glsl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 320);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
-    spvc_compiler_install_compiler_options(compiler_glsl, options);
-    spvc_compiler_compile(compiler_glsl, &result);
-
-    if (!result) {
-        const char* error_msg = spvc_context_get_last_error_string(context);
-        if (error_msg) {
-            LOG_E("SPIRV-Cross error: %s", error_msg);
-        } else {
-            LOG_E("SPIRV-Cross failed without error message");
-        }
-        if (essl_version < 300) {
-            LOG_E("Hint: ESSL version %u may be too low", essl_version);
-        }
-        spvc_compiler_get_current_id_bound(compiler_glsl);
+    if (!spvc_ok(context, spvc_context_parse_spirv(context, p_spirv, word_count, &ir), "spvc_context_parse_spirv") ||
+        !ir) {
         errc = -1;
-        // guard 析构时自动销毁 context，无需手动 destroy
+        return "";
+    }
+    if (!spvc_ok(context,
+                 spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP,
+                                              &compiler_glsl),
+                 "spvc_context_create_compiler") ||
+        !compiler_glsl) {
+        errc = -1;
+        return "";
+    }
+    if (!spvc_ok(context, spvc_compiler_create_compiler_options(compiler_glsl, &options),
+                 "spvc_compiler_create_compiler_options") ||
+        !options) {
+        errc = -1;
+        return "";
+    }
+    // A silently dropped GLSL_ES option would emit desktop GLSL and hand it straight to the
+    // driver, so these are checked too.
+    if (!spvc_ok(context,
+                 spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION,
+                                                essl_version >= 300 ? essl_version : 300),
+                 "spvc_compiler_options_set_uint") ||
+        !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE),
+                 "spvc_compiler_options_set_bool") ||
+        !spvc_ok(context, spvc_compiler_install_compiler_options(compiler_glsl, options),
+                 "spvc_compiler_install_compiler_options")) {
+        errc = -1;
+        return "";
+    }
+    if (!spvc_ok(context, spvc_compiler_compile(compiler_glsl, &result), "spvc_compiler_compile") || !result) {
+        errc = -1;
         return "";
     }
 
     std::string essl = result;
+
     errc = 0;
-    // guard 析构时自动销毁 context
     return essl;
 }
 
