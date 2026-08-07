@@ -1839,15 +1839,6 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType) {
     replace_all(ret, "vec3 reflection;", "vec3 reflection=vec3(0,0,0);");
     replace_all(ret, "vec3 worldPosDiff", "vec4 worldPosDiff");
     replace_all(ret, "vec3[3](vWorldPos[0] - vWorldPos[1]", "vec4[3](vWorldPos[0] - vWorldPos[1]");
-
-     if (shaderType == GL_VERTEX_SHADER) {
-        replace_all(ret, "attribute", "in");
-        replace_all(ret, "varying", "out");
-    } else if (shaderType == GL_FRAGMENT_SHADER) {
-        replace_all(ret, "varying", "in");
-	}
-	
-    replace_all(ret, "texture2D", "texture");
 	//inject_1d_texture_compatibility(ret);
 
     // GI_TemporalFilter injection
@@ -1884,32 +1875,20 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType) {
     return ret;
 }
 
-#undef str
 int get_or_add_glsl_version(std::string& glsl) {
-    std::regex version_regex(R"(^\s*#version\s+\d+)", std::regex::multiline);
-    std::smatch match;
-    if (std::regex_search(glsl, match, version_regex)) {
-        std::string version_line = match.str();
-        // 提取版本号数字
-        std::regex num_regex(R"(\d+)");
-        std::smatch num_match;
-        if (std::regex_search(version_line, num_match, num_regex)) {
-            int glsl_version = std::stoi(num_match.str());
-            if (glsl_version < 150) {
-                // 替换整行
-                glsl = std::regex_replace(glsl, version_regex, "#version 150");
-                glsl_version = 150;
-            }
-            LOG_D("GLSL version: %d", glsl_version);
-            LOG_D("GLSL after upgrade:\n%s", glsl.c_str());
-            return glsl_version;
-        }
+    int glsl_version = getGLSLVersion(glsl.c_str());
+    if (glsl_version == -1) {
+        glsl_version = 150;
+        glsl.insert(0, "#version 150\n");
+    } else if (glsl_version < 140) {
+        // force upgrade glsl version
+        glsl = replace_line_starting_with(glsl, "#version", "#version 150 compatibility\n");
+        glsl_version = 150;
     }
-    glsl.insert(0, "#version 150\n");
-    LOG_D("GLSL version: 150 (inserted)");
-    return 150;
+
+    LOG_D("GLSL version: %d", glsl_version)
+    return glsl_version;
 }
-#define str(s) #s
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src,
                                         int& errc) {
@@ -1942,26 +1921,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
     glslang::TShader shader(shader_language);
     shader.setStrings(shader_src, 1);
 
-    EShMessages messages = static_cast<EShMessages>(
-        EShMsgDefault |
-        EShMsgRelaxedErrors
-    );
-                
-    std::string preamble = 
-        "#extension GL_ARB_separate_shader_objects : enable\n"
-        "#extension GL_ARB_shading_language_420pack : enable\n"
-        "#extension GL_ARB_explicit_attrib_location : enable\n"
-        "#extension GL_ARB_shader_texture_image_samples : enable\n"
-        "#extension GL_ARB_gpu_shader5 : enable\n"
-        "#extension GL_ARB_texture_cube_map_array : enable\n"
-        "#extension GL_ARB_shader_storage_buffer_object : enable\n"
-        "#extension GL_ARB_shader_image_load_store : enable\n"
-        "#extension GL_ARB_enhanced_layouts : enable\n"
-        "#extension GL_ARB_fragment_coord_conventions : enable\n";
-
     using namespace glslang;
-
-	shader.setPreamble(preamble.c_str());
     shader.setEnvInput(EShSourceGlsl, shader_language, EShClientVulkan, glsl_version);
     shader.setEnvClient(EShClientOpenGL, EShTargetOpenGL_450);
     shader.setEnvTarget(EShTargetSpv, EShTargetSpv_1_5);
@@ -1971,7 +1931,7 @@ std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, co
 
     TBuiltInResource TBuiltInResource_resources = InitResources();
 
-    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, messages)) {
+    if (!shader.parse(&TBuiltInResource_resources, glsl_version, true, EShMsgDefault)) {
         LOG_D("GLSL Compiling ERROR: \n%s", shader.getInfoLog())
         errc = -1;
         return {};
