@@ -1,80 +1,101 @@
 #!/bin/bash
-set -e  # 遇到错误立即退出，保证流程安全
+set -e
 
-# ----- 配置 Git 用户（用于自动提交）-----
+# 配置 Git 用户
 git config --global user.name "GitHub Actions"
 git config --global user.email "actions@github.com"
 
-# ----- 可选：限定只处理某个目录下的子模块，留空则扫描整个仓库 -----
-# 例如：BASE_DIR="MobileGlues-cpp/3rdparty"
-BASE_DIR=""   # 空代表整个仓库根目录
-
-# ----- 1. 获取当前 .gitmodules 中注册的所有子模块路径 -----
-registered_paths=$(git config --file .gitmodules --name-only --get-regexp 'submodule\..*\.path' | sed 's/^submodule\.[^.]*\.path //' | sort -u)
-
-if [ -z "$registered_paths" ]; then
-    echo "⚠️  .gitmodules 中没有注册任何子模块，将清理所有残留的子模块目录。"
-else
-    echo "✅ 当前注册的子模块路径："
-    echo "$registered_paths"
+# ================== 1. 解决合并冲突（如果有） ==================
+echo "🔍 检查合并冲突..."
+if git status --porcelain | grep -E '^(UU|AA|DD|AU|UA|DU|UD)' > /dev/null; then
+    echo "⚠️  检测到冲突，自动采用 PR 分支（theirs）版本..."
+    for file in $(git diff --name-only --diff-filter=U); do
+        git checkout --theirs "$file"
+        git add "$file"
+    done
+    git commit --no-edit || true
+    echo "✅ 冲突已解决并提交。"
 fi
 
-# ----- 2. 定义一个函数，递归扫描并移除“僵尸子模块” -----
-remove_orphan_submodules() {
-    local scan_dir="$1"
-    # 如果指定了 BASE_DIR，则只扫描该目录；否则扫描整个仓库
-    if [ -n "$BASE_DIR" ]; then
-        scan_dir="$BASE_DIR"
-    else
-        scan_dir="."
-    fi
+# ================== 2. 强制清理特定坏子模块（glm） ==================
+BAD_SUBMODULE="MobileGlues-cpp/3rdparty/glm"
+echo "🔍 强制移除已知的坏子模块：$BAD_SUBMODULE"
 
-    echo "🔍 扫描目录：$scan_dir 中可能残留的子模块..."
+# 从 .gitmodules 删除节（如果存在）
+git config -f .gitmodules --remove-section "submodule.$BAD_SUBMODULE" 2>/dev/null || true
+# 从 .git/config 删除节
+git config -f .git/config --remove-section "submodule.$BAD_SUBMODULE" 2>/dev/null || true
+# 从索引中强制删除
+git rm --cached -f "$BAD_SUBMODULE" 2>/dev/null || true
+# 删除物理目录
+rm -rf "$BAD_SUBMODULE"
+# 删除 .git/modules/ 缓存
+rm -rf ".git/modules/$BAD_SUBMODULE"
+echo "✅ 已彻底移除：$BAD_SUBMODULE"
 
-    # 使用 find 查找所有包含 .git 子目录或 .git 文件的目录（可能是子模块）
-    find "$scan_dir" -type d -name ".git" | while read -r git_dir; do
-        # 获取该 .git 所在父目录的路径（即子模块根目录）
-        submodule_path=$(dirname "$git_dir")
-        # 去掉开头的 ./ 以便比较
-        submodule_path=${submodule_path#./}
+# ================== 3. 清理所有未注册的子模块（通用） ==================
+echo "🔍 清理所有未注册的子模块（包括残留配置）..."
+registered_paths=$(git config --file .gitmodules --get-regexp 'submodule\..*\.path' 2>/dev/null | awk '{print $2}' || true)
 
-        # 如果该路径不在 registered_paths 中，则视为孤儿子模块
-        if ! echo "$registered_paths" | grep -qxF "$submodule_path"; then
-            echo "⚠️  发现未注册的子模块目录：$submodule_path （即将移除）"
-            # 确保它不是当前仓库主目录的 .git
-            if [ "$submodule_path" != "." ] && [ "$submodule_path" != "" ]; then
-                # 执行标准移除流程
-                set +e  # 允许某些命令失败（比如未初始化）
-                git submodule deinit -f "$submodule_path" 2>/dev/null
-                git rm --cached "$submodule_path" 2>/dev/null
-                set -e
-                rm -rf "$submodule_path"
-                echo "🗑️  已移除残留子模块：$submodule_path"
-            fi
-        fi
-    done
+force_remove_submodule() {
+    local path="$1"
+    echo "  强制移除子模块：$path"
+    git config -f .gitmodules --remove-section "submodule.$path" 2>/dev/null || true
+    git config -f .git/config --remove-section "submodule.$path" 2>/dev/null || true
+    git rm --cached -f "$path" 2>/dev/null || true
+    rm -rf "$path"
+    rm -rf ".git/modules/$path"
+    echo "  ✅ 已彻底移除：$path"
 }
 
-# ----- 3. 执行清理（先清理，再更新，避免影响） -----
-remove_orphan_submodules
+# 扫描所有包含 .git 的目录（但排除根目录）
+find . -type d -name ".git" ! -path "." | while read -r git_dir; do
+    sub_path=$(dirname "$git_dir" | sed 's|^\./||')
+    if [ -z "$sub_path" ] || [ "$sub_path" = "." ]; then
+        continue
+    fi
+    if ! echo "$registered_paths" | grep -qxF "$sub_path"; then
+        force_remove_submodule "$sub_path"
+    fi
+done
 
-# ----- 4. 初始化并更新所有已注册的子模块 -----
+# 如果 .gitmodules 被修改，添加它
+if ! git diff --quiet .gitmodules; then
+    git add .gitmodules
+fi
+
+# ================== 4. 提交所有清理变更 ==================
+if git diff-index --quiet HEAD --; then
+    echo "✅ 没有清理变更需要提交。"
+else
+    git commit -m "Clean up orphan submodules (especially glm) $(date '+%Y-%m-%d %H:%M:%S')"
+    git push
+    echo "✅ 已提交并推送清理变更。"
+fi
+
+# ================== 5. 更新所有注册的子模块 ==================
 if [ -n "$registered_paths" ]; then
     echo "🔄 开始更新所有注册的子模块..."
     for path in $registered_paths; do
         echo "  处理子模块：$path"
         git submodule update --init --remote "$path"
-        git add "$path"   # 将新的 commit 引用加入暂存区
+        git add "$path"
     done
 else
     echo "ℹ️  没有子模块需要更新。"
 fi
 
-# ----- 5. 提交变更（如果有） -----
+# ================== 6. 提交子模块更新 ==================
 if git diff-index --quiet HEAD --; then
-    echo "✅ 没有变更需要提交。"
+    echo "✅ 没有子模块更新需要提交。"
 else
-    git commit -m "Automated submodule sync & cleanup $(date '+%Y-%m-%d %H:%M:%S')"
+    git commit -m "Automated submodule update $(date '+%Y-%m-%d %H:%M:%S')"
     git push
-    echo "✅ 已提交并推送更新。"
+    echo "✅ 已提交并推送子模块更新。"
 fi
+
+# ================== 7. 额外同步子模块配置 ==================
+echo "🔄 同步子模块配置..."
+git submodule sync --recursive
+
+echo "🎉 所有操作完成！"

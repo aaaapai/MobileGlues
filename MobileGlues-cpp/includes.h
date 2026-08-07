@@ -41,9 +41,18 @@ extern "C"
 #endif
 
 #include <FastSTL/UnorderedMap.h>
+#include <absl/container/flat_hash_map.h>
+#include <absl/container/flat_hash_set.h>
+
+/*template <typename Key,
+          typename T,
+          class Hash = absl::container_internal::hash_default_hash<Key>,
+          class Eq   = absl::container_internal::hash_default_eq<Key>>
+using UnorderedMap = absl::flat_hash_map<Key, T, Hash, Eq>;
+*/
 
 template <typename Key, typename T, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
-using UnorderedMap = FastSTL::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
+class Allocator = std::allocator<std::pair<const Key, T>>>
+using UnorderedMap = absl::flat_hash_map<Key, T, Hash, KeyEqual, Allocator>;
 
 #endif // MOBILEGLUES_INCLUDES_H

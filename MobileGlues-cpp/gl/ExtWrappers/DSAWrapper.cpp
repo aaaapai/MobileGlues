@@ -323,6 +323,73 @@ GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
     }
     return mappedData;
 }
+/*GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    LOG()
+    LOG_D("[DSA] glMapNamedBufferRange, buffer: %u, offset: %lld, length: %lld, access: 0x%X", buffer, offset, length,
+          access);
+
+    if (buffer == 0 || length <= 0 || offset < 0) {
+        LOG_W("[DSA] Invalid parameters for glMapNamedBufferRange");
+        return nullptr;
+    }
+
+    // 移除 OpenGL ES 不支持的 persistent/coherent flags
+    GLbitfield unsupportedFlags = GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    GLbitfield originalAccess = access;
+    access &= ~unsupportedFlags;
+    
+    if (originalAccess != access) {
+        LOG_D("[DSA] Removed unsupported flags: 0x%X", originalAccess & unsupportedFlags);
+    }
+
+    temporarilyBindBuffer(buffer);
+    
+    void* mappedData = nullptr;
+    GLenum target = GL_ARRAY_BUFFER;  // temporarilyBindBuffer 默认使用 GL_ARRAY_BUFFER
+    
+    // 尝试使用 glMapBufferRange
+    mappedData = glMapBufferRange(target, offset, length, access);
+    
+    // 如果失败且是因为 target 不支持，尝试使用 OES_mapbuffer
+    if (!mappedData) {
+        GLenum error = glGetError();
+        if (error == GL_INVALID_ENUM) {  // 可能是因为 target 不支持 glMapBufferRange
+            LOG_D("[DSA] glMapBufferRange failed, trying glMapBufferOES");
+            
+            // 转换 access flags 为 OES 的读写模式
+            GLenum accessOES = GL_WRITE_ONLY;  // 默认
+            if ((originalAccess & GL_MAP_READ_BIT) && (originalAccess & GL_MAP_WRITE_BIT)) {
+                accessOES = GL_READ_WRITE;
+            } else if (originalAccess & GL_MAP_READ_BIT) {
+                accessOES = GL_READ_ONLY;
+            } else if (originalAccess & GL_MAP_WRITE_BIT) {
+                accessOES = GL_WRITE_ONLY;
+            }
+            
+            // OES_mapbuffer 映射整个 buffer，我们需要手动处理 offset
+            void* fullBuffer = GLES.glMapBufferOES(target, accessOES);
+            if (fullBuffer) {
+                mappedData = (GLvoid*)((GLubyte*)fullBuffer + offset);
+                LOG_D("[DSA] Mapped with OES_mapbuffer, offset adjusted");
+            }
+        }
+    }
+    
+    CHECK_GL_ERROR;
+    restoreTemporaryBufferBinding();
+
+    if (!mappedData) {
+        LOG_W("[DSA] Failed to map buffer range for buffer %u", buffer);
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR) {
+            LOG_W("[DSA] GL error: 0x%X", error);
+        }
+    } else {
+        LOG_D("[DSA] Mapped buffer range for buffer %u successfully", buffer);
+    }
+    
+    return mappedData;
+}*/
 
 GLboolean glUnmapNamedBuffer(GLuint buffer) {
     LOG()
