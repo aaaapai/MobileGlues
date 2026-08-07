@@ -2026,7 +2026,6 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     if (spvc_context_create(&guard.context) != SPVC_SUCCESS || !guard.context) {
         LOG_E("Error: could not create a spirv-cross context.")
         errc = -1;
-        spvc_context_destroy(context);
         return "";
     }
     spvc_context context = guard.context;
@@ -2092,7 +2091,7 @@ std::string GLSLtoGLSLES_2(const char* glsl_code, GLenum glsl_type, uint essl_ve
         return "";
     }
     errc = 0;
-    std::string essl = spirv_to_essl(spirv_code, essl_version, errc, glsl_type);
+    std::string essl = spirv_to_essl(spirv_code, essl_version, errc);
     if (errc != 0) {
         return_code = -2;
         return "";
