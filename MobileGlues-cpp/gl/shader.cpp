@@ -52,19 +52,18 @@ bool check_if_sampler_buffer_used(std::string str) {
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) {
     LOG()
-    shaderInfo.id = 0;
-    shaderInfo.converted = "";
-    shaderInfo.frag_data_changed_converted.clear();
-    shaderInfo.frag_data_changed = 0;
-    size_t l = 0;
-    for (int i = 0; i < count; i++)
-        l += (length && length[i] >= 0) ? length[i] : strlen(string[i]);
-    std::string glsl_src, essl_src;
-    glsl_src.reserve(l + 1);
+
+    // 合并所有输入字符串为一个完整的源码
+    size_t total_len = 0;
+    for (int i = 0; i < count; i++) {
+        total_len += (length && length[i] >= 0) ? length[i] : strlen(string[i]);
+    }
+    std::string glsl_src;
+    glsl_src.reserve(total_len + 1);
     if (length) {
         for (int i = 0; i < count; i++) {
             if (length[i] >= 0)
-                glsl_src += std::string_view(string[i], length[i]);
+                glsl_src.append(string[i], length[i]);
             else
                 glsl_src += string[i];
         }
@@ -74,36 +73,54 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, c
         }
     }
 
-    bool is_sampler_buffer_emulated = hardware->emulate_texture_buffer && check_if_sampler_buffer_used(glsl_src);
+    // 检查是否需要对 texture buffer 进行模拟（基于原始源码）
+    bool is_sampler_buffer_emulated = hardware->emulate_texture_buffer &&
+                                      check_if_sampler_buffer_used(glsl_src);
+
+    std::string final_src;
+    bool conversion_success = false;
 
     if (is_direct_shader(glsl_src.c_str())) {
         LOG_D("[INFO] [Shader] Direct shader source: ")
         LOG_D("%s", glsl_src.c_str())
-        essl_src = glsl_src;
+        final_src = glsl_src;
+        conversion_success = true;  // 直接使用，视为成功
     } else {
-        int glsl_version = getGLSLVersion(glsl_src.c_str());
         LOG_D("[INFO] [Shader] Shader source: ")
         LOG_D("%s", glsl_src.c_str())
+
         GLint shaderType;
         GLES.glGetShaderiv(shader, GL_SHADER_TYPE, &shaderType);
         int return_code = 0;
-        essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType, hardware->es_version, glsl_version, return_code);
+        std::string essl_src = GLSLtoGLSLES(glsl_src.c_str(), shaderType,
+                                            hardware->es_version, glsl_version, return_code);
 
-        if (essl_src.empty()) {
-            LOG_E("Failed to convert shader %d.", shader)
-            return;
+        if (!essl_src.empty()) {
+            LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
+            final_src = essl_src;
+            conversion_success = true;
+        } else {
+            LOG_E("Failed to convert glsl, falling back to original source.")
+            final_src = glsl_src;   // 转换失败，使用原始源码
+            conversion_success = false;
         }
-        LOG_D("\n[INFO] [Shader] Converted Shader source: \n%s", essl_src.c_str())
     }
-    if (!essl_src.empty()) {
-        shaderInfo.id = shader;
-        shaderInfo.converted = essl_src;
-        const char* s[] = {essl_src.c_str()};
-        GLES.glShaderSource(shader, count, s, nullptr);
-        if (hardware->emulate_texture_buffer)
-            shader_map_is_sampler_buffer_emulated[shader] = is_sampler_buffer_emulated;
-    } else
-        LOG_E("Failed to convert glsl.")
+
+    // 记录 shader 信息（无论成功与否）
+    shaderInfo.id = shader;
+    shaderInfo.converted = final_src;
+    shaderInfo.frag_data_changed_converted.clear();
+    shaderInfo.frag_data_changed = 0;
+
+    // 总是将最终源码传递给驱动（此时合并为一个字符串）
+    const char* src_ptr = final_src.c_str();
+    GLES.glShaderSource(shader, 1, &src_ptr, nullptr);   // 修复：count 固定为 1
+
+    // 若开启了 texture buffer 模拟，记录该 shader 是否需要模拟
+    if (hardware->emulate_texture_buffer) {
+        shader_map_is_sampler_buffer_emulated[shader] = is_sampler_buffer_emulated;
+    }
+
     CHECK_GL_ERROR
 }
 
