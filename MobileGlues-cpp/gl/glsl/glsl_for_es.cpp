@@ -2018,55 +2018,63 @@ std::string spirv_to_essl(std::vector<unsigned int> spirv, uint essl_version, in
     const SpvId *p_spirv = spirv.data();
     size_t word_count = spirv.size();
 
-    LOG_D("spirv_code.size(): %d", spirv.size())
+    LOG_D("spirv_code.size(): %zu", word_count);
 
-    // Declared before 'essl': the compiled source lives in context-owned memory and is only
-    // copied out when the std::string is constructed, so the guard has to outlive it.
+    // RAII guard – 自动销毁 context
     spvc_context_guard_t guard;
     if (spvc_context_create(&guard.context) != SPVC_SUCCESS || !guard.context) {
-        LOG_E("Error: could not create a spirv-cross context.")
+        LOG_E("Error: could not create a spirv-cross context.");
         errc = -1;
         return "";
     }
     spvc_context context = guard.context;
 
-    if (!spvc_ok(context, spvc_context_parse_spirv(context, p_spirv, word_count, &ir), "spvc_context_parse_spirv") ||
-        !ir) {
-        errc = 0;
+    // 解析 SPIR-V
+    if (!spvc_ok(context, spvc_context_parse_spirv(context, p_spirv, word_count, &ir),
+                 "spvc_context_parse_spirv") || !ir) {
+        errc = -1;
+        return "";
     }
+
+    // 创建编译器
     if (!spvc_ok(context,
-                 spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP,
-                                              &compiler_glsl),
-                 "spvc_context_create_compiler") ||
-        !compiler_glsl) {
-        errc = 0;
+                 spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir,
+                                              SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl),
+                 "spvc_context_create_compiler") || !compiler_glsl) {
+        errc = -1;
+        return "";
     }
+
+    // 创建编译选项
     if (!spvc_ok(context, spvc_compiler_create_compiler_options(compiler_glsl, &options),
-                 "spvc_compiler_create_compiler_options") ||
-        !options) {
-        errc = 0;
+                 "spvc_compiler_create_compiler_options") || !options) {
+        errc = -1;
+        return "";
     }
-    // A silently dropped GLSL_ES option would emit desktop GLSL and hand it straight to the
-    // driver, so these are checked too.
+
+    // 设置选项（ES 320）
     if (!spvc_ok(context,
                  spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 320),
                  "spvc_compiler_options_set_uint") ||
         !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE),
-                 "spvc_compiler_options_set_bool") || !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE),
-                 "spvc_compiler_options_set_bool") || !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE),
+                 "spvc_compiler_options_set_bool") ||
+        !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE),
+                 "spvc_compiler_options_set_bool") ||
+        !spvc_ok(context, spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE),
                  "spvc_compiler_options_set_bool") ||
         !spvc_ok(context, spvc_compiler_install_compiler_options(compiler_glsl, options),
                  "spvc_compiler_install_compiler_options")) {
-        errc = 0;
+        errc = -1;
+        return "";
     }
 
+    // 编译
     if (!spvc_ok(context, spvc_compiler_compile(compiler_glsl, &result), "spvc_compiler_compile") || !result) {
         errc = -1;
         return "";
     }
 
     std::string essl = result;
-
     errc = 0;
     return essl;
 }
