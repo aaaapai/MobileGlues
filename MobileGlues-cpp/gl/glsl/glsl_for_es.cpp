@@ -1884,22 +1884,30 @@ std::string preprocess_glsl(const std::string& glsl, GLenum shaderType) {
 }
 
 int get_or_add_glsl_version(std::string& glsl) {
-    int glsl_version = getGLSLVersion(glsl.c_str());
-    if (glsl_version == -1) {
-        glsl_version = 330;
-        glsl.insert(0, "#version 330 compatibility\n");
-    } else if (glsl_version < 330) {
-        size_t pos = glsl.find("#version");
-        if (pos != std::string::npos) {
-            size_t end = glsl.find('\n', pos);
-            if (end == std::string::npos) end = glsl.length();
-            glsl.replace(pos, end - pos, "#version 330 compatibility");
+    // 匹配行首（可能有前导空白）的 #version 指令
+    std::regex version_regex(R"(^\s*#version\s+\d+)", std::regex::multiline);
+    std::smatch match;
+    if (std::regex_search(glsl, match, version_regex)) {
+        std::string version_line = match.str();
+        // 提取版本号数字
+        std::regex num_regex(R"(\d+)");
+        std::smatch num_match;
+        if (std::regex_search(version_line, num_match, num_regex)) {
+            int glsl_version = std::stoi(num_match.str());
+            if (glsl_version < 330) {
+                // 替换整行
+                glsl = std::regex_replace(glsl, version_regex, "#version 330 compatibility");
+                glsl_version = 330;
+            }
+            LOG_D("GLSL version: %d", glsl_version);
+            LOG_D("GLSL after upgrade:\n%s", glsl.c_str());
+            return glsl_version;
         }
-        glsl_version = 330;
     }
-    LOG_D("GLSL version: %d", glsl_version);
-    LOG_D("GLSL after upgrade:\n%s", glsl.c_str());
-    return glsl_version;
+    // 没有找到 #version，插入默认
+    glsl.insert(0, "#version 330 compatibility\n");
+    LOG_D("GLSL version: 330 (inserted)");
+    return 330;
 }
 
 std::vector<unsigned int> glsl_to_spirv(GLenum shader_type, int glsl_version, const char* const* shader_src,
