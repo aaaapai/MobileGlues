@@ -265,7 +265,7 @@ STUB_FUNCTION_HEAD(void, glColorMaterial, GLenum face, GLenum mode ) STUB_FUNCTI
 * Raster functions
 */
 STUB_FUNCTION_HEAD(void, glPixelZoom, GLfloat xfactor, GLfloat yfactor ) STUB_FUNCTION_END_NO_RETURN(void, glPixelZoom,xfactor,yfactor)
-STUB_FUNCTION_HEAD(void, glPixelStoref, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glPixelStoref,pname,param)
+// STUB_FUNCTION_HEAD(void, glPixelStoref, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glPixelStoref,pname,param)   // moved to gl/texture.cpp: sets the pixel-store state like the integer form instead of dropping it
 STUB_FUNCTION_HEAD(void, glPixelTransferf, GLenum pname, GLfloat param ) STUB_FUNCTION_END_NO_RETURN(void, glPixelTransferf,pname,param)
 STUB_FUNCTION_HEAD(void, glPixelTransferi, GLenum pname, GLint param ) STUB_FUNCTION_END_NO_RETURN(void, glPixelTransferi,pname,param)
 STUB_FUNCTION_HEAD(void, glPixelMapfv, GLenum map, GLsizei mapsize,const GLfloat *values ) STUB_FUNCTION_END_NO_RETURN(void, glPixelMapfv,map,mapsize,values)
@@ -501,7 +501,7 @@ STUB_FUNCTION_HEAD(void, glVertexAttrib4ubv, GLuint index, const GLubyte* v); ST
 STUB_FUNCTION_HEAD(void, glVertexAttrib4uiv, GLuint index, const GLuint* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4uiv,index,v)
 STUB_FUNCTION_HEAD(void, glVertexAttrib4usv, GLuint index, const GLushort* v); STUB_FUNCTION_END_NO_RETURN(void, glVertexAttrib4usv,index,v)
 // STUB_FUNCTION_HEAD(void, glPrimitiveRestartIndex, GLuint index); STUB_FUNCTION_END_NO_RETURN(void, glPrimitiveRestartIndex,index)   // implemented in gl/enable.cpp
-STUB_FUNCTION_HEAD(void, glGetActiveUniformName, GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformName); STUB_FUNCTION_END_NO_RETURN(void, glGetActiveUniformName,program,uniformIndex,bufSize,length,uniformName)
+// STUB_FUNCTION_HEAD(void, glGetActiveUniformName, GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformName); STUB_FUNCTION_END_NO_RETURN(void, glGetActiveUniformName,program,uniformIndex,bufSize,length,uniformName)   // implemented in gl/program.cpp
 //STUB_FUNCTION_HEAD(void, glMultiDrawElementsBaseVertex, GLenum mode, const GLsizei* count, GLenum type, const void* const*indices, GLsizei drawcount, const GLint* basevertex); STUB_FUNCTION_END_NO_RETURN(void, glMultiDrawElementsBaseVertex,mode,count,type,indices,drawcount,basevertex)
 STUB_FUNCTION_HEAD(void, glProvokingVertex, GLenum mode); STUB_FUNCTION_END_NO_RETURN(void, glProvokingVertex,mode)
 STUB_FUNCTION_HEAD(void, glTexImage2DMultisample, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations); STUB_FUNCTION_END_NO_RETURN(void, glTexImage2DMultisample,target,samples,internalformat,width,height,fixedsamplelocations)
@@ -745,7 +745,7 @@ STUB_FUNCTION_HEAD(void, glClipControl, GLenum origin, GLenum depth); STUB_FUNCT
 //STUB_FUNCTION_HEAD(void, glGetQueryBufferObjectiv, GLuint id, GLuint buffer, GLenum pname, GLintptr offset); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryBufferObjectiv,id,buffer,pname,offset)
 //STUB_FUNCTION_HEAD(void, glGetQueryBufferObjectui64v, GLuint id, GLuint buffer, GLenum pname, GLintptr offset); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryBufferObjectui64v,id,buffer,pname,offset)
 //STUB_FUNCTION_HEAD(void, glGetQueryBufferObjectuiv, GLuint id, GLuint buffer, GLenum pname, GLintptr offset); STUB_FUNCTION_END_NO_RETURN(void, glGetQueryBufferObjectuiv,id,buffer,pname,offset)
-STUB_FUNCTION_HEAD(void, glGetTextureSubImage, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetTextureSubImage,texture,level,xoffset,yoffset,zoffset,width,height,depth,format,type,bufSize,pixels)
+// STUB_FUNCTION_HEAD(void, glGetTextureSubImage, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetTextureSubImage,texture,level,xoffset,yoffset,zoffset,width,height,depth,format,type,bufSize,pixels)   // implemented in gl/ExtWrappers/DSAWrapper.cpp
 STUB_FUNCTION_HEAD(void, glGetCompressedTextureSubImage, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetCompressedTextureSubImage,texture,level,xoffset,yoffset,zoffset,width,height,depth,bufSize,pixels)
 //STUB_FUNCTION_HEAD(GLenum, glGetGraphicsResetStatus,void); STUB_FUNCTION_END_NO_RETURN(GLenum, glGetGraphicsResetStatus,)
 STUB_FUNCTION_HEAD(void, glGetnCompressedTexImage, GLenum target, GLint lod, GLsizei bufSize, void* pixels); STUB_FUNCTION_END_NO_RETURN(void, glGetnCompressedTexImage,target,lod,bufSize,pixels)

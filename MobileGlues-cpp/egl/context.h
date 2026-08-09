@@ -65,6 +65,12 @@ struct MGContext {
 // The context current on THIS thread, or nullptr. EGL scopes the current context
 // per thread, so this must be thread_local even though the record it points at is
 // shared.
+//
+// Reading it is safe for as long as the thread keeps the context current, because
+// the thread holds a reference of its own (a shared_ptr private to context.cpp)
+// alongside this pointer. The map is not the only owner: a handle the driver
+// hands out twice would otherwise replace the map entry and free a record another
+// thread is still pointing at.
 extern thread_local MGContext* g_current_ctx;
 
 // Called from the EGL wrappers.
@@ -80,8 +86,10 @@ MGContext* mg_context_find(EGLContext handle);
 // The containers stay private to the file that uses them -- moving them into
 // MGContext would drag gl/texture.h and friends into this header and back. Each
 // subsystem keeps its own table keyed by id and swaps a thread_local pointer
-// when the current context changes. std::unordered_map keeps references stable,
-// so a pointer handed out here stays valid until the entry is erased.
+// when the current context changes. Every one of those tables holds its records
+// through a unique_ptr, because the map underneath is open addressing and moves
+// its elements when it grows: the record is what has to stay put, so a pointer
+// handed out here stays valid until the entry is erased.
 void mg_buffer_bind_context(unsigned long long ctx_id, unsigned long long group_id);
 void mg_texture_bind_context(unsigned long long ctx_id, unsigned long long group_id);
 void mg_framebuffer_bind_context(unsigned long long ctx_id);
@@ -108,7 +116,13 @@ void mg_depth_clear_forget_context(unsigned long long ctx_id);
 // ones another part of the process created. The bootstrap probe used to do
 // exactly that to EGL_DEFAULT_DISPLAY. These let it terminate only a display it
 // actually brought up itself.
-void mg_display_initialised(EGLDisplay dpy);
-bool mg_display_release(EGLDisplay dpy); // true when this was the last holder
+//
+// Two holders, not a count, because eglInitialize is idempotent: an application
+// may call it any number of times and is still only obliged to call eglTerminate
+// once. Counting calls meant two inits and one terminate left the display up for
+// good. `probe` distinguishes the bootstrap in egl/loader.cpp from everything
+// arriving through the eglInitialize wrapper; each side holds at most one share.
+void mg_display_initialised(EGLDisplay dpy, bool probe);
+bool mg_display_release(EGLDisplay dpy, bool probe); // true when this was the last holder
 
 #endif // MOBILEGLUES_EGL_CONTEXT_H

@@ -75,6 +75,27 @@ extern "C"
         GLuint current_program;
         GLuint current_tex_unit;
         GLuint current_draw_fbo;
+
+        // The pixel-store parameters desktop GL has and GLES does not.
+        //
+        // GLES answers GL_INVALID_ENUM for all six, in both directions, so before
+        // this they could neither be set nor read: glGetIntegerv left the
+        // application's variable exactly as it found it, which for the usual
+        // stack local is whatever happened to be there. State that cannot be read
+        // back is not state. Kept here so it is per context, like the rest of the
+        // pixel-store block the driver owns.
+        //
+        // Only the two SWAP_BYTES are acted on (gl/transfer.cpp, on the paths that
+        // already repack on the CPU). LSB_FIRST orders bits within a byte for
+        // GL_BITMAP and colour-index transfers, neither of which exists in a core
+        // profile; PACK_IMAGE_HEIGHT and PACK_SKIP_IMAGES describe a
+        // three-dimensional readback this layer does not implement.
+        GLint unpack_swap_bytes;
+        GLint unpack_lsb_first;
+        GLint pack_swap_bytes;
+        GLint pack_lsb_first;
+        GLint pack_image_height;
+        GLint pack_skip_images;
     };
     typedef struct gl_state_s* gl_state_t;
     // Where gl_state points when no tracked context is current. Every member is a
@@ -92,6 +113,20 @@ extern "C"
     // created therefore reached glUseProgram with a null gl_state and dereferenced
     // address zero.
     extern thread_local gl_state_t gl_state;
+
+    // Raise one of this layer's own GL errors, latched until the next glGetError.
+    //
+    // A call this layer rejects by itself -- a readback target it cannot emulate,
+    // a texture name it has no record of, a buffer size that would overflow --
+    // never reaches the driver, so there is no backend error for glGetError to
+    // find. Those paths used to just return, handing the application back an
+    // untouched buffer and GL_NO_ERROR with no way to tell the two apart. This is
+    // where they say what went wrong instead.
+    //
+    // One slot per thread and the first error wins, which is what GL 4.6 sec 2.3.1
+    // asks for. Per thread rather than per context because several of these paths
+    // run with no context current at all.
+    void mg_set_gl_error(GLenum error);
 
     GLenum pname_convert(GLenum pname);
     GLenum map_tex_target(GLenum target);

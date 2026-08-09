@@ -39,6 +39,10 @@ extern "C"
     void* proc_address(void* lib, const char* name);
     extern void *gles, *egl;
 
+    // True only when the ANGLE image is the one that actually got loaded --
+    // load_libs() falls back to the system driver when it cannot be opened.
+    extern bool g_angle_in_use;
+
     void init_target_gles();
 
     void load_libs();
@@ -55,7 +59,9 @@ extern "C"
     { GLES.name = (name##_PTR)proc_address(gles, #name); }
 #endif
 
-    void* open_lib(const char** names, const char* override);
+    // `used_override`, when given, is set to true only if `override` is what got
+    // loaded -- the fallback path leaves it alone.
+    void* open_lib(const char** names, const char* override, bool* used_override = nullptr);
 
 // Resolve an EGL entry point from the backend library, once per call site.
 //

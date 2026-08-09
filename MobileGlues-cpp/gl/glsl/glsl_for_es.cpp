@@ -130,6 +130,30 @@ static TBuiltInResource InitResources() {
     Resources.limits.generalVariableIndexing = true;
     Resources.limits.generalConstantMatrixVectorIndexing = true;
 
+    // Ten fields this table never set, left at 0 by the value-initialisation
+    // above. Nine are mesh-shader limits that glslang only reads when a shader
+    // asks for them, so 0 was harmless. maxDualSourceDrawBuffersEXT was not:
+    // glslang emits
+    //     mediump vec4 gl_SecondaryFragDataEXT[gl_MaxDualSourceDrawBuffersEXT];
+    // into the ESSL built-in block, and an array sized 0 fails to parse -- which
+    // fails the whole built-in table, so every shader routed through glslang was
+    // rejected with "unsupported shader version". It only showed on a context
+    // whose ESSL version is below the shader's, since a shader the driver can
+    // take is passed straight through; ANGLE presents ES 3.1, so turning ANGLE on
+    // meant nothing using #version 320 es could compile at all.
+    //
+    // The values are glslang's own defaults (glslang/ResourceLimits.cpp).
+    Resources.maxDualSourceDrawBuffersEXT = 1;
+    Resources.maxMeshOutputVerticesEXT = 256;
+    Resources.maxMeshOutputPrimitivesEXT = 256;
+    Resources.maxMeshWorkGroupSizeX_EXT = 128;
+    Resources.maxMeshWorkGroupSizeY_EXT = 128;
+    Resources.maxMeshWorkGroupSizeZ_EXT = 128;
+    Resources.maxTaskWorkGroupSizeX_EXT = 128;
+    Resources.maxTaskWorkGroupSizeY_EXT = 128;
+    Resources.maxTaskWorkGroupSizeZ_EXT = 128;
+    Resources.maxMeshViewCountEXT = 4;
+
     return Resources;
 }
 

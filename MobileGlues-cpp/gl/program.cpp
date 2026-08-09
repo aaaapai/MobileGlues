@@ -15,7 +15,6 @@
 #include <cstring>
 #include <iostream>
 #include "../config/settings.h"
-#include <ankerl/unordered_dense.h>
 #include "drawing.h"
 
 #define DEBUG 0
@@ -219,4 +218,47 @@ GLuint glCreateProgram() {
 
     CHECK_GL_ERROR
     return program;
+}
+
+// GL 3.1's name-only half of the active-uniform query, on top of the ES call that
+// already returns the same string.
+//
+// It was a stub -- a no-op that wrote neither the name nor the length and, being a
+// stub rather than an error, left glGetError clean. Callers got whatever was
+// already in the buffer they passed.
+//
+// That is not a cosmetic gap. The standard way to build a name -> location map is
+// to walk the active uniforms by index and ask for each name, and a caller doing
+// that ended up with a map keyed on garbage: every later lookup missed, so the
+// uniforms never got set and kept whatever the driver had zero-initialised them
+// to. NeoForge's early loading window does exactly this, and a screenSize of
+// (0, 0) turned its every vertex into a division by zero -- gl_Position came out
+// non-finite, every primitive was discarded, and the window rendered black with
+// nothing anywhere reporting a problem.
+void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei* length,
+                            GLchar* uniformName) {
+    LOG()
+    LOG_D("glGetActiveUniformName(program: %u, index: %u, bufSize: %d)", program, uniformIndex, bufSize)
+
+    if (length) *length = 0;
+    if (bufSize <= 0 || uniformName == nullptr) {
+        // Nothing to write. Still forwarded when bufSize is negative so the driver
+        // raises the GL_INVALID_VALUE the caller is owed.
+        if (bufSize < 0) GLES.glGetActiveUniform(program, uniformIndex, bufSize, nullptr, nullptr, nullptr, nullptr);
+        CHECK_GL_ERROR
+        return;
+    }
+
+    // Same buffer contract in both calls: at most bufSize-1 characters plus the
+    // terminator, and a length that excludes it. The size and type this also
+    // returns are what glGetActiveUniformsiv is for; they are discarded here.
+    GLint size = 0;
+    GLenum type = 0;
+    GLsizei written = 0;
+    uniformName[0] = '\0';
+    GLES.glGetActiveUniform(program, uniformIndex, bufSize, &written, &size, &type, uniformName);
+    if (length) *length = written;
+
+    LOG_D("  -> \"%s\"", uniformName)
+    CHECK_GL_ERROR
 }

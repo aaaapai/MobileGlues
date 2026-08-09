@@ -16,7 +16,8 @@
 #include "framebuffer.h"
 #include "../egl/context.h"
 #include <mutex>
-#include <unordered_map>
+#include <memory>
+#include <ska/flat_hash_map.hpp>
 #include <cmath>
 
 #define DEBUG 0
@@ -55,14 +56,20 @@ struct depth_clear_objects_t {
     GLuint vbo = 0;
 };
 std::mutex g_depthClearMutex;
-std::unordered_map<unsigned long long, depth_clear_objects_t> g_depthClearCtxs;
+// Held by pointer, because the reference this table hands out outlives the lock.
+// A caller keeps the depth_clear_objects_t& across GL calls while another thread
+// can be adding its own context, and the map moves its elements when it grows.
+// The unique_ptr is what stays put; the map is free to rehash around it.
+ska::flat_hash_map<unsigned long long, std::unique_ptr<depth_clear_objects_t>> g_depthClearCtxs;
 depth_clear_objects_t g_depthClearDefault;
 
 depth_clear_objects_t& depth_clear_objects() {
     const unsigned long long cur = g_current_ctx ? g_current_ctx->id : 0;
     if (cur == 0) return g_depthClearDefault;
     std::lock_guard<std::mutex> lock(g_depthClearMutex);
-    return g_depthClearCtxs[cur]; // node-based: the reference stays valid
+    std::unique_ptr<depth_clear_objects_t>& slot = g_depthClearCtxs[cur];
+    if (!slot) slot = std::make_unique<depth_clear_objects_t>();
+    return *slot;
 }
 } // namespace
 
