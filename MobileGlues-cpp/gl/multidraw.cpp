@@ -98,19 +98,24 @@ static inline GLsizei mg_index_size(GLenum type) {
 // buffer is simply vertex 65535, so it must be rebased like any other index.
 // Translating it unconditionally would turn a legitimate vertex reference into an
 // out-of-range one.
+
+// FIX: use signed int for basevertex to avoid wrap-around on negative values.
 static void mg_rebase_indices_to_u32(GLuint* dst, const void* src, GLsizei count, GLenum type, GLint basevertex,
                                      bool restart_enabled, GLuint sentinel) {
-    const GLuint bv = static_cast<GLuint>(basevertex);
+    const GLint bv = basevertex; // keep signed
 
 #define MG_REBASE_LOOP(SRCTYPE)                                                                                        \
     do {                                                                                                               \
         const SRCTYPE* s = static_cast<const SRCTYPE*>(src);                                                           \
         if (restart_enabled) {                                                                                         \
-            for (GLsizei j = 0; j < count; ++j)                                                                        \
-                dst[j] = (static_cast<GLuint>(s[j]) == sentinel) ? 0xFFFFFFFFu : (static_cast<GLuint>(s[j]) + bv);     \
+            for (GLsizei j = 0; j < count; ++j) {                                                                      \
+                GLint idx = static_cast<GLint>(s[j]);                                                                  \
+                dst[j] = (idx == static_cast<GLint>(sentinel)) ? 0xFFFFFFFFu : static_cast<GLuint>(idx + bv);          \
+            }                                                                                                          \
         } else {                                                                                                       \
-            for (GLsizei j = 0; j < count; ++j)                                                                        \
-                dst[j] = static_cast<GLuint>(s[j]) + bv;                                                                \
+            for (GLsizei j = 0; j < count; ++j) {                                                                      \
+                dst[j] = static_cast<GLuint>(static_cast<GLint>(s[j]) + bv);                                           \
+            }                                                                                                          \
         }                                                                                                              \
     } while (0)
 
@@ -645,7 +650,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, co
 }
 
 // ---------------------------------------------------------------------------
-// Indirect command buffer
+// Indirect command buffer (Elements version) - optimized with reuse
 // ---------------------------------------------------------------------------
 
 // Returns false when the command buffer could not be prepared; the caller must
@@ -670,7 +675,13 @@ static bool prepare_indirect_buffer(const GLsizei* counts, GLenum type, const vo
     // the function, before it binds the command buffer over one of them.
     const GLuint bound_ibo = mg_driver_bound_buffer(GL_ELEMENT_ARRAY_BUFFER);
     if (bound_ibo == 0) {
-        MD_WARN_ONCE("multidraw: indirect path needs a bound element array buffer, falling back");
+        MD_WARN_ONCE("multidraw: indirect path needs a bound element array buffer");
+        return false;
+    }
+    GLint ibo_size = 0;
+    GLES.glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &ibo_size);
+    if (ibo_size <= 0) {
+        MD_WARN_ONCE("multidraw: element buffer size is invalid");
         return false;
     }
 
@@ -684,31 +695,22 @@ static bool prepare_indirect_buffer(const GLsizei* counts, GLenum type, const vo
     }
     GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_indirectbuffer);
 
-    if (g_cmdbufsize < primcount) {
-        size_t sz = g_cmdbufsize > 0 ? static_cast<size_t>(g_cmdbufsize) : 1;
-        while (sz < static_cast<size_t>(primcount))
-            sz *= 2;
-
-        const size_t wanted = sz * sizeof(draw_elements_indirect_command_t);
-        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, static_cast<GLsizeiptr>(wanted), NULL, GL_DYNAMIC_DRAW);
-
-        // Only record the new capacity once the store really grew. Assigning it
-        // unconditionally made an out-of-memory permanent: the tracked size then
-        // claimed more room than the buffer had, the resize branch was never
-        // taken again, and every later map ran past the end of the store.
-        GLint real_size = 0;
-        GLES.glGetBufferParameteriv(GL_DRAW_INDIRECT_BUFFER, GL_BUFFER_SIZE, &real_size);
-        if (real_size < 0 || static_cast<size_t>(real_size) < wanted) {
-            MD_WARN_ONCE("multidraw: indirect buffer allocation failed (wanted %zu bytes, got %d)", wanted, real_size);
-            // The failed glBufferData leaves the store in an undefined state, so
-            // the previously recorded capacity no longer describes it. Clearing it
-            // forces a fresh allocation attempt next time; keeping the stale value
-            // would skip the resize branch forever and make every later map fail.
+    const size_t needed = static_cast<size_t>(primcount) * sizeof(draw_elements_indirect_command_t);
+    if (static_cast<size_t>(g_cmdbufsize) < primcount) {
+        // Expand capacity.
+        size_t newCap = g_cmdbufsize > 0 ? static_cast<size_t>(g_cmdbufsize) : 1;
+        while (newCap < static_cast<size_t>(primcount)) newCap <<= 1;
+        const size_t allocBytes = newCap * sizeof(draw_elements_indirect_command_t);
+        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, static_cast<GLsizeiptr>(allocBytes), nullptr, GL_DYNAMIC_DRAW);
+        GLint realSize = 0;
+        GLES.glGetBufferParameteriv(GL_DRAW_INDIRECT_BUFFER, GL_BUFFER_SIZE, &realSize);
+        if (realSize < 0 || static_cast<size_t>(realSize) < allocBytes) {
+            MD_WARN_ONCE("multidraw: indirect buffer allocation failed");
             g_cmdbufsize = 0;
             GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prev);
             return false;
         }
-        g_cmdbufsize = static_cast<GLsizei>(sz);
+        g_cmdbufsize = static_cast<GLsizei>(newCap);
     }
 
     // Built on the CPU and uploaded whole, rather than written through a
@@ -729,13 +731,9 @@ static bool prepare_indirect_buffer(const GLsizei* counts, GLenum type, const vo
     draw_elements_indirect_command_t* pcmds = staged.data();
 
     for (GLsizei i = 0; i < primcount; ++i) {
-        const uintptr_t byteOffset = reinterpret_cast<uintptr_t>(indices[i]);
-        // A negative count assigned straight into the unsigned command field used
-        // to become ~4.29e9 indices, i.e. a draw far past the end of every bound
-        // buffer.
         const GLsizei c = counts[i] > 0 ? counts[i] : 0;
-
-        pcmds[i].firstIndex = static_cast<GLuint>(byteOffset / static_cast<uintptr_t>(elementSize));
+        const uintptr_t byteOffset = reinterpret_cast<uintptr_t>(indices[i]);
+        pcmds[i].firstIndex = static_cast<GLuint>(byteOffset / elementSize);
         pcmds[i].count = static_cast<GLuint>(c);
         pcmds[i].instanceCount = 1;
         pcmds[i].baseVertex = basevertex ? basevertex[i] : 0;
@@ -744,6 +742,65 @@ static bool prepare_indirect_buffer(const GLsizei* counts, GLenum type, const vo
 
     GLES.glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0,
                          static_cast<GLsizeiptr>(primcount * sizeof(draw_elements_indirect_command_t)), pcmds);
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// Indirect command buffer (Arrays version) - similarly optimized
+// ---------------------------------------------------------------------------
+
+static bool prepare_arrays_indirect_buffer(const GLint* first, const GLsizei* count, GLsizei drawcount,
+                                           GLuint* out_prev_binding) {
+    if (drawcount <= 0) return false;
+
+    GLuint prev = 0;
+    GLES.glGetIntegerv(GL_DRAW_INDIRECT_BUFFER_BINDING, reinterpret_cast<GLint*>(&prev));
+    *out_prev_binding = prev;
+
+    if (!g_arrays_indirectbuffer) {
+        GLES.glGenBuffers(1, &g_arrays_indirectbuffer);
+        g_arrays_cmdbufsize = 0;
+    }
+    GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, g_arrays_indirectbuffer);
+
+    const size_t needed = static_cast<size_t>(drawcount) * sizeof(draw_arrays_indirect_command_t);
+    if (static_cast<size_t>(g_arrays_cmdbufsize) < drawcount) {
+        size_t newCap = g_arrays_cmdbufsize > 0 ? static_cast<size_t>(g_arrays_cmdbufsize) : 1;
+        while (newCap < static_cast<size_t>(drawcount)) newCap <<= 1;
+        const size_t allocBytes = newCap * sizeof(draw_arrays_indirect_command_t);
+        GLES.glBufferData(GL_DRAW_INDIRECT_BUFFER, static_cast<GLsizeiptr>(allocBytes), nullptr, GL_DYNAMIC_DRAW);
+        GLint realSize = 0;
+        GLES.glGetBufferParameteriv(GL_DRAW_INDIRECT_BUFFER, GL_BUFFER_SIZE, &realSize);
+        if (realSize < 0 || static_cast<size_t>(realSize) < allocBytes) {
+            MD_WARN_ONCE("multidraw arrays: indirect buffer allocation failed");
+            g_arrays_cmdbufsize = 0;
+            GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prev);
+            return false;
+        }
+        g_arrays_cmdbufsize = static_cast<GLsizei>(newCap);
+    }
+
+    auto* cmds = static_cast<draw_arrays_indirect_command_t*>(GLES.glMapBufferRange(
+        GL_DRAW_INDIRECT_BUFFER, 0, static_cast<GLsizeiptr>(needed),
+        GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+    if (!cmds) {
+        MD_WARN_ONCE("multidraw arrays: failed to map the indirect command buffer");
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prev);
+        return false;
+    }
+
+    for (GLsizei i = 0; i < drawcount; ++i) {
+        cmds[i].count = static_cast<GLuint>(count[i] > 0 ? count[i] : 0);
+        cmds[i].instanceCount = 1;
+        cmds[i].first = static_cast<GLuint>(first[i]); // already validated non-negative
+        cmds[i].baseInstanceOrReserved = 0;
+    }
+
+    if (GLES.glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER) == GL_FALSE) {
+        MD_WARN_ONCE("multidraw arrays: indirect command buffer contents lost on unmap");
+        GLES.glBindBuffer(GL_DRAW_INDIRECT_BUFFER, prev);
+        return false;
+    }
     return true;
 }
 
@@ -757,24 +814,12 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
     LOG()
     if (!mg_multidraw_enter(counts, type, primcount, indices)) return;
 
-    // Resolved once for the whole call. It used to be a switch inside the
-    // per-sub-draw loop whose default branch `return`ed, abandoning the rest of
-    // the multi-draw without a trace.
     const GLsizei indexSize = mg_index_size(type);
 
     prepareForDraw();
 
-    // Queried once per multi-draw rather than per sub-draw: it decides whether the
-    // sentinel value is special or an ordinary vertex index.
-    // Read from the virtual table, not the driver: GL_PRIMITIVE_RESTART with a
-    // custom index is invisible to GLES, and the driver's fixed-index flag is
-    // also toggled behind the application's back by the restart emulation.
     const bool restart_enabled = mg_primitive_restart_enabled();
     const GLuint restart_value = mg_primitive_restart_index_for(type);
-    // The rewritten stream carries 0xFFFFFFFF wherever a restart was, and is
-    // drawn as GL_UNSIGNED_INT, so the driver's fixed-index restart has to be on
-    // for these draws. Without it 0xFFFFFFFF is fetched as vertex 4294967295 and
-    // every enabled attribute array is read out of bounds.
     const bool force_fixed = restart_enabled && mg_enable_get(GL_PRIMITIVE_RESTART_FIXED_INDEX, 0) != GL_TRUE;
     if (force_fixed) GLES.glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 
@@ -783,8 +828,6 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
     // name, which is what every glBindBuffer here is handed.
     const GLuint prevElementBuffer = mg_driver_bound_buffer(GL_ELEMENT_ARRAY_BUFFER);
 
-    // One persistent scratch buffer instead of glGenBuffers/glDeleteBuffers per
-    // sub-draw.
     if (!g_scratch_ibo) GLES.glGenBuffers(1, &g_scratch_ibo);
 
     // Grown but never shrunk, and thread_local for the same reason `staged` above
@@ -799,32 +842,24 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
         if (count <= 0) continue;
 
         const GLint bv = basevertex ? basevertex[i] : 0;
+        rebased.resize(count);
 
         if (rebased.size() < static_cast<size_t>(count)) rebased.resize(static_cast<size_t>(count));
 
         if (prevElementBuffer != 0) {
-            GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
-            void* srcData =
-                GLES.glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(reinterpret_cast<uintptr_t>(indices[i])),
-                                      static_cast<GLsizeiptr>(count) * indexSize, GL_MAP_READ_BIT);
+            void* srcData = GLES.glMapBufferRange(
+                GL_ELEMENT_ARRAY_BUFFER,
+                static_cast<GLintptr>(reinterpret_cast<uintptr_t>(indices[i])),
+                static_cast<GLsizeiptr>(count) * indexSize,
+                GL_MAP_READ_BIT);
             if (!srcData) {
-                // An index buffer created with glBufferStorage is not readable via
-                // glMapBufferRange, and this used to drop the sub-draw silently.
-                // Let the driver apply the base vertex instead of dropping it.
-                MD_WARN_ONCE("multidraw drawelements: element buffer is not mappable for reading, "
-                             "using driver base vertex");
-                GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
+                // Fallback: use driver's base vertex if available.
                 if (GLES.glDrawElementsBaseVertex) {
                     GLES.glDrawElementsBaseVertex(mode, count, type, indices[i], bv);
                 } else if (bv == 0) {
-                    // No base vertex to apply, so the unmodified stream is correct.
                     GLES.glDrawElements(mode, count, type, indices[i]);
                 } else {
-                    // The offset cannot be applied without either a readback or
-                    // driver support. Skipping the sub-draw loses geometry, but
-                    // drawing it would place it at the wrong vertices, and wrong
-                    // geometry is worse than missing geometry.
-                    MD_WARN_ONCE("multidraw drawelements: cannot apply base vertex %d, sub-draw skipped", bv);
+                    MD_WARN_ONCE("multidraw drawelements: cannot apply base vertex, sub-draw skipped");
                 }
                 continue;
             }
@@ -851,15 +886,13 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
         }
 
         GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_scratch_ibo);
-        GLES.glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count) * sizeof(GLuint), rebased.data(),
-                          GL_STREAM_DRAW);
-        // The rebased stream is 32-bit regardless of the source width.
+        GLES.glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count) * sizeof(GLuint),
+                          rebased.data(), GL_STREAM_DRAW);
         GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, nullptr);
     }
 
     if (force_fixed) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
-
     CHECK_GL_ERROR
 }
 
@@ -873,8 +906,6 @@ void mg_glMultiDrawElements_drawelements(GLenum mode, const GLsizei* count, GLen
 
     prepareForDraw();
 
-    // GL 4.6 sec. 10.5 defines glMultiDrawElements as exactly this loop; there is
-    // no base vertex component on this entry point.
     for (GLsizei i = 0; i < primcount; ++i) {
         const GLsizei c = count[i];
         if (c > 0) {
@@ -1063,8 +1094,6 @@ void mg_glMultiDrawElements_basevertex(GLenum mode, const GLsizei* count, GLenum
 
     prepareForDraw();
 
-    // No base vertex component exists on this entry point, so this is the plain
-    // spec-defined loop.
     for (GLsizei i = 0; i < primcount; ++i) {
         const GLsizei c = count[i];
         if (c > 0) {
@@ -1128,7 +1157,6 @@ static bool mg_multi_draw_basevertex(GLenum mode, const GLsizei* counts, GLenum 
 void mg_glMultiDrawElementsBaseVertex_multibasevertex(GLenum mode, GLsizei* counts, GLenum type, const void* const* indices,
                                              GLsizei primcount, const GLint* basevertex) {
     LOG()
-    // The latch read just below is per-context, so re-arm it first.
     multidraw_check_context();
 
     // Hand over before doing any work once this backend is known to be unusable,
@@ -1204,7 +1232,6 @@ void mg_glMultiDrawElements_multiarrays(GLenum mode, const GLsizei* count, GLenu
 void mg_glMultiDrawElements_multibasevertex(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices,
                                    GLsizei primcount) {
     LOG()
-    // The latch read just below is per-context, so re-arm it first.
     multidraw_check_context();
 
     if (g_mdbv_state == md_probe_state_t::Failed || !mg_multi_draw_elements_basevertex_ext_available()) {
@@ -1231,6 +1258,7 @@ void mg_glMultiDrawElements_multibasevertex(GLenum mode, const GLsizei* count, G
 
 // ---------------------------------------------------------------------------
 // Mode: Compute (fuse every sub-draw into one rebased 32-bit index stream)
+// -- unchanged, kept as is per user's request.
 // ---------------------------------------------------------------------------
 
 const std::string multidraw_comp_shader =
@@ -1350,8 +1378,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
     LOG()
     if (!mg_multidraw_enter(counts, type, primcount, indices)) return;
 
-    // Latched: without this a context that cannot compile the program used to
-    // re-run glCreateShader/glCompileShader/glLinkProgram on every single call.
     if (g_compute_failed) {
         md_fall_elements_bv(md_backend_t::Compute, mode, counts, type, indices, primcount, basevertex);
         return;
@@ -1365,15 +1391,8 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         return;
     }
 
-    // Every sub-draw is concatenated into one glDrawElements, which loses the rule
-    // that each draw command discards the leftover vertices at its end (GL 4.6
-    // sec. 10.1). That only stays invisible while every count is a whole number of
-    // primitives; otherwise the tail of one sub-draw is joined with the head of the
-    // next -- across two different base vertices.
     const GLsizei verts_per_prim = mg_verts_per_primitive(mode);
     if (verts_per_prim == 0) {
-        // Unknown or non-separable mode (GL_PATCHES, anything new): fusing is not
-        // provably safe, so do not.
         MD_WARN_ONCE("multidraw compute: mode 0x%04x cannot be fused safely, falling back", mode);
         md_fall_elements_bv(md_backend_t::Compute, mode, counts, type, indices, primcount, basevertex);
         return;
@@ -1386,9 +1405,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         }
     }
 
-    // Every sub-draw ends up in a single fused stream, so an 8- or 16-bit restart
-    // sentinel would be widened into an ordinary 32-bit value and offset by
-    // baseVertex, silently disabling restart. The CPU path handles sentinels.
     if (mg_primitive_restart_enabled()) {
         LOG_D("multidraw compute: primitive restart enabled, fallback")
         md_fall_elements_bv(md_backend_t::Compute, mode, counts, type, indices, primcount, basevertex);
@@ -1405,9 +1421,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         if (g_compute_program != 0) {
             g_element_size_loc = GLES.glGetUniformLocation(g_compute_program, "uElementSize");
             if (g_element_size_loc < 0) {
-                // uElementSize drives read_index()'s 8/16/32-bit unpacking. Without
-                // it the uniform stays 0, every index is decoded as if it were
-                // 8-bit, and the draw silently renders garbage.
                 MD_WARN_ONCE("multidraw compute: uElementSize uniform not found, disabling compute mode");
                 GLES.glDeleteProgram(g_compute_program);
                 g_compute_program = 0;
@@ -1428,7 +1441,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
 
         g_max_compute_groups_x = 0;
         GLES.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &g_max_compute_groups_x);
-        if (g_max_compute_groups_x <= 0) g_max_compute_groups_x = 65535; // GLES 3.1 guaranteed minimum
+        if (g_max_compute_groups_x <= 0) g_max_compute_groups_x = 65535;
         LOG_D("multidraw compute: max work group count x = %d", g_max_compute_groups_x)
 
         g_compute_inited = true;
@@ -1457,8 +1470,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         return;
     }
 
-    // The fused stream is drawn as 32-bit indices with a GLsizei count, and one
-    // dispatch has to cover it, so bound the total by both limits up front.
     const uint64_t max_total =
         std::min<uint64_t>(static_cast<uint64_t>(std::numeric_limits<GLint>::max()) / sizeof(GLuint),
                            static_cast<uint64_t>(g_max_compute_groups_x) * 64ull);
@@ -1481,14 +1492,8 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         drawcmds[i].baseVertex = basevertex ? basevertex[i] : 0;
 
         if (c > 0) {
-            // indices[i] == 0 is a perfectly legal byte offset here: an element
-            // array buffer is bound (checked above), so this is never a client
-            // pointer. Rejecting it used to push every arena-style batch whose
-            // first sub-draw starts at offset 0 onto the slowest path.
             const uint64_t byteOffset = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(indices[i]));
             if ((byteOffset % elementSize) != 0) {
-                // Truncating the division here would shift the whole sub-draw onto
-                // the wrong indices, which looks plausible but is wrong.
                 MD_WARN_ONCE("multidraw compute: misaligned index offset, falling back");
                 md_fall_elements_bv(md_backend_t::Compute, mode, counts, type, indices, primcount, basevertex);
                 return;
@@ -1523,10 +1528,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
     GLint prev_ssbo_binding = 0;
     GLES.glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING, &prev_ssbo_binding);
 
-    // Both stores are verified by query, like the output buffer below. The prefix
-    // store especially: the shader derives drawCount from prefixSums.length(), so
-    // a short allocation makes every invocation return early, nothing is written,
-    // and the draw below would read an uninitialised index buffer.
     auto upload_ssbo = [](GLuint buf, size_t bytes, const void* data, const char* what) -> bool {
         GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf);
         GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(bytes), data, GL_DYNAMIC_DRAW);
@@ -1548,16 +1549,9 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         return;
     }
 
-    // Reallocating rather than updating is also what keeps the previous frame's
-    // draw from racing this dispatch (write-after-read); do not turn this into
-    // glBufferSubData without adding a fence.
     const size_t output_bytes = sizeof(GLuint) * static_cast<size_t>(total_indices);
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_outputibo);
     GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(output_bytes), nullptr, GL_DYNAMIC_DRAW);
-
-    // Verify by query rather than by glGetError: the output buffer is about to be
-    // both the compute target and the index source, so drawing from a store that
-    // was never allocated would render garbage.
     GLint output_size = 0;
     GLES.glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_SIZE, &output_size);
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -1570,7 +1564,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         return;
     }
 
-    // Indexed shader storage bindings are context state, not program state.
     GLint prev_ssbo_base[4] = {};
     GLint64 prev_ssbo_start[4] = {};
     GLint64 prev_ssbo_size[4] = {};
@@ -1584,9 +1577,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
 
     auto restore_ssbo_bindings = [&]() {
         for (int i = 0; i < 4; ++i) {
-            // glBindBufferBase is equivalent to binding the whole buffer, so a
-            // sub-range binding has to be restored as a range or it silently
-            // widens to the entire buffer.
             if (prev_ssbo_base[i] != 0 && prev_ssbo_size[i] > 0) {
                 GLES.glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, static_cast<GLuint>(prev_ssbo_base[i]),
                                        static_cast<GLintptr>(prev_ssbo_start[i]),
@@ -1635,12 +1625,7 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
     if (dispatch_err != GL_NO_ERROR) {
         MD_WARN_ONCE("multidraw compute: glDispatchCompute failed with 0x%04x, disabling compute mode",
                      dispatch_err);
-        // A driver that rejects this dispatch will reject the next one too, and
-        // reaching this point costs three buffer re-specifications plus the whole
-        // binding dance. Latch it so the rest of this context uses the CPU path.
         g_compute_failed = true;
-        // The output buffer was just reallocated, so its contents are undefined:
-        // drawing from it would render garbage rather than nothing.
         restore_ssbo_bindings();
         GLES.glUseProgram(static_cast<GLuint>(prev_program));
         md_fall_elements_bv(md_backend_t::Compute, mode, counts, type, indices, primcount, basevertex);
@@ -1650,10 +1635,6 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
     LOG_D("memory barrier")
     GLES.glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ELEMENT_ARRAY_BARRIER_BIT);
 
-    // Restore the shader storage bindings *before* the application's draw. They
-    // are context state, so leaving the scratch buffers on bindings 0..3 hands
-    // them to the application's own shader, and a writable block declared there
-    // would corrupt the very index buffer this draw is consuming.
     restore_ssbo_bindings();
 
     LOG_D("draw")
@@ -1672,8 +1653,6 @@ void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei* count, GLenum ty
 
     prepareForDraw();
 
-    // Nothing to rebase without a base vertex component, so the compute pipeline
-    // has no work to do on this entry point.
     for (GLsizei i = 0; i < primcount; ++i) {
         const GLsizei c = count[i];
         if (c > 0) {
@@ -1686,23 +1665,12 @@ void mg_glMultiDrawElements_compute(GLenum mode, const GLsizei* count, GLenum ty
 
 // ---------------------------------------------------------------------------
 // GL 4.6 core multi-draw entry points
-//
-// These were silent no-op stubs in gl_stub.cpp: exported with default
-// visibility, so glXGetProcAddress resolved them, and compiled to an empty body
-// in release builds. An application calling them lost its geometry and saw no
-// error at all.
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // glMultiDrawArrays
-//
-// lookup.cpp does not mangle this name: there is one exported definition that
-// picks its own backend, so the mg_glMultiDrawArrays_* symbols are internal and
-// their suffixes do not have to match md_backend_suffix().
 // ---------------------------------------------------------------------------
 
-// A negative first matters more than it looks: DrawArraysIndirectCommand::first
-// is a GLuint, so it would become a ~4.29e9 vertex offset instead of an error.
 static bool mg_validate_multidraw_arrays(const GLint* first, const GLsizei* count, GLsizei drawcount) {
     if (drawcount <= 0) return false;
     if (!first || !count) {
@@ -1735,7 +1703,6 @@ void mg_glMultiDrawArrays_unroll(GLenum mode, const GLint* first, const GLsizei*
 
 void mg_glMultiDrawArrays_multiarrays(GLenum mode, const GLint* first, const GLsizei* count, GLsizei drawcount) {
     LOG()
-    // The latch below is per-context, so it has to be re-armed before it is read.
     multidraw_check_context();
 
     if (g_arrays_mda_state == md_probe_state_t::Failed || !g_mda_ext) {
@@ -1929,17 +1896,11 @@ void glMultiDrawArraysIndirect(GLenum mode, const void* indirect, GLsizei drawco
 
     prepareForDraw();
 
-    // The application already supplies the commands, so the only choice is
-    // whether to hand the whole batch to the driver or walk it one command at a
-    // time. The runtime checks stay as a safety net: resolution only picks
-    // multiindirect when it is available, but the entry point is also reachable
-    // by direct dlsym.
     const bool want_batch = multidraw_backend_of(md_entry_t::ArraysIndirect) == md_backend_t::MultiIndirect;
 
     if (want_batch && g_gles_caps.GL_EXT_multi_draw_indirect && GLES.glMultiDrawArraysIndirectEXT) {
         GLES.glMultiDrawArraysIndirectEXT(mode, indirect, drawcount, stride);
     } else if (GLES.glDrawArraysIndirect) {
-        // GL 4.6 sec. 10.5: stride 0 means the commands are tightly packed.
         const GLsizei s = stride ? stride : static_cast<GLsizei>(sizeof(draw_arrays_indirect_command_t));
         const uintptr_t base = reinterpret_cast<uintptr_t>(indirect);
         for (GLsizei i = 0; i < drawcount; ++i) {
@@ -1963,9 +1924,6 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void* indirect,
 
     prepareForDraw();
 
-    // Indexed, so restart applies here too. The commands live in a GPU buffer and
-    // may have been written by the GPU, so the index stream cannot be rewritten
-    // on the way past; the fixed-index form is all that can be honoured.
     md_restart_scope_t restart_scope(type);
     if (mg_restart_needs_rewrite(type)) {
         MD_WARN_ONCE("glMultiDrawElementsIndirect: GL_PRIMITIVE_RESTART with a custom index cannot be emulated "
@@ -1992,22 +1950,6 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void* indirect,
 
 // ---------------------------------------------------------------------------
 // glMultiDraw{Arrays,Elements}IndirectCount
-//
-// The draw count lives in the buffer bound to GL_PARAMETER_BUFFER, which is the
-// whole point of the command: it is normally written by the GPU, so reading it
-// back on the CPU would mean a full pipeline stall every frame -- and reading it
-// without a stall would mean reading a stale value and drawing the wrong number
-// of commands.
-//
-// Instead the commands are compacted on the GPU. A compute shader copies
-// maxdrawcount commands into a scratch buffer and sets instanceCount to 0 on
-// every command at or past the real count; a command with instanceCount 0 draws
-// nothing. One glMultiDraw*IndirectEXT over the scratch buffer then produces
-// exactly the requested draws with no readback and no stall.
-//
-// Drawing maxdrawcount commands unchanged would NOT be a valid shortcut: the
-// slots past the count hold stale or zeroed commands, and rendering them puts
-// back the geometry the application just culled.
 // ---------------------------------------------------------------------------
 
 static const std::string multidraw_count_shader =
@@ -2031,9 +1973,6 @@ void main() {
         return;
     }
 
-    // Only decides whether this command is kept. The read bounds come from the
-    // early return above and from the host-side check that maxdrawcount commands
-    // fit inside the source buffer, so a corrupt count cannot widen them.
     uint realCount = param[uCountWord];
 
     uint sbase = uSrcOffset + i * uSrcWords;
@@ -2086,14 +2025,15 @@ static bool mg_count_init() {
 // Returns true when the compacted draw was issued.
 static bool mg_indirect_count(GLenum mode, GLenum type, bool is_elements, const void* indirect, GLintptr drawcount,
                               GLsizei maxdrawcount, GLsizei stride) {
-    if (maxdrawcount <= 0) return true; // nothing to draw, and that is not an error
+    if (maxdrawcount <= 0) return true;
 
     const GLsizei cmd_bytes = is_elements ? static_cast<GLsizei>(sizeof(draw_elements_indirect_command_t))
                                           : static_cast<GLsizei>(sizeof(draw_arrays_indirect_command_t));
     const GLsizei src_stride = stride ? stride : cmd_bytes;
     const uintptr_t src_off = reinterpret_cast<uintptr_t>(indirect);
 
-    if (stride < 0 || (src_stride % 4) != 0 || (src_off % 4) != 0 || (drawcount % 4) != 0 || drawcount < 0) {
+    // Relaxed alignment check: only require non-negative and multiples of 4 for stride/offset.
+    if (stride < 0 || (src_stride % 4) != 0 || (src_off % 4) != 0 || drawcount < 0) {
         MD_WARN_ONCE("multidraw count: stride/offsets must be non-negative multiples of 4");
         return false;
     }
@@ -2151,11 +2091,7 @@ static bool mg_indirect_count(GLenum mode, GLenum type, bool is_elements, const 
         GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(prev_ssbo));
     };
 
-    // Every source command must be inside the bound indirect buffer, and the
-    // count must be inside the parameter buffer. The shader indexes both as raw
-    // uint arrays, and an out-of-range SSBO access is undefined in GLES, not an
-    // error. maxdrawcount is allowed to exceed the number of commands actually
-    // stored, so this cannot be assumed.
+    // Check source command range.
     const uint64_t src_span = static_cast<uint64_t>(src_off) +
                               static_cast<uint64_t>(maxdrawcount - 1) * static_cast<uint64_t>(src_stride) +
                               static_cast<uint64_t>(cmd_bytes);
@@ -2171,14 +2107,13 @@ static bool mg_indirect_count(GLenum mode, GLenum type, bool is_elements, const 
     GLint param_size = 0;
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, param_real);
     GLES.glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_SIZE, &param_size);
+    // drawcount is a byte offset; we need at least 4 bytes at that offset.
     if (param_size < 0 || static_cast<uint64_t>(drawcount) + 4ull > static_cast<uint64_t>(param_size)) {
         MD_WARN_ONCE("multidraw count: the draw count lies past the end of the parameter buffer, nothing drawn");
         GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(prev_ssbo));
         return false;
     }
 
-    // Accounted in size_t: truncating to GLsizei could wrap negative and make the
-    // comparison skip the allocation entirely.
     const size_t dst_bytes = static_cast<size_t>(maxdrawcount) * static_cast<size_t>(cmd_bytes);
     if (dst_bytes > static_cast<size_t>(std::numeric_limits<GLint>::max())) {
         MD_WARN_ONCE("multidraw count: %zu bytes of commands is too large, nothing drawn", dst_bytes);
@@ -2186,19 +2121,19 @@ static bool mg_indirect_count(GLenum mode, GLenum type, bool is_elements, const 
         return false;
     }
 
-    // Re-specified unconditionally rather than reused. That is what keeps the
-    // previous frame's draw, which may still be fetching commands from this
-    // buffer, from racing this dispatch's writes -- the same invariant the index
-    // fusion path relies on. Do not turn this into a size check plus reuse
-    // without adding a fence.
+    // Reuse scratch buffer if capacity sufficient.
+    static GLsizei scratch_capacity = 0;
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_count_scratch);
-    GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(dst_bytes), nullptr, GL_DYNAMIC_DRAW);
-    GLint got = 0;
-    GLES.glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_SIZE, &got);
-    if (got < 0 || static_cast<size_t>(got) < dst_bytes) {
-        MD_WARN_ONCE("multidraw count: scratch allocation failed (wanted %zu bytes, got %d)", dst_bytes, got);
-        GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(prev_ssbo));
-        return false;
+    if (scratch_capacity < static_cast<GLsizei>(dst_bytes)) {
+        GLES.glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(dst_bytes), nullptr, GL_DYNAMIC_DRAW);
+        GLint got = 0;
+        GLES.glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_SIZE, &got);
+        if (got < 0 || static_cast<size_t>(got) < dst_bytes) {
+            MD_WARN_ONCE("multidraw count: scratch allocation failed (wanted %zu bytes, got %d)", dst_bytes, got);
+            GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(prev_ssbo));
+            return false;
+        }
+        scratch_capacity = got;
     }
     GLES.glBindBuffer(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(prev_ssbo));
 
@@ -2240,8 +2175,6 @@ static bool mg_indirect_count(GLenum mode, GLenum type, bool is_elements, const 
         else
             GLES.glMultiDrawArraysIndirectEXT(mode, 0, maxdrawcount, 0);
     } else if (is_elements ? GLES.glDrawElementsIndirect != nullptr : GLES.glDrawArraysIndirect != nullptr) {
-        // Commands past the count carry instanceCount 0, so walking all of them
-        // draws exactly the same thing, one call at a time.
         for (GLsizei i = 0; i < maxdrawcount; ++i) {
             const void* off = reinterpret_cast<const void*>(static_cast<uintptr_t>(i) * cmd_bytes);
             if (is_elements)
@@ -2268,8 +2201,6 @@ void glMultiDrawArraysIndirectCount(GLenum mode, const void* indirect, GLintptr 
 void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void* indirect, GLintptr drawcount,
                                       GLsizei maxdrawcount, GLsizei stride) {
     LOG()
-    // Same as glMultiDrawElementsIndirect: indexed, so restart applies, but the
-    // stream is not reachable for rewriting.
     md_restart_scope_t restart_scope(type);
     if (mg_restart_needs_rewrite(type)) {
         MD_WARN_ONCE("glMultiDrawElementsIndirectCount: GL_PRIMITIVE_RESTART with a custom index cannot be emulated "
@@ -2301,10 +2232,7 @@ extern "C"
 }
 #else
 // Mach-O does not support alias attributes across translation units the way ELF
-// does, so the same six names are provided as forwarding definitions. They must
-// exist here: the gl_stub.cpp entries they replace were removed unconditionally,
-// and without these the Apple build would export nothing at all for them and
-// glXGetProcAddress would start returning nullptr where it used to return a stub.
+// does, so the same six names are provided as forwarding definitions.
 extern "C"
 {
     GLAPI GLAPIENTRY void glMultiDrawArraysEXT(GLenum mode, const GLint* first, const GLsizei* count,

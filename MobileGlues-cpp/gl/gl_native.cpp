@@ -18,6 +18,7 @@
 //NATIVE_FUNCTION_HEAD(void, glActiveTexture, GLenum texture) NATIVE_FUNCTION_END_NO_RETURN(void, glActiveTexture, texture)
 //NATIVE_FUNCTION_HEAD(void, glAttachShader, GLuint program, GLuint shader) NATIVE_FUNCTION_END_NO_RETURN(void, glAttachShader, program,shader)
 NATIVE_FUNCTION_HEAD(void, glBindAttribLocation, GLuint program, GLuint index, const GLchar *name) NATIVE_FUNCTION_END_NO_RETURN(void, glBindAttribLocation, program,index,name)
+NATIVE_FUNCTION_HEAD(void, glPolygonModeNV, GLenum face, GLenum mode) NATIVE_FUNCTION_END_NO_RETURN(void, glPolygonModeNV, face, mode)
 //NATIVE_FUNCTION_HEAD(void, glBindBuffer, GLenum target, GLuint buffer) NATIVE_FUNCTION_END_NO_RETURN(void, glBindBuffer, target,buffer)
 //NATIVE_FUNCTION_HEAD(void, glBindFramebuffer, GLenum target, GLuint framebuffer) NATIVE_FUNCTION_END_NO_RETURN(void, glBindFramebuffer, target,framebuffer)
 NATIVE_FUNCTION_HEAD(void, glBindRenderbuffer, GLenum target, GLuint renderbuffer) NATIVE_FUNCTION_END_NO_RETURN(void, glBindRenderbuffer, target,renderbuffer)

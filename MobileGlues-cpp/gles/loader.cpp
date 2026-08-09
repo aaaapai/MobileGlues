@@ -670,6 +670,7 @@ void init_target_gles() {
     INIT_GLES_FUNC(glMultiDrawArraysIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsIndirectEXT)
     INIT_GLES_FUNC(glMultiDrawElementsBaseVertexEXT)
+    INIT_GLES_FUNC(glPolygonModeNV)
     //    INIT_GLES_FUNC(glBruh)
 
     LOG_D("glMultiDrawArraysIndirectEXT() @ 0x%x", GLES.glMultiDrawArraysIndirectEXT)
