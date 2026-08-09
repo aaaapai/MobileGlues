@@ -17,8 +17,8 @@ if git status --porcelain | grep -E '^(UU|AA|DD|AU|UA|DU|UD)' > /dev/null; then
     echo "✅ 冲突已解决并提交。"
 fi
 
-# ================== 2. 强制清理特定坏子模块（glm） ==================
-BAD_SUBMODULE="MobileGlues-cpp/3rdparty/glm"
+# ================== 2. 强制清理特定坏子模块（FastSTL） ==================
+BAD_SUBMODULE="MobileGlues-cpp/include/FastSTL"
 echo "🔍 强制移除已知的坏子模块：$BAD_SUBMODULE"
 
 # 从 .gitmodules 删除节（如果存在）
@@ -68,7 +68,7 @@ fi
 if git diff-index --quiet HEAD --; then
     echo "✅ 没有清理变更需要提交。"
 else
-    git commit -m "Clean up orphan submodules (especially glm) $(date '+%Y-%m-%d %H:%M:%S')"
+    git commit -m "Clean up orphan submodules $(date '+%Y-%m-%d %H:%M:%S')"
     git push
     echo "✅ 已提交并推送清理变更。"
 fi
