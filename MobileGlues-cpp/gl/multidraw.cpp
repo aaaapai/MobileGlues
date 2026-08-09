@@ -17,7 +17,7 @@
 #include <limits>
 #include <string>
 #include <vector>
-#include "absl/container/inlined_vector.h"   // for small-vector optimisations
+#include "absl/cleanup/cleanup.h"   // for RAII cleanup
 
 #define DEBUG 0
 
@@ -725,7 +725,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, GLsizei* counts, GLenum type, co
     //
     // thread_local for the same reason as mg_zero_basevertex: nothing in this
     // file takes a lock, and two threads can each have a current context.
-    static thread_local absl::InlinedVector<draw_elements_indirect_command_t, 64> staged;
+    static thread_local std::vector<draw_elements_indirect_command_t> staged;
     staged.resize(static_cast<size_t>(primcount));
     draw_elements_indirect_command_t* pcmds = staged.data();
 
@@ -783,6 +783,10 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
     // the scratch buffer in: mg_driver_bound_buffer answers with the driver-side
     // name, which is what every glBindBuffer here is handed.
     const GLuint prevElementBuffer = mg_driver_bound_buffer(GL_ELEMENT_ARRAY_BUFFER);
+    auto cleanup = absl::MakeCleanup([&]() {
+        if (force_fixed) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+        GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
+    });
 
     // One persistent scratch buffer instead of glGenBuffers/glDeleteBuffers per
     // sub-draw.
@@ -793,7 +797,7 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
     // uploaded, so what a wider sub-draw left behind is never read; sizing it to
     // each count in turn would zero-fill a range mg_rebase_indices_to_u32
     // overwrites in full immediately after.
-    static thread_local absl::InlinedVector<GLuint, 64> rebased;
+    static thread_local std::vector<GLuint> rebased;
 
     for (GLsizei i = 0; i < primcount; ++i) {
         const GLsizei count = counts[i];
@@ -857,9 +861,6 @@ void mg_glMultiDrawElementsBaseVertex_drawelements(GLenum mode, GLsizei* counts,
         // The rebased stream is 32-bit regardless of the source width.
         GLES.glDrawElements(mode, count, GL_UNSIGNED_INT, nullptr);
     }
-
-    if (force_fixed) GLES.glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    GLES.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElementBuffer);
 
     CHECK_GL_ERROR
 }
@@ -1464,8 +1465,8 @@ GLAPI GLAPIENTRY void mg_glMultiDrawElementsBaseVertex_compute(GLenum mode, GLsi
         std::min<uint64_t>(static_cast<uint64_t>(std::numeric_limits<GLint>::max()) / sizeof(GLuint),
                            static_cast<uint64_t>(g_max_compute_groups_x) * 64ull);
 
-    absl::InlinedVector<GLuint, 64> prefix_sum(static_cast<size_t>(primcount));
-    absl::InlinedVector<drawcmd_compute_t, 64> drawcmds(static_cast<size_t>(primcount));
+    std::vector<GLuint> prefix_sum(static_cast<size_t>(primcount));
+    std::vector<drawcmd_compute_t> drawcmds(static_cast<size_t>(primcount));
 
     uint64_t running = 0;
     for (GLsizei i = 0; i < primcount; ++i) {
@@ -2303,7 +2304,7 @@ extern "C"
 #else
 // Mach-O does not support alias attributes across translation units the way ELF
 // does, so the same six names are provided as forwarding definitions. They must
-// exist here: the gl_stub.cpp entries they replaced were removed unconditionally,
+// exist here: the gl_stub.cpp entries they replace were removed unconditionally,
 // and without these the Apple build would export nothing at all for them and
 // glXGetProcAddress would start returning nullptr where it used to return a stub.
 extern "C"
