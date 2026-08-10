@@ -233,8 +233,8 @@ bool mg_multi_draw_elements_basevertex_ext_available() {
     if (!resolved) {
         resolved = true;
         available = GLES.glMultiDrawElementsBaseVertexEXT != nullptr &&
-                    (g_gles_caps.GL_EXT_draw_elements_base_vertex || g_gles_caps.GL_OES_draw_elements_base_vertex) &&
-                    mg_gles_has_extension("GL_EXT_multi_draw_arrays");
+                    (((g_gles_caps.GL_EXT_draw_elements_base_vertex || g_gles_caps.GL_OES_draw_elements_base_vertex) &&
+                    mg_gles_has_extension("GL_EXT_multi_draw_arrays")) || (mg_gles_has_extension("GL_EXT_multi_draw_indirect")));
         LOG_D("multidraw: multibasevertex available=%d (ptr=%p bv_ext=%d/%d)", (int)available,
               (void*)GLES.glMultiDrawElementsBaseVertexEXT, g_gles_caps.GL_EXT_draw_elements_base_vertex,
               g_gles_caps.GL_OES_draw_elements_base_vertex)
