@@ -41,6 +41,7 @@ extern "C"
 #endif
 
 #include <ska/flat_hash_map.hpp>
+#include <absl/container/flat_hash_map.h>
 
 // One hash map for the whole tree. It used to be four -- a hand-written open
 // addressing map, ankerl::unordered_dense, std::unordered_map and khash -- which
@@ -59,8 +60,9 @@ extern "C"
 // Its value_type is pair<Key, T> with the key exposed mutably, so `it->first =`
 // compiles and silently corrupts the table. Nothing here does that, but it is
 // the one sharp edge this map has that a node-based one does not.
-template <typename Key, typename T, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
-          class Allocator = std::allocator<std::pair<Key, T>>>
-using UnorderedMap = ska::flat_hash_map<Key, T, Hash, KeyEqual, Allocator>;
+template <typename Key, typename T, class Hash = std::hash<Key>,
+          class KeyEqual = std::equal_to<Key>,
+          class Allocator = std::allocator<std::pair<const Key, T>>>
+using UnorderedMap = absl::flat_hash_map<Key, T, Hash, KeyEqual, Allocator>;
 
 #endif // MOBILEGLUES_INCLUDES_H
