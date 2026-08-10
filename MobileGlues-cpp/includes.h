@@ -63,6 +63,7 @@ extern "C"
 template <typename Key, typename T, class Hash = std::hash<Key>,
           class KeyEqual = std::equal_to<Key>,
           class Allocator = std::allocator<std::pair<const Key, T>>>
-using UnorderedMap = absl::flat_hash_map<Key, T, Hash, KeyEqual, Allocator>;
+
+using UnorderedMap = ska::flat_hash_map<Key, T, Hash, KeyEqual, Allocator>;
 
 #endif // MOBILEGLUES_INCLUDES_H
