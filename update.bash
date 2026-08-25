@@ -10,7 +10,7 @@ git submodule update --init MobileGlues-cpp/3rdparty/*
 git submodule update --init MobileGlues-cpp/include/ska
 
 # 进入 3rdparty 目录更新子模块
-cd 3rdparty
+cd MobileGlues-cpp/3rdparty
 for dir in */; do
     if [ -d "$dir/.git" ]; then
         echo "更新子模块: $dir"
@@ -19,7 +19,19 @@ for dir in */; do
         cd ..
     fi
 done
-cd ..
+cd ../..
+
+# 进入 3rdparty 目录更新子模块
+cd MobileGlues-cpp/include
+for dir in */; do
+    if [ -d "$dir/.git" ]; then
+        echo "更新子模块: $dir"
+        cd "$dir"
+        git pull origin $(git branch --show-current || echo "main")
+        cd ..
+    fi
+done
+cd ../..
 
 # 更新父仓库中的子模块引用
 echo "更新父仓库中的子模块引用..."
