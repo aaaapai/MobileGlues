@@ -12,4 +12,4 @@
 	url = https://github.com/aaaapai/SPIRV-Cross.git
 [submodule "MobileGlues-cpp/include/ska"]
 	path = MobileGlues-cpp/include/ska
-	url = https://github.com/MobileGL-Dev/flat_hash_map.git
+	url = https://github.com/aaaapai/flat_hash_map.git
