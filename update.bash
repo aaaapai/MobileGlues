@@ -7,7 +7,7 @@ git config --global user.email "actions@github.com"
 # 只初始化 3rdparty 下的子模块
 echo "初始化 3rdparty 子模块..."
 git submodule update --init MobileGlues-cpp/3rdparty/*
-git submodule update --init MobileGlues-cpp/include/*
+git submodule update --init MobileGlues-cpp/include/ska
 
 # 进入 3rdparty 目录更新子模块
 cd 3rdparty
@@ -24,7 +24,7 @@ cd ..
 # 更新父仓库中的子模块引用
 echo "更新父仓库中的子模块引用..."
 git submodule update --remote --recursive MobileGlues-cpp/3rdparty/*
-git submodule update --remote --recursive MobileGlues-cpp/include/*
+git submodule update --remote --recursive MobileGlues-cpp/include/ska
 
 # 提交更新
 git add --all
