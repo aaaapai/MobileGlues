@@ -476,6 +476,7 @@ extern "C"
     GL_FUNC_TYPEDEF(void, glMultiDrawElementsIndirectEXT, GLenum mode, GLenum type, const void* indirect,
                     GLsizei drawcount, GLsizei stride)
     GL_FUNC_TYPEDEF(void, glBruh)
+    GL_FUNC_TYPEDEF(void, glPolygonModeNV, GLenum face, GLenum mode)
     GL_FUNC_TYPEDEF(void, glMultiDrawElementsBaseVertexEXT, GLenum mode, const GLsizei* count, GLenum type,
                     const void* const* indices, GLsizei drawcount, const GLint* basevertex)
 
@@ -854,6 +855,7 @@ extern "C"
         GL_FUNC_DECL(glMultiDrawElementsBaseVertexEXT)
 
         GL_FUNC_DECL(glBruh)
+        GL_FUNC_DECL(glPolygonModeNV)
     };
 
     extern struct gles_func_t g_gles_func;

@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: LGPL-2.1-only
 // End of Source File Header
 #include "random_string_gen.h"
+#include <ctime>
 
 void InitRandom() {
     static bool inited = false;

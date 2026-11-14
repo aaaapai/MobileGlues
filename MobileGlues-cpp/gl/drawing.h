@@ -67,6 +67,7 @@ extern "C"
     GLAPI GLAPIENTRY void glMemoryBarrier(GLbitfield barriers);
     GLAPI GLAPIENTRY void glUniform1i(GLint location, GLint v0);
 
+    GLAPI GLAPIENTRY void glTextureBarrier(void);
 #ifdef __cplusplus
 }
 #endif

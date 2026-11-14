@@ -106,6 +106,11 @@ extern "C"
 
     GLAPI GLAPIENTRY void glBindVertexArray(GLuint array);
 
+    GLAPI GLAPIENTRY void glClearBufferSubData(GLenum target, GLenum internalformat, 
+	                          GLintptr offset, GLsizeiptr size,
+	                          GLenum format, GLenum type, 
+	                          const void* data);
+
 #ifdef __cplusplus
 }
 #endif
